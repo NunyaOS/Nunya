@@ -14,6 +14,8 @@ void console_init();
 void console_putchar( char c );
 int  console_write( int unit, const void *buffer, int nblocks, int offset );
 void console_heartbeat();
+void console_set_fgcolor(int r, int g, int b);
+void console_set_bgcolor(int r, int g, int b);
 
 #define console_printf printf
 

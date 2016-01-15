@@ -103,3 +103,18 @@ void console_init()
 	console_reset();
 	console_putstring("\nconsole: initialized\n");
 }
+
+void console_set_fgcolor(int r, int g, int b)
+{
+    fgcolor.r = r % 256;
+    fgcolor.g = g % 256;
+    fgcolor.b = b % 256;
+}
+
+void console_set_bgcolor(int r, int g, int b)
+{
+    bgcolor.r = r % 256;
+    bgcolor.g = g % 256;
+    bgcolor.b = b % 256;
+}
+
