@@ -103,3 +103,30 @@ void console_init()
 	console_reset();
 	console_putstring("\nconsole: initialized\n");
 }
+
+void console_set_fgcolor(int r, int g, int b)
+{
+    r = console_verify_color_range(r);
+    g = console_verify_color_range(g);
+    b = console_verify_color_range(b);
+    fgcolor.r = r;
+    fgcolor.g = g;
+    fgcolor.b = b;
+}
+
+void console_set_bgcolor(int r, int g, int b)
+{
+    r = console_verify_color_range(r);
+    g = console_verify_color_range(g);
+    b = console_verify_color_range(b);
+    bgcolor.r = r;
+    bgcolor.g = g;
+    bgcolor.b = b;
+}
+
+int console_verify_color_range(int x)
+{
+    if(x < 0) return 0;
+    if(x > 255) return 255;
+    return x;
+}
