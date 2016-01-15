@@ -39,6 +39,8 @@ static char buffer[BUFFER_SIZE];
 static int buffer_read = 0;
 static int buffer_write = 0;
 
+static char str_buffer[BUFFER_SIZE];
+
 static struct list queue = {0,0};
 
 static int keyboard_scan()
@@ -129,6 +131,25 @@ char keyboard_read()
 	result = buffer[buffer_read];
 	buffer_read = (buffer_read+1)%BUFFER_SIZE;
 	return result;
+}
+
+const char *keyboard_read_str() {
+	int i = 0;
+	char c = keyboard_read();
+	while(c != '\n' && c != '\r' && i < BUFFER_SIZE-1) {
+		console_putchar(c);
+		str_buffer[i++] = c;
+		
+		c = keyboard_read();
+	}
+	
+	// Mark the end of the line
+	str_buffer[i] = '\0';
+	
+	// Print the newline
+	console_putchar(c); 
+
+	return str_buffer;
 }
 
 void keyboard_init()
