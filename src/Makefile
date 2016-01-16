@@ -6,7 +6,7 @@ KERNEL_LDFLAGS=-m elf_i386
 all: basekernel.iso
 
 basekernel.iso: basekernel.img
-	mkisofs -J -R -o basekernel.iso -b basekernel.img basekernel.img
+	genisoimage -J -R -o basekernel.iso -b basekernel.img basekernel.img
 
 basekernel.img: bootblock kernel
 	cat bootblock kernel > basekernel.img
