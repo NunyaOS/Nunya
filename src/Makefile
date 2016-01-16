@@ -25,4 +25,4 @@ kernel: ${OBJECTS}
 	gcc ${KERNEL_CCFLAGS} $< -o $@
 
 clean:
-	rm -rf basekernel.img bootblock kernel *.o
+	rm -rf basekernel.iso basekernel.img bootblock kernel *.o
