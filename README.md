@@ -30,31 +30,15 @@ cd src
 make
 ```
 
-That will create `basekernel.img`, which is an image of a floppy disk that can be mounted in a virtual machine.  Next, set up a virtual machine system
-like VMWare, VirtualBox, or Bochs, and direct it to use that image.
+That will create `basekernel.iso`, which is an image of an optical disk that can be mounted in a virtual machine.  Next, set up a virtual machine system
+like VMWare, VirtualBox, or Bochs, and direct it to use that image. In VirtualBox, for example, you can select `Type > Linux` and `Version > Other Linux (32-bit)`
+Finally, point the virtual machine to `src > basekernel.iso`
 
 You should see something like this:
 
 <img src=screenshot.png align=center>
 
-(Hint: VirtualBox doesn't have floppy support enabled by default.  With your VM stopped, go to Settings->Storage and add a new floppy controller, then you can mount the image.)
-
-If you want to try it on a real machine, then write out a physical floppy disk like this:
-
-```
-dd if=basekernel.img of=/dev/floppy
-```
-
-Of course, nobody uses floppies any more.  To cold boot a physical machine, then you want to write out an optical disk containing the boot image.  That leads to your first little starter project:
-
-### Starter Project
-
-Read up on the `mkisofs` tool, and figure out how to create a CD-ROM
-image that has `basekernel.img` embedded within it as a bootable floppy.
-Use that CD as a bootable image with your virtual machine, or write
-it out to a physical CD, and use it to boot a real machine.
-
-## More Tweaks and Projects
+## Tweaks and Projects
 
 Now that you have the code running, here is a whole raft of ideas to
 try, starting some single-line code changes to more elaborate projects:
