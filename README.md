@@ -30,93 +30,13 @@ cd src
 make
 ```
 
-That will create `basekernel.img`, which is an image of a floppy disk that can be mounted in a virtual machine.  Next, set up a virtual machine system
-like VMWare, VirtualBox, or Bochs, and direct it to use that image.
+That will create `basekernel.iso`, which is an image of an optical disk that can be mounted in a virtual machine.  Next, set up a virtual machine system
+like VMWare, VirtualBox, or Bochs, and direct it to use that image. In VirtualBox, for example, you can select `Type > Linux` and `Version > Other Linux (32-bit)`
+Finally, point the virtual machine to `src > basekernel.iso`
 
 You should see something like this:
 
 <img src=screenshot.png align=center>
-
-(Hint: VirtualBox doesn't have floppy support enabled by default.  With your VM stopped, go to Settings->Storage and add a new floppy controller, then you can mount the image.)
-
-If you want to try it on a real machine, then write out a physical floppy disk like this:
-
-```
-dd if=basekernel.img of=/dev/floppy
-```
-
-Of course, nobody uses floppies any more.  To cold boot a physical machine, then you want to write out an optical disk containing the boot image.  That leads to your first little starter project:
-
-### Starter Project
-
-Read up on the `mkisofs` tool, and figure out how to create a CD-ROM
-image that has `basekernel.img` embedded within it as a bootable floppy.
-Use that CD as a bootable image with your virtual machine, or write
-it out to a physical CD, and use it to boot a real machine.
-
-## More Tweaks and Projects
-
-Now that you have the code running, here is a whole raft of ideas to
-try, starting some single-line code changes to more elaborate projects:
-
-* Modify main.c to display a custom startup message to welcome the user.
-
-* Tweak console.c to display things in a color of your choosing.
-
-* Examine the rtc.c module, and write a little code in main.c
-that will display a real-time clock.
-
-* Modify the infinite loop in main.c to display a kernel command
-prompt, and read some commands from the user to do things like 
-show system statistics, display the current time, reboot, etc.
-
-* Add some functions for drawing lines and shapes to graphics.c, and then use
-in main.c to make an interesting status display for your operating system.
-
-* Modify the console code so that it scrolls the display up when you
-reach the bottom, rather than clearing and starting over.
-
-* Try writing to an address somewhere into the (unmapped) user address space
-above 0x8000000.  Notice how you get a page fault, and the system halts?
-Modify the page fault handler to automatically allocate a fresh memory page
-and map it into the process each time this happens.
-
-* Implement proper memory resource management.  Create some system calls
-that allow each process to request/release memory in an orderly manner,
-and map it into the process in a suitable location.  Establish a policy
-for how many pages each process can get, and what happens when memory
-is exhausted.
-
-* Write some easily-recognizable data to a file, then mount it as a virtual disk
-image in your virtual machine of choice.  Use the ATA driver to load and
-display the raw data on the virtual disk.
-
-* Write a read-only driver for the ISO-9660 (CDROM) filesystem, and use it with the  ATAPI driver to browse and access an entire filesystem tree.
-
-* Write a read-write driver for a Unix-style filesystem with proper inodes
-and directory entries.  Copy data from your CDROM filesystem into the Unix
-filesystem, which you can now save across boot sessions.
-
-* Implement loadable programs.  Using either a filesystem or just a raw disk
-image file, load a user-level program compiled outside the kernel,
-and execute it.  The simplest way is to compile straight to binary format
-with a load address of 0x8000000, and then fall through process_switch().
-A more sophisticated way is to create an A.OUT or ELF format executable,
-and then write the code to load that into the kernel.
-
-* Create a display system for multiple processes.  Building on the bitmapped
-graphics module, create a set of virtual displays that allow each process
-to display independently without interfering with each other.
-
-* Port the system to 64-bit mode.  Start by modifying kernelcore.S to make
-a second jump from 32 to 64 bit mode, then update all of the types and
-kernel structures to accommodate the new mode.
-
-* Create a driver for the PCI bus, which enumerates all devices and their configurations.
-
-* Create an AHCI driver for SATA disks.
-
-* Create an OHCI or EHCI driver for USB devices.
 
 ## Machine Organization
 
