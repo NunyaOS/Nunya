@@ -8,6 +8,7 @@ See the file LICENSE for details.
 
 // This approximation from http://lab.polygonal.de/?p=205
 double cos( double x ) {
+	double cos;
 	// Round x to -PI to PI
 	if (x < -3.14159265)
 		x += 6.28318531;
@@ -19,22 +20,52 @@ double cos( double x ) {
 	if (x >  3.14159265)
 		x -= 6.28318531;
 
-	if (x < 0)
-		return 1.27323954 * x + 0.405284735 * x * x;
-	return 1.27323954 * x - 0.405284735 * x * x;
+	if (x < 0) {
+		cos = 1.27323954 * x + 0.405284735 * x * x;
+		
+		if (cos < 0)
+			cos = .225 * (cos *-cos - cos) + cos;
+		else
+			cos = .225 * (cos * cos - cos) + cos;
+	}
+	else {
+		cos = 1.27323954 * x - 0.405284735 * x * x;
+
+		if (cos < 0)
+			cos = .225 * (cos *-cos - cos) + cos;
+		else
+			cos = .225 * (cos * cos - cos) + cos;
+	}
+	return cos;
 }
 
 // This approximation from http://lab.polygonal.de/?p=205
 double sin( double x ) {
+	double sin;
 	// Round x to -PI to PI
 	if (x < -3.14159265)
 		x += 6.28318531;
 	else if (x >  3.14159265)
 		x -= 6.28318531;
 
-	if (x < 0)
-		return 1.27323954 * x + 0.405284735 * x * x;
-	return 1.27323954 * x - 0.405284735 * x * x;
+	if (x < 0) {
+		sin = 1.27323954 * x + .405284735 * x * x;
+	
+		if (sin < 0)
+			sin = .225 * (sin *-sin - sin) + sin;
+		else
+			sin = .225 * (sin * sin - sin) + sin;
+	}
+	else {
+		sin = 1.27323954 * x - 0.405284735 * x * x;
+		
+		if (sin < 0)
+			sin = .225 * (sin *-sin - sin) + sin;
+		else
+			sin = .225 * (sin * sin - sin) + sin;
+	}
+
+	return sin;
 }
 
 // This approximation from http://lab.polygonal.de/?p=205
