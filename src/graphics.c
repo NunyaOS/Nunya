@@ -8,6 +8,7 @@ See the file LICENSE for details.
 #include "kerneltypes.h"
 #include "font.h"
 #include "kernelcore.h"
+#include "math.h"
 
 int graphics_width()
 {
@@ -36,6 +37,49 @@ void graphics_rect( int x, int y, int w, int h, struct graphics_color c )
 			plot_pixel(x+i,y+j,c);
 		}
 	}
+}
+
+/** Draw a line on the display
+ *
+ *  Based on Bresenham's algorithm
+ *
+ */
+void graphics_line(int x1, int y1, int x2, int y2, struct graphics_color c) {
+    double deltax = x2 - x1;
+    double deltay = y2 - y1;
+    double error = 0;
+
+    // vertical line
+    if(deltax == 0) {
+        int i;
+        for (i = y1; i <= y2; i++) {
+            plot_pixel(x1, i, c);
+        }
+    }
+    else {
+        int sign;
+        int deltaerr = abs(deltay / deltax);
+        int y = y1;
+        int x;
+        int dy = y2 - y1;
+
+        if(dy < 0) {
+            sign = -1;
+        }
+        else {
+            sign = 1;
+        }
+
+        for(x = x1; x <= x2; x++) {
+            plot_pixel(x, y, c);
+            error = error + deltaerr;
+            while(error >= 0.5) {
+                plot_pixel(x, y, c);
+                y = y + sign;
+                error = error - 1.0;
+            }
+        }
+    }
 }
 
 void graphics_clear( struct graphics_color c )
