@@ -15,24 +15,23 @@ void console_putchar( char c );
 int  console_write( int unit, const void *buffer, int nblocks, int offset );
 void console_heartbeat();
 
-/*! console_set_fgcolor
-* The purpose of this function is to change the color of text
-* displayed on the screen shown when booting to an RGB tuple.
-* \arg \c r value for red
-* \arg \c g - value for green
-* \arg \c b - value for blue
-* return type \c void
+/** 
+* @brief sets the consoles fg color to given RGB
+* @details The purpose of this function is to change the color of text displayed on the screen shown when booting to an RGB tuple.
+* @param r The value for red between 0, 255 inclusive
+* @param g The value for green between 0, 255 inclusive
+* @param b The value for blue between 0, 255 inclusive
+* @return void
 */
 void console_set_fgcolor(uint8_t r, uint8_t g, uint8_t b);
 
-
-/*! console_set_bgcolor
-* The purpose of this function is to change the color of the highlighted text
-* displayed on the screen shown when booting to an RGB tuple.
-* \arg \c r value for red
-* \arg \c g - value for green
-* \arg \c b - value for blue
-* return type \c void
+/** 
+* @brief sets the consoles bg color to given RGB
+* @details The purpose of this function is to change the color of highlighting behind text displayed on the screen shown when booting to an RGB tuple.
+* @param r The value for red between 0, 255 inclusive
+* @param g The value for green between 0, 255 inclusive
+* @param b The value for blue between 0, 255 inclusive
+* @return void
 */
 void console_set_bgcolor(uint8_t r, uint8_t g, uint8_t b);
 
