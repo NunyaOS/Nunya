@@ -12,5 +12,6 @@ See the file LICENSE for details.
 void	memory_init();
 void *	memory_alloc_page( bool zeroit );
 void	memory_free_page( void *addr );
-
+void *  kmalloc(size_t size);
+void    kfree(void * to_free);
 #endif

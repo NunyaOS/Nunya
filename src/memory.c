@@ -4,12 +4,14 @@ This software is distributed under the GNU General Public License.
 See the file LICENSE for details.
 */
 
+#include "process.h"
 #include "console.h"
 #include "kerneltypes.h"
 #include "memory.h"
 #include "string.h"
 #include "memorylayout.h"
 #include "kernelcore.h"
+#include "pagetable.h"
 
 static uint32_t pages_free=0;
 static uint32_t pages_total=0;
@@ -23,6 +25,13 @@ static uint32_t freemap_pages=0;
 static void * alloc_memory_start = (void*) ALLOC_MEMORY_START;
 
 #define CELL_BITS (8*sizeof(*freemap))
+#define KMALLOC_SLOT_SIZE 8
+#define KMALLOC_NUM_SLOTS (PAGE_SIZE - 0)/KMALLOC_SLOT_SIZE
+typedef struct kmalloc_page_info{
+    kmalloc_page_info_t *next;  // next page pointer
+    int max_free_space;   // size of largest continguous section of free slots 
+    uint8_t free[KMALLOC_NUM_SLOTS]; // bit vector of free slots
+} kmalloc_page_info_t;
 
 void memory_init()
 {
@@ -105,4 +114,59 @@ void memory_free_page( void *pageaddr )
 	uint32_t cellmask = (1<<celloffset);
 	freemap[cellnumber] |= cellmask;
 	pages_free++;
+}
+
+void *  kmalloc(size_t size)
+{
+    kmalloc_page_info_t *page = current->kmalloc_head;
+    while(page){
+        if(page->max_free_space >= ( size - sizeof(uint_16)) ){
+           break; 
+        }
+        page = page->next;
+    }
+    if(!page){
+        kmalloc_get_page();
+        page = current->kmalloc_head;
+    }
+
+    //find first large enough gap
+
+    //mark these as malloc'd in kmalloc_page
+}
+
+void kmalloc_get_page()
+    //get current process's pagetable
+    struct pagetable * pt = current->pagetable;
+    unsigned vaddr = current->kmalloc_next_page_vaddr;
+    unsigned phys_addr;
+    if(pagetable_getmap(pt, vaddr, &phys_addr) != 1)
+    {
+        pagetable_alloc(pt, vaddr, PAGE_SIZE, PAGE_FLAG_ALLOC); 
+    }
+
+    // Failure to get page from page table
+    if(pagetable_getmap(pt, vaddr, &phys_addr) != 1)
+        return;
+    
+    current->kmalloc_next_page_vaddr += PAGE_SIZE;
+
+    // build the page struct
+    kmalloc_page_info_t *pg_info = kmalloc_create_page_info(phys_addr);
+    
+    pg_info->next = current->kmalloc_head;
+    current->kmalloc_head = pg_info;
+}
+
+kmalloc_page_info_t * kmalloc_create_page_info(unsigned paddr)
+{
+    kmalloc_page_info_t *n = (kmalloc_page_info_t *)paddr;
+    n->max_free_space = PAGE_SIZE - 0;
+    memset(n->free, 0, sizeof(uint8_t)*KMALLOC_NUM_SLOTS);
+    return n;  
+}
+
+void    kfree(void * to_free)
+{
+
 }
