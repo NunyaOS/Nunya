@@ -7,6 +7,7 @@ all: basekernel.iso
 
 basekernel.iso: basekernel.img
 	genisoimage -J -R -o basekernel.iso -b basekernel.img basekernel.img
+	rm basekernel.img
 
 basekernel.img: bootblock kernel
 	cat bootblock kernel > basekernel.img
