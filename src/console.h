@@ -14,8 +14,26 @@ void console_init();
 void console_putchar( char c );
 int  console_write( int unit, const void *buffer, int nblocks, int offset );
 void console_heartbeat();
-void console_set_fgcolor(int r, int g, int b);
-void console_set_bgcolor(int r, int g, int b);
+
+/** 
+* @brief sets the consoles fg color to given RGB
+* @details The purpose of this function is to change the color of text displayed on the screen shown when booting to an RGB tuple.
+* @param r The value for red between 0, 255 inclusive
+* @param g The value for green between 0, 255 inclusive
+* @param b The value for blue between 0, 255 inclusive
+* @return void
+*/
+void console_set_fgcolor(uint8_t r, uint8_t g, uint8_t b);
+
+/** 
+* @brief sets the consoles bg color to given RGB
+* @details The purpose of this function is to change the color of highlighting behind text displayed on the screen shown when booting to an RGB tuple.
+* @param r The value for red between 0, 255 inclusive
+* @param g The value for green between 0, 255 inclusive
+* @param b The value for blue between 0, 255 inclusive
+* @return void
+*/
+void console_set_bgcolor(uint8_t r, uint8_t g, uint8_t b);
 
 #define console_printf printf
 

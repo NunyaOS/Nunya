@@ -3,7 +3,10 @@ OBJECTS=kernelcore.o main.o console.o memory.o keyboard.o clock.o interrupt.o pi
 KERNEL_CCFLAGS=-Wall -c -ffreestanding -m32 -march=i386
 KERNEL_LDFLAGS=-m elf_i386
 
-all: basekernel.img
+all: basekernel.iso
+
+basekernel.iso: basekernel.img
+	genisoimage -J -R -o basekernel.iso -b basekernel.img basekernel.img
 
 basekernel.img: bootblock kernel
 	cat bootblock kernel > basekernel.img
@@ -22,4 +25,4 @@ kernel: ${OBJECTS}
 	gcc ${KERNEL_CCFLAGS} $< -o $@
 
 clean:
-	rm -rf basekernel.img bootblock kernel *.o
+	rm -rf basekernel.iso basekernel.img bootblock kernel *.o

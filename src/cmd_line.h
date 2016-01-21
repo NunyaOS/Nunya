@@ -7,11 +7,13 @@ See the file LICENSE for details.
 #ifndef CMD_LINE_H
 #define CMD_LINE_H
 
-//Publics
+/**
+* @brief Attempt to run the command given with its arguments
+* @detail Splits the line on whitespace, taking the first as the command and the rest as arguments. Will print "command not found" message if command is not found.
+*
+* @param line The string typed in at the prompt.
+* @return void
+*/
 void cmd_line_attempt(const char * line);
-
-//Privates
-void cmd_line_run_echo(const char * arg_line);
-void cmd_line_run_date(const char * arg_line);
 
 #endif

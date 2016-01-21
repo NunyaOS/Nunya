@@ -8,9 +8,23 @@ See the file LICENSE for details.
 #include "console.h"
 #include "string.h"
 
+//Privates
+void cmd_line_run_echo(const char * arg_line)
+{
+    console_printf("%s\n", arg_line);
+    return;
+}
+
+void cmd_line_run_date(const char * arg_line)
+{
+    console_printf("date: command not found\n");
+    return;
+}
+
+//Exposed
 void cmd_line_attempt(const char * line)
 {
-    char line_copy[256];
+    char line_copy[LINE_SIZE];
     strcpy(line_copy, line);
     char *first_word = strtok(line_copy, " ");
     char *the_rest = line + (strlen(first_word) + 1);
@@ -24,17 +38,3 @@ void cmd_line_attempt(const char * line)
         console_printf("%s: command not found\n", first_word);
     return;
 }
-
-//Privates
-void cmd_line_run_echo(const char * arg_line)
-{
-    console_printf("%s\n", arg_line);
-    return;
-}
-
-void cmd_line_run_date(const char * arg_line)
-{
-    console_printf("Not Yet Implemented\n");
-    return;
-}
-

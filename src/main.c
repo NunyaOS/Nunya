@@ -47,7 +47,12 @@ process_init() is a big step.  This initializes the process table, but also give
 
 	console_printf("\nBASEKERNEL READY:\n");
 
-	while(1) console_putchar(keyboard_read());
+    //change text color to white after bootup
+    console_set_fgcolor(255,255,255);
+
+	while(1) {
+		keyboard_read_str();
+	}
 
 	return 0;
 }

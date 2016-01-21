@@ -104,17 +104,29 @@ void console_init()
 	console_putstring("\nconsole: initialized\n");
 }
 
-void console_set_fgcolor(int r, int g, int b)
+uint8_t console_verify_color_range(uint8_t x)
 {
-    fgcolor.r = r % 256;
-    fgcolor.g = g % 256;
-    fgcolor.b = b % 256;
+    if(x < 0) return 0;
+    if(x > 255) return 255;
+    return x;
 }
 
-void console_set_bgcolor(int r, int g, int b)
+void console_set_fgcolor(uint8_t r, uint8_t g, uint8_t b)
 {
-    bgcolor.r = r % 256;
-    bgcolor.g = g % 256;
-    bgcolor.b = b % 256;
+    r = console_verify_color_range(r);
+    g = console_verify_color_range(g);
+    b = console_verify_color_range(b);
+    fgcolor.r = r;
+    fgcolor.g = g;
+    fgcolor.b = b;
 }
 
+void console_set_bgcolor(uint8_t r, uint8_t g, uint8_t b)
+{
+    r = console_verify_color_range(r);
+    g = console_verify_color_range(g);
+    b = console_verify_color_range(b);
+    bgcolor.r = r;
+    bgcolor.g = g;
+    bgcolor.b = b;
+}

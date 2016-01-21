@@ -8,6 +8,8 @@ See the file LICENSE for details.
 #define KEYBOARD_H
 
 char keyboard_read();
+const char *keyboard_read_str();
+
 void keyboard_init();
 
 #endif
