@@ -58,7 +58,8 @@ void graphics_line(int x1, int y1, int x2, int y2, struct graphics_color c) {
     }
     else {
         int sign;
-        int deltaerr = abs(deltay / deltax);
+        double deltaerr = deltay / deltax;
+        deltaerr = deltaerr < 0?-deltaerr:deltaerr;
         int y = y1;
         int x;
         int dy = y2 - y1;
