@@ -9,9 +9,19 @@ See the file LICENSE for details.
 
 #include "kerneltypes.h"
 
+#define KMALLOC_SLOT_SIZE 8
+#define KMALLOC_NUM_SLOTS (PAGE_SIZE - 0)/KMALLOC_SLOT_SIZE
+
+struct kmalloc_page_info{
+    struct kmalloc_page_info *next;  // next page pointer
+    int max_free_space;   // size of largest continguous section of free slots 
+    uint8_t free[KMALLOC_NUM_SLOTS]; // bit vector of free slots
+};
+
+
 void	memory_init();
 void *	memory_alloc_page( bool zeroit );
 void	memory_free_page( void *addr );
-void *  kmalloc(size_t size);
+void *  kmalloc(unsigned int size);
 void    kfree(void * to_free);
 #endif

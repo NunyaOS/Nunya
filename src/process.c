@@ -65,6 +65,8 @@ struct process * process_create( unsigned code_size, unsigned stack_size )
 
 	p->kstack = memory_alloc_page(1);
 	p->entry = PROCESS_ENTRY_POINT;
+    p->kmalloc_head = 0;
+    p->kmalloc_next_page_vaddr = 0;
 
 	process_stack_init(p);
 

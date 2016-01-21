@@ -11,6 +11,7 @@ See the file LICENSE for details.
 #include "list.h"
 #include "pagetable.h"
 #include "x86.h"
+#include "memory.h"
 
 #define PROCESS_STATE_CRADLE  0
 #define PROCESS_STATE_READY   1
@@ -27,8 +28,8 @@ struct process {
 	char *kstack_top;
 	char *stack_ptr;
 	uint32_t entry;
-    kmalloc_page_info_t * kmalloc_head;
-    unsigned kmalloc_next_page_vaddr = 0;
+    struct kmalloc_page_info * kmalloc_head;
+    unsigned kmalloc_next_page_vaddr;
 };
 
 void process_init();
