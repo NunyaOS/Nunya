@@ -13,8 +13,6 @@ See the file LICENSE for details.
 #include "process.h"
 #include "mutex.h"
 
-#define ATA_BLOCKSIZE 512
-
 #define ATA_IRQ0	32+14
 #define ATA_IRQ1	32+15
 #define ATA_IRQ2	32+11
