@@ -15,15 +15,7 @@ See the file LICENSE for details.
 
 #define DEFAULT_ATA_UNIT 0
 
-/**
- * @brief Read in data from a particular disk block
- * @details Read exactly num_bytes characters from a specified block and offset
- * @param destination
- * @param start_block_index
- * @param offset
- * @param num_bytes
- * @return number of bytes read
- */
+
 int disk_read(char *destination, int start_block_index, int offset, int num_bytes)
 {
 	int blocks_needed = ((offset + num_bytes) / ATA_BLOCKSIZE) + 1;
