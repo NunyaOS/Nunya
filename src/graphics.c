@@ -45,12 +45,38 @@ void graphics_rect( int x, int y, int w, int h, struct graphics_color c )
  *
  */
 void graphics_line(int x1, int y1, int x2, int y2, struct graphics_color c) {
+    // check for bounds
+    x1 = x1 >= video_xres ? video_xres - 1 : x1;
+    y1 = y1 >= video_yres ? video_yres - 1 : y1;
+    x2 = x2 >= video_xres ? video_xres - 1 : x2;
+    y2 = y2 >= video_yres ? video_yres - 1 : y2;
+    x1 = x1 < 0 ? 0 : x1;
+    y1 = y1 < 0 ? 0 : y1;
+    x2 = x2 < 0 ? 0 : x2;
+    y2 = y2 < 0 ? 0 : y2;
+
+    int tmp;
+    // flip points if x2 is less than x1
+    if(x2 < x1) {
+        tmp = x2;
+        x2 = x1;
+        x1 = tmp;
+        tmp = y2;
+        y2 = y1;
+        y1 = tmp;
+    }
     double deltax = x2 - x1;
     double deltay = y2 - y1;
     double error = 0;
 
     // vertical line
     if(deltax == 0) {
+        // flip vertical line where y2 < y1
+        if(y2 < y1) {
+            tmp = y2;
+            y2 = y1;
+            y1 = tmp;
+        }
         int i;
         for (i = y1; i <= y2; i++) {
             plot_pixel(x1, i, c);
@@ -59,7 +85,7 @@ void graphics_line(int x1, int y1, int x2, int y2, struct graphics_color c) {
     else {
         int sign;
         double deltaerr = deltay / deltax;
-        deltaerr = deltaerr < 0?-deltaerr:deltaerr;
+        deltaerr = deltaerr < 0 ? -deltaerr : deltaerr;
         int y = y1;
         int x;
         int dy = y2 - y1;
