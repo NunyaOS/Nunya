@@ -37,9 +37,9 @@ static const char * exception_names[] = {
 static void unknown_exception(int i, int code) {
     unsigned vaddr, paddr;
 
-    if(i==14) {
+    if (i==14) {
         asm("mov %%cr2, %0" : "=r" (vaddr));
-        if(pagetable_getmap(current->pagetable,vaddr,&paddr)) {
+        if (pagetable_getmap(current->pagetable,vaddr,&paddr)) {
             console_printf("interrupt: illegal page access at vaddr %x\n",vaddr);
             process_dump(current);
             process_exit(0);
@@ -54,7 +54,7 @@ static void unknown_exception(int i, int code) {
         process_dump(current);
     }
 
-    if(current) {
+    if (current) {
         process_exit(0);
     } else {
         console_printf("interrupt: exception in kernel code!\n");
@@ -63,7 +63,7 @@ static void unknown_exception(int i, int code) {
 }
 
 static void unknown_hardware(int i, int code) {
-    if(!interrupt_spurious[i]) {
+    if (!interrupt_spurious[i]) {
         console_printf("interrupt: spurious interrupt %d\n",i);
     }
     interrupt_spurious[i]++;
@@ -74,7 +74,7 @@ void interrupt_register(int i, interrupt_handler_t handler) {
 }
 
 static void interrupt_acknowledge(int i) {
-    if(i<32) {
+    if (i<32) {
         /* do nothing */
     } else {
         pic_acknowledge(i-32);
@@ -111,7 +111,7 @@ void interrupt_handler(int i, int code) {
 }
 
 void interrupt_enable(int i) {
-    if(i<32) {
+    if (i<32) {
         /* do nothing */
     } else {
         pic_enable(i-32);
@@ -119,7 +119,7 @@ void interrupt_enable(int i) {
 }
 
 void interrupt_disable(int i) {
-    if(i<32) {
+    if (i<32) {
         /* do nothing */
     } else {
         pic_disable(i-32);

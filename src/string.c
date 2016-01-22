@@ -12,19 +12,19 @@ See the file LICENSE for details.
 #include "stdarg.h"
 
 void strcpy(char *d, const char *s) {
-    while(*s) {
+    while (*s) {
         *d++ = *s++;
     }
     *d = 0;
 }
 
 int strcmp(const char *a, const char *b) {
-    while(1) {
-        if(*a<*b) {
+    while (1) {
+        if (*a<*b) {
             return -1;
-        } else if(*a>*b) {
+        } else if (*a>*b) {
             return 1;
-        } else if(*a==0) {
+        } else if (*a==0) {
             return 0;
         } else {
             a++;
@@ -34,12 +34,12 @@ int strcmp(const char *a, const char *b) {
 }
 
 int strncmp(const char *a, const char *b, unsigned length) {
-    while(length>0) {
-        if(*a<*b) {
+    while (length>0) {
+        if (*a<*b) {
             return -1;
-        } else if(*a>*b) {
+        } else if (*a>*b) {
             return 1;
-        } else if(*a==0) {
+        } else if (*a==0) {
             return 0;
         } else {
             a++;
@@ -52,7 +52,7 @@ int strncmp(const char *a, const char *b, unsigned length) {
 
 unsigned strlen(const char *s) {
     unsigned len=0;
-    while(*s) {
+    while (*s) {
         len++;
         s++;
     }
@@ -60,8 +60,8 @@ unsigned strlen(const char *s) {
 }
 
 const char *strchr(const char *s, char ch) {
-    while(*s) {
-        if(*s==ch) return s;
+    while (*s) {
+        if (*s==ch) return s;
         s++;
     }
     return 0;
@@ -71,19 +71,19 @@ char *strtok (char *s, const char *delim) {
     static char *oldword=0;
     char *word;
 
-    if(!s) s=oldword;
+    if (!s) s=oldword;
 
-    while(*s && strchr(delim,*s)) s++;
+    while (*s && strchr(delim,*s)) s++;
 
-    if(!*s) {
+    if (!*s) {
         oldword = s;
         return 0;
     }
 
     word = s;
-    while(*s && !strchr(delim,*s)) s++;
+    while (*s && !strchr(delim,*s)) s++;
 
-    if(*s) {
+    if (*s) {
         *s = 0;
         oldword = s+1;
     } else {
@@ -95,7 +95,7 @@ char *strtok (char *s, const char *delim) {
 
 void memset(void *vd, char value, unsigned length) {
     char *d = vd;
-    while(length) {
+    while (length) {
         *d = value;
         length--;
         d++;
@@ -105,7 +105,7 @@ void memset(void *vd, char value, unsigned length) {
 void memcpy(void *vd, const void *vs, unsigned length) {
     char *d = vd;
     const char *s = vs;
-    while(length) {
+    while (length) {
         *d = *s;
         d++;
         s++;
@@ -122,7 +122,7 @@ static void printf_putstring(char *s) {
 }
 
 static void printf_puthexdigit(uint8_t i) {
-    if(i<10) {
+    if (i<10) {
         printf_putchar('0'+i);
     } else {
         printf_putchar('a'+i-10);
@@ -138,18 +138,18 @@ static void printf_puthex(uint32_t i) {
 
 static void printf_putint(int32_t i) {
     int f, d;
-    if(i<0 && i!=0) {
+    if (i<0 && i!=0) {
         printf_putchar('-');
         i=-i;
     }
 
     f = 1;
-    while((i/f)>0) {
+    while ((i/f)>0) {
         f*=10;
     }
     f=f/10;
-    if(f==0) f=1;
-    while(f>0) {
+    if (f==0) f=1;
+    while (f>0) {
         d = i/f;
         printf_putchar('0'+d);
         i = i-d*f;
@@ -166,12 +166,12 @@ void printf(const char *s, ...) {
 
     va_start(args,s);
 
-    while(*s) {
-        if(*s!='%') {
+    while (*s) {
+        if (*s!='%') {
             printf_putchar(*s);
         } else {
             s++;
-            switch(*s) {
+            switch (*s) {
                 case 'd':
                     i = va_arg(args,int32_t);
                     printf_putint(i);

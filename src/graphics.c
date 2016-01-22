@@ -47,13 +47,13 @@ void graphics_bitmap(int x, int y, int width, int height, uint8_t *data, struct 
     for(j=0;j<height;j++) {
         for(i=0;i<width;i++) {
             value = ((*data)<<b)&0x80;
-            if(value) {
+            if (value) {
                 plot_pixel(x+i,y+j,fgcolor);
             } else {
                 plot_pixel(x+i,y+j,bgcolor);
             }
             b++;
-            if(b==8) {
+            if (b==8) {
                 data++;
                 b=0;
             }

@@ -95,9 +95,9 @@ static void rtc_fetch_time() {
         t.day = rtc_read_port(RTC_DAY_OF_MONTH);
         t.month = rtc_read_port(RTC_MONTH);
         t.year = rtc_read_port(RTC_YEAR);
-    } while(t.second != rtc_read_port(RTC_SECONDS));
+    } while (t.second != rtc_read_port(RTC_SECONDS));
 
-    if(t.hour&0x80) {
+    if (t.hour&0x80) {
         addpm = 1;
         t.hour &= 0x7f;
     } else {
@@ -107,12 +107,12 @@ static void rtc_fetch_time() {
     t.second = rtc_bcd_to_binary(t.second);
     t.minute = rtc_bcd_to_binary(t.minute);
     t.hour   = rtc_bcd_to_binary(t.hour);
-    if(addpm) t.hour += 12;
+    if (addpm) t.hour += 12;
     t.day    = rtc_bcd_to_binary(t.day);
     t.month  = rtc_bcd_to_binary(t.month);
     t.year   = rtc_bcd_to_binary(t.year);
 
-    if(t.year>=70) {
+    if (t.year>=70) {
         t.year += 1900;
     } else {
         t.year += 2000;

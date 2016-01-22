@@ -97,18 +97,18 @@ static int ata_wait(int id, int mask, int state) {
 
     start = clock_read();
 
-    while(1) {
+    while (1) {
         t = inb(ata_base[id]+ATA_STATUS);
-        if((t&mask)==state) {
+        if ((t&mask)==state) {
             return 1;
         }
-        if(t&ATA_STATUS_ERR) {
+        if (t&ATA_STATUS_ERR) {
             console_printf("ata: error\n");
             ata_reset(id);
             return 0;
         }
         elapsed = clock_diff(start,clock_read());
-        if(elapsed.seconds>ATA_TIMEOUT) {
+        if (elapsed.seconds>ATA_TIMEOUT) {
             console_printf("ata: timeout\n");
             ata_reset(id);
             return 0;
@@ -119,7 +119,7 @@ static int ata_wait(int id, int mask, int state) {
 
 static void ata_pio_read(int id, void *buffer, int size) {
     uint16_t *wbuffer = (uint16_t*)buffer;
-    while(size>0) {
+    while (size>0) {
         *wbuffer = inw(ata_base[id]+ATA_DATA);
         wbuffer++;
         size-=2;
@@ -128,7 +128,7 @@ static void ata_pio_read(int id, void *buffer, int size) {
 
 static void ata_pio_write(int id, const void *buffer, int size) {
     uint16_t *wbuffer = (uint16_t*)buffer;
-    while(size>0) {
+    while (size>0) {
         outw(*wbuffer,ata_base[id]+ATA_DATA);
         wbuffer++;
         size-=2;
@@ -143,7 +143,7 @@ static int ata_begin(int id, int command, int nblocks, int offset) {
     flags = ATA_FLAGS_ECC|ATA_FLAGS_LBA|ATA_FLAGS_SEC;
 
     // turn on the slave bit for odd-numbered drives
-    if(id%2) flags |= ATA_FLAGS_SLV;
+    if (id%2) flags |= ATA_FLAGS_SLV;
 
     // slice up the linear address in order to fit in the arguments
     sector  = (offset>> 0) & 0xff;
@@ -152,13 +152,13 @@ static int ata_begin(int id, int command, int nblocks, int offset) {
     flags  |= (offset>>24) & 0x0f;
 
     // wait for the disk to calm down
-    if(!ata_wait(id,ATA_STATUS_BSY,0)) return 0;
+    if (!ata_wait(id,ATA_STATUS_BSY,0)) return 0;
 
     // get the attention of the proper disk
     outb(flags,base+ATA_FDH);
 
     // wait again for the disk to indicate ready
-    if(!ata_wait(id,ATA_STATUS_BSY|ATA_STATUS_RDY,ATA_STATUS_RDY)) return 0;
+    if (!ata_wait(id,ATA_STATUS_BSY|ATA_STATUS_RDY,ATA_STATUS_RDY)) return 0;
 
     // send the arguments
     outb(0,base+ATA_CONTROL);
@@ -176,15 +176,15 @@ static int ata_begin(int id, int command, int nblocks, int offset) {
 
 static int ata_read_unlocked(int id, void *buffer, int nblocks, int offset) {
     int i;
-    if(!ata_begin(id,ATA_COMMAND_READ,nblocks,offset)) return 0;
-    if(ata_interrupt_active) process_wait(&queue);
+    if (!ata_begin(id,ATA_COMMAND_READ,nblocks,offset)) return 0;
+    if (ata_interrupt_active) process_wait(&queue);
     for(i=0;i<nblocks;i++) {
-        if(!ata_wait(id,ATA_STATUS_DRQ,ATA_STATUS_DRQ)) return 0;
+        if (!ata_wait(id,ATA_STATUS_DRQ,ATA_STATUS_DRQ)) return 0;
         ata_pio_read(id,buffer,ATA_BLOCKSIZE);
         buffer = ((char*)buffer)+ATA_BLOCKSIZE;
         offset++;
     }
-    if(!ata_wait(id,ATA_STATUS_BSY,0)) return 0;
+    if (!ata_wait(id,ATA_STATUS_BSY,0)) return 0;
     return nblocks;
 }
 
@@ -204,16 +204,16 @@ static int atapi_begin(int id, void *data, int length) {
     flags = ATA_FLAGS_ECC|ATA_FLAGS_LBA|ATA_FLAGS_SEC;
 
     // turn on the slave bit for odd-numbered drives
-    if(id%2) flags |= ATA_FLAGS_SLV;
+    if (id%2) flags |= ATA_FLAGS_SLV;
 
     // wait for the disk to calm down
-    if(!ata_wait(id,ATA_STATUS_BSY,0)) return 0;
+    if (!ata_wait(id,ATA_STATUS_BSY,0)) return 0;
 
     // get the attention of the proper disk
     outb(flags,base+ATA_FDH);
 
     // wait again for the disk to indicate ready
-    if(!ata_wait(id,ATA_STATUS_BSY|ATA_STATUS_RDY,ATA_STATUS_RDY)) return 0;
+    if (!ata_wait(id,ATA_STATUS_BSY|ATA_STATUS_RDY,ATA_STATUS_RDY)) return 0;
 
     // send the arguments
     outb(0,base+ATAPI_FEATURE);
@@ -226,7 +226,7 @@ static int atapi_begin(int id, void *data, int length) {
     outb(ATAPI_COMMAND_PACKET,base+ATA_COMMAND);
 
     // wait for ready
-    if(!ata_wait(id,ATA_STATUS_BSY|ATA_STATUS_DRQ,ATA_STATUS_DRQ));
+    if (!ata_wait(id,ATA_STATUS_BSY|ATA_STATUS_DRQ,ATA_STATUS_DRQ));
 
     // send the ATAPI packet
     ata_pio_write(id,data,length);
@@ -252,12 +252,12 @@ static int atapi_read_unlocked(int id, void *buffer, int nblocks, int offset) {
     packet[10] = 0;
     packet[11] = 0;
 
-    if(!atapi_begin(id,packet,length)) return 0;
+    if (!atapi_begin(id,packet,length)) return 0;
 
-    if(ata_interrupt_active) process_wait(&queue);
+    if (ata_interrupt_active) process_wait(&queue);
 
     for(i=0;i<nblocks;i++) {
-        if(!ata_wait(id,ATA_STATUS_DRQ,ATA_STATUS_DRQ)) return 0;
+        if (!ata_wait(id,ATA_STATUS_DRQ,ATA_STATUS_DRQ)) return 0;
         ata_pio_read(id,buffer,ATAPI_BLOCKSIZE);
         buffer = ((char*)buffer)+ATAPI_BLOCKSIZE;
         offset++;
@@ -276,15 +276,15 @@ int atapi_read(int id, void *buffer, int nblocks, int offset) {
 
 static int ata_write_unlocked(int id, const void *buffer, int nblocks, int offset) {
     int i;
-    if(!ata_begin(id,ATA_COMMAND_WRITE,nblocks,offset)) return 0;
+    if (!ata_begin(id,ATA_COMMAND_WRITE,nblocks,offset)) return 0;
     for(i=0;i<nblocks;i++) {
-        if(!ata_wait(id,ATA_STATUS_DRQ,ATA_STATUS_DRQ)) return 0;
+        if (!ata_wait(id,ATA_STATUS_DRQ,ATA_STATUS_DRQ)) return 0;
         ata_pio_write(id,buffer,ATA_BLOCKSIZE);
         buffer = ((char*)buffer)+ATA_BLOCKSIZE;
         offset++;
     }
-    if(ata_interrupt_active) process_wait(&queue);
-    if(!ata_wait(id,ATA_STATUS_BSY,0)) return 0;
+    if (ata_interrupt_active) process_wait(&queue);
+    if (!ata_wait(id,ATA_STATUS_BSY,0)) return 0;
     return nblocks;
 }
 
@@ -305,8 +305,8 @@ the the device is simply not connected.
 */
 
 static int ata_identify(int id, int command, void *buffer) {
-    if(!ata_begin(id,command,0,0)) return 0;
-    if(!ata_wait(id,ATA_STATUS_DRQ,ATA_STATUS_DRQ)) return 0;
+    if (!ata_begin(id,command,0,0)) return 0;
+    if (!ata_wait(id,ATA_STATUS_DRQ,ATA_STATUS_DRQ)) return 0;
     ata_pio_read(id,buffer,512);
     return 1;
 }
@@ -324,16 +324,16 @@ int ata_probe(int id, int *nblocks, int *blocksize, char *name) {
 
     t = inb(ata_base[id]+ATA_CYL_LO);
     outb(~t,ata_base[id]+ATA_CYL_LO);
-    if(inb(ata_base[id]+ATA_CYL_LO)==t) return 0;
+    if (inb(ata_base[id]+ATA_CYL_LO)==t) return 0;
 
     memset(cbuffer,0,512);
 
     ata_reset(id);
 
-    if(ata_identify(id,ATA_COMMAND_IDENTIFY,cbuffer)) {
+    if (ata_identify(id,ATA_COMMAND_IDENTIFY,cbuffer)) {
         *nblocks = buffer[1]*buffer[3]*buffer[6];
         *blocksize = 512;
-    } else if(ata_identify(id,ATAPI_COMMAND_IDENTIFY,cbuffer)) {
+    } else if (ata_identify(id,ATAPI_COMMAND_IDENTIFY,cbuffer)) {
         *nblocks = 337920;
         *blocksize = 2048;
     } else {
@@ -374,7 +374,7 @@ void ata_init() {
     console_printf("ata: probing devices\n");
 
     for(i=0;i<4;i++) {
-        if(ata_probe(i,&nblocks,&blocksize,longname)) {
+        if (ata_probe(i,&nblocks,&blocksize,longname)) {
 
             console_printf("ata unit %d: %s %d MB %s\n",i,blocksize==512 ? "ata disk" : "atapi cdrom", nblocks*blocksize/1024/1024,longname);
         } else {

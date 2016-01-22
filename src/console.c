@@ -27,7 +27,7 @@ static void console_writechar(int x, int y, char ch) {
 
 void console_heartbeat() {
     static int onoff=0;
-    if(onoff) {
+    if (onoff) {
         graphics_char(xpos*8,ypos*8,'_',fgcolor,bgcolor);
     } else {
         graphics_char(xpos*8,ypos*8,'_',bgcolor,bgcolor);
@@ -38,7 +38,7 @@ void console_heartbeat() {
 void console_putchar(char c) {
     console_writechar(xpos,ypos,' ');
 
-    switch(c) {
+    switch (c) {
         case 13:
         case 10:
             xpos=0;
@@ -56,17 +56,17 @@ void console_putchar(char c) {
             break;
     }
 
-    if(xpos<0) {
+    if (xpos<0) {
         xpos=xsize-1;
         ypos--;
     }
 
-    if(xpos>=xsize) {
+    if (xpos>=xsize) {
         xpos=0;
         ypos++;
     }
 
-    if(ypos>=ysize) {
+    if (ypos>=ysize) {
         console_reset();
     }
 
@@ -74,7 +74,7 @@ void console_putchar(char c) {
 }
 
 void console_putstring(const char *s) {
-    while(*s) {
+    while (*s) {
         console_putchar(*s);
         s++;
     }
@@ -82,7 +82,7 @@ void console_putstring(const char *s) {
 
 int console_write(int unit, const void *buffer, int length, int offset) {
     char *cbuffer = (char*)buffer;
-    while(length>0) {
+    while (length>0) {
         console_putchar(*cbuffer);
         cbuffer++;
         length--;
@@ -98,8 +98,8 @@ void console_init() {
 }
 
 uint8_t console_verify_color_range(uint8_t x) {
-    if(x < 0) return 0;
-    if(x > 255) return 255;
+    if (x < 0) return 0;
+    if (x > 255) return 255;
     return x;
 }
 

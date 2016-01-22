@@ -68,11 +68,11 @@ struct process * process_create(unsigned code_size, unsigned stack_size) {
     return p;
 }
 
-static void process_switch(int newstate) {
+static void process_switch (int newstate) {
     interrupt_block();
 
-    if(current) {
-        if(current->state!=PROCESS_STATE_CRADLE) {
+    if (current) {
+        if (current->state!=PROCESS_STATE_CRADLE) {
             asm("pushl %ebp");
             asm("pushl %edi");
             asm("pushl %esi");
@@ -84,16 +84,16 @@ static void process_switch(int newstate) {
         }
         interrupt_stack_pointer = (void*)INTERRUPT_STACK_TOP;
         current->state = newstate;
-        if(newstate==PROCESS_STATE_READY) {
+        if (newstate==PROCESS_STATE_READY) {
             list_push_tail(&ready_list,&current->node);
         }
     }
 
     current = 0;
 
-    while(1) {
+    while (1) {
         current = (struct process *) list_pop_head(&ready_list);
-        if(current) break;
+        if (current) break;
         interrupt_unblock();
         interrupt_wait();
         interrupt_block();
@@ -118,30 +118,30 @@ static void process_switch(int newstate) {
 int allow_preempt=0;
 
 void process_preempt() {
-    if(allow_preempt && current && ready_list.head) {
-        process_switch(PROCESS_STATE_READY);
+    if (allow_preempt && current && ready_list.head) {
+        process_switch (PROCESS_STATE_READY);
     }
 }
 
 void process_yield() {
-    process_switch(PROCESS_STATE_READY);
+    process_switch (PROCESS_STATE_READY);
 }
 
 void process_exit(int code) {
     console_printf("process exiting with status %d...\n",code);
     current->exitcode = code;
-    process_switch(PROCESS_STATE_GRAVE);
+    process_switch (PROCESS_STATE_GRAVE);
 }
 
 void process_wait(struct list * q) {
     list_push_tail(q,&current->node);
-    process_switch(PROCESS_STATE_BLOCKED);
+    process_switch (PROCESS_STATE_BLOCKED);
 }
 
 void process_wakeup(struct list *q) {
     struct process *p;
     p = (struct process *)list_pop_head(q);
-    if(p) {
+    if (p) {
         p->state = PROCESS_STATE_READY;
         list_push_tail(&ready_list,&p->node);
     }
@@ -149,7 +149,7 @@ void process_wakeup(struct list *q) {
 
 void process_wakeup_all(struct list *q) {
     struct process *p;
-    while((p = (struct process*)list_pop_head(q))) {
+    while ((p = (struct process*)list_pop_head(q))) {
         p->state = PROCESS_STATE_READY;
         list_push_tail(&ready_list,&p->node);
     }

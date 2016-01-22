@@ -56,12 +56,12 @@ int pagetable_getmap(struct pagetable *p, unsigned vaddr, unsigned *paddr) {
     unsigned b = (vaddr>>12) & 0x3ff;
 
     e = &p->entry[a];
-    if(!e->present) return 0;
+    if (!e->present) return 0;
 
     q = (struct pagetable*) (e->addr << 12);
 
     e = &q->entry[b];
-    if(!e->present) return 0;
+    if (!e->present) return 0;
 
     *paddr = e->addr << 12;
 
@@ -75,16 +75,16 @@ int pagetable_map(struct pagetable *p, unsigned vaddr, unsigned paddr, int flags
     unsigned a = vaddr>>22;
     unsigned b = (vaddr>>12) & 0x3ff;
 
-    if(flags&PAGE_FLAG_ALLOC) {
+    if (flags&PAGE_FLAG_ALLOC) {
         paddr = (unsigned) memory_alloc_page(0);
-        if(!paddr) return 0;
+        if (!paddr) return 0;
     }
 
     e = &p->entry[a];
 
-    if(!e->present) {
+    if (!e->present) {
         q = pagetable_create();
-        if(!q) return 0;
+        if (!q) return 0;
         e->present = 1;
         e->readwrite = 1;
         e->user = (flags&PAGE_FLAG_KERNEL) ? 0 : 1;
@@ -126,7 +126,7 @@ void pagetable_unmap(struct pagetable *p, unsigned vaddr) {
     unsigned b = vaddr>>12 & 0x3ff;
 
     e = &p->entry[a];
-    if(e->present) {
+    if (e->present) {
         q = (struct pagetable *)(e->addr << 12);
         e = &q->entry[b];
         e->present = 0;
@@ -141,11 +141,11 @@ void pagetable_delete(struct pagetable *p) {
 
     for(i=0;i<ENTRIES_PER_TABLE;i++) {
         e = &p->entry[i];
-        if(e->present) {
+        if (e->present) {
             q = (struct pagetable *) (e->addr<<12);
             for(j=0;j<ENTRIES_PER_TABLE;j++) {
                 e = &q->entry[i];
-                if(e->present && e->avail) {
+                if (e->present && e->avail) {
                     void *paddr;
                     paddr = (void *) (e->addr<<12);
                     memory_free_page(paddr);
@@ -159,13 +159,13 @@ void pagetable_delete(struct pagetable *p) {
 void pagetable_alloc(struct pagetable *p, unsigned vaddr, unsigned length, int flags) {
     unsigned npages = length/PAGE_SIZE;
 
-    if(length%PAGE_SIZE) npages++;
+    if (length%PAGE_SIZE) npages++;
 
     vaddr &= 0xfffff000;
 
-    while(npages>0) {
+    while (npages>0) {
         unsigned paddr;
-        if(!pagetable_getmap(p,vaddr,&paddr)) {
+        if (!pagetable_getmap(p,vaddr,&paddr)) {
             pagetable_map(p,vaddr,0,flags|PAGE_FLAG_ALLOC);
         }
         vaddr += PAGE_SIZE;

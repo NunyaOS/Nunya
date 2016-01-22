@@ -70,38 +70,38 @@ static char keyboard_map(int code)
 {
     int direction;
 
-    if(code&0x80) {
+    if (code&0x80) {
         direction = 0;
         code = code&0x7f;
     } else {
         direction = 1;
     }
 
-    if(keymap[code].special==SPECIAL_SHIFT) {
+    if (keymap[code].special==SPECIAL_SHIFT) {
         shift_mode = direction;
         return KEY_INVALID;
-    } else if(keymap[code].special==SPECIAL_ALT) {
+    } else if (keymap[code].special==SPECIAL_ALT) {
         alt_mode = direction;
         return KEY_INVALID;
-    } else if(keymap[code].special==SPECIAL_CTRL) {
+    } else if (keymap[code].special==SPECIAL_CTRL) {
         ctrl_mode = direction;
         return KEY_INVALID;
-    } else if(keymap[code].special==SPECIAL_SHIFTLOCK) {
-        if(direction==0) shiftlock_mode = !shiftlock_mode;
+    } else if (keymap[code].special==SPECIAL_SHIFTLOCK) {
+        if (direction==0) shiftlock_mode = !shiftlock_mode;
         return KEY_INVALID;
-    } else if(direction) {
-        if(ctrl_mode && alt_mode && keymap[code].normal==ASCII_DEL) {
+    } else if (direction) {
+        if (ctrl_mode && alt_mode && keymap[code].normal==ASCII_DEL) {
             reboot();
             return KEY_INVALID;
-        } else if(shiftlock_mode) {
-            if(shift_mode) {
+        } else if (shiftlock_mode) {
+            if (shift_mode) {
                 return keymap[code].normal;
             } else {
                 return keymap[code].shifted;
             }
-        } else if(shift_mode) {
+        } else if (shift_mode) {
             return keymap[code].shifted;
-        } else if(ctrl_mode) {
+        } else if (ctrl_mode) {
             return keymap[code].ctrled;
         } else {
             return keymap[code].normal;
@@ -114,8 +114,8 @@ static char keyboard_map(int code)
 void keyboard_interrupt(int i, int code) {
     char c;
     c = keyboard_map(keyboard_scan());
-    if(c==KEY_INVALID) return;
-    if((buffer_write+1) == (buffer_read%BUFFER_SIZE)) return;
+    if (c==KEY_INVALID) return;
+    if ((buffer_write+1) == (buffer_read%BUFFER_SIZE)) return;
     buffer[buffer_write] = c;
     buffer_write = (buffer_write+1)%BUFFER_SIZE;
     process_wakeup(&queue);
@@ -123,7 +123,7 @@ void keyboard_interrupt(int i, int code) {
 
 char keyboard_read() {
     int result;
-    while(buffer_read==buffer_write) {
+    while (buffer_read==buffer_write) {
         process_wait(&queue);
     }
     result = buffer[buffer_read];
@@ -134,7 +134,7 @@ char keyboard_read() {
 const char *keyboard_read_str() {
     int i = 0;
     char c = keyboard_read();
-    while(c != '\n' && c != '\r' && i < BUFFER_SIZE-1) {
+    while (c != '\n' && c != '\r' && i < BUFFER_SIZE-1) {
         console_putchar(c);
         str_buffer[i++] = c;
 

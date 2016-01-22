@@ -10,7 +10,7 @@ See the file LICENSE for details.
 
 void mutex_lock(struct mutex *m) {
     interrupt_block();
-    while(m->locked) {
+    while (m->locked) {
         process_wait(&m->waitqueue);
         interrupt_block();
     }

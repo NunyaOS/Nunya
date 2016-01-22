@@ -26,7 +26,7 @@ static struct list queue = {0,0};
 static void clock_interrupt(int i, int code) {
     clicks++;
     process_wakeup_all(&queue);
-    if(clicks>=CLICKS_PER_SECOND) {
+    if (clicks>=CLICKS_PER_SECOND) {
         clicks=0;
         seconds++;
         console_heartbeat();
@@ -43,7 +43,7 @@ clock_t clock_read() {
 
 clock_t clock_diff(clock_t start, clock_t stop) {
     clock_t result;
-    if(stop.millis<start.millis) {
+    if (stop.millis<start.millis) {
         stop.millis+=1000;
         stop.seconds-=1;
     }
@@ -61,7 +61,7 @@ void clock_wait(uint32_t millis) {
         process_wait(&queue);
         elapsed = clock_diff(start,clock_read());
         total = elapsed.millis + elapsed.seconds*1000;
-    } while(total<millis);
+    } while (total<millis);
 }
 
 void clock_init() {

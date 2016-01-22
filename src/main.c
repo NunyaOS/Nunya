@@ -50,7 +50,7 @@ process_init() is a big step.  This initializes the process table, but also give
     //change text color to white after bootup
     console_set_fgcolor(255,255,255);
 
-	while(1) {
+	while (1) {
 		keyboard_read_str();
 	}
 
