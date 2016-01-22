@@ -39,11 +39,11 @@ struct pagetable * pagetable_create() {
 void pagetable_init(struct pagetable *p) {
     unsigned i,stop;
     stop = total_memory*1024*1024;
-    for(i=0;i<stop;i+=PAGE_SIZE) {
+    for (i=0; i<stop; i+=PAGE_SIZE) {
         pagetable_map(p,i,i,PAGE_FLAG_KERNEL|PAGE_FLAG_READWRITE);
     }
     stop = (unsigned)video_buffer+video_xres*video_yres*3;
-    for(i=(unsigned)video_buffer;i<=stop;i+=PAGE_SIZE) {
+    for (i=(unsigned)video_buffer; i<=stop; i+=PAGE_SIZE) {
         pagetable_map(p,i,i,PAGE_FLAG_KERNEL|PAGE_FLAG_READWRITE);
     }
 }
@@ -139,11 +139,11 @@ void pagetable_delete(struct pagetable *p) {
     struct pageentry *e;
     struct pagetable *q;
 
-    for(i=0;i<ENTRIES_PER_TABLE;i++) {
+    for (i=0; i<ENTRIES_PER_TABLE; i++) {
         e = &p->entry[i];
         if (e->present) {
             q = (struct pagetable *) (e->addr<<12);
-            for(j=0;j<ENTRIES_PER_TABLE;j++) {
+            for (j=0; j<ENTRIES_PER_TABLE; j++) {
                 e = &q->entry[i];
                 if (e->present && e->avail) {
                     void *paddr;

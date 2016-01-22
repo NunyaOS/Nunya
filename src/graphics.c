@@ -27,8 +27,8 @@ static inline void plot_pixel(int x, int y, struct graphics_color c) {
 void graphics_rect(int x, int y, int w, int h, struct graphics_color c) {
     int i, j;
 
-    for(j=0;j<h;j++) {
-        for(i=0;i<w;i++) {
+    for (j=0; j<h; j++) {
+        for (i=0; i<w; i++) {
             plot_pixel(x+i,y+j,c);
         }
     }
@@ -44,8 +44,8 @@ void graphics_bitmap(int x, int y, int width, int height, uint8_t *data, struct 
 
     b=0;
 
-    for(j=0;j<height;j++) {
-        for(i=0;i<width;i++) {
+    for (j=0; j<height; j++) {
+        for (i=0; i<width; i++) {
             value = ((*data)<<b)&0x80;
             if (value) {
                 plot_pixel(x+i,y+j,fgcolor);

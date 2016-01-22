@@ -84,16 +84,16 @@ static void interrupt_acknowledge(int i) {
 void interrupt_init() {
     int i;
     pic_init(32,40);
-    for(i=32;i<48;i++) {
+    for (i=32; i<48; i++) {
         interrupt_disable(i);
         interrupt_acknowledge(i);
     }
-    for(i=0;i<32;i++) {
+    for (i=0; i<32; i++) {
         interrupt_handler_table[i] = unknown_exception;
         interrupt_spurious[i] = 0;
         interrupt_count[i] = 0;
     }
-    for(i=32;i<48;i++) {
+    for (i=32; i<48; i++) {
         interrupt_handler_table[i] = unknown_hardware;
         interrupt_spurious[i] = 0;
         interrupt_count[i] = 0;

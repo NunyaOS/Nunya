@@ -178,7 +178,7 @@ static int ata_read_unlocked(int id, void *buffer, int nblocks, int offset) {
     int i;
     if (!ata_begin(id,ATA_COMMAND_READ,nblocks,offset)) return 0;
     if (ata_interrupt_active) process_wait(&queue);
-    for(i=0;i<nblocks;i++) {
+    for (i=0; i<nblocks; i++) {
         if (!ata_wait(id,ATA_STATUS_DRQ,ATA_STATUS_DRQ)) return 0;
         ata_pio_read(id,buffer,ATA_BLOCKSIZE);
         buffer = ((char*)buffer)+ATA_BLOCKSIZE;
@@ -256,7 +256,7 @@ static int atapi_read_unlocked(int id, void *buffer, int nblocks, int offset) {
 
     if (ata_interrupt_active) process_wait(&queue);
 
-    for(i=0;i<nblocks;i++) {
+    for (i=0; i<nblocks; i++) {
         if (!ata_wait(id,ATA_STATUS_DRQ,ATA_STATUS_DRQ)) return 0;
         ata_pio_read(id,buffer,ATAPI_BLOCKSIZE);
         buffer = ((char*)buffer)+ATAPI_BLOCKSIZE;
@@ -277,7 +277,7 @@ int atapi_read(int id, void *buffer, int nblocks, int offset) {
 static int ata_write_unlocked(int id, const void *buffer, int nblocks, int offset) {
     int i;
     if (!ata_begin(id,ATA_COMMAND_WRITE,nblocks,offset)) return 0;
-    for(i=0;i<nblocks;i++) {
+    for (i=0; i<nblocks; i++) {
         if (!ata_wait(id,ATA_STATUS_DRQ,ATA_STATUS_DRQ)) return 0;
         ata_pio_write(id,buffer,ATA_BLOCKSIZE);
         buffer = ((char*)buffer)+ATA_BLOCKSIZE;
@@ -342,7 +342,7 @@ int ata_probe(int id, int *nblocks, int *blocksize, char *name) {
 
     /* Now byte-swap the data so as the generate byte-ordered strings */
 
-    for(i=0;i<512;i+=2) {
+    for (i=0; i<512; i+=2) {
         t = cbuffer[i];
         cbuffer[i] = cbuffer[i+1];
         cbuffer[i+1] = t;
@@ -373,7 +373,7 @@ void ata_init() {
 
     console_printf("ata: probing devices\n");
 
-    for(i=0;i<4;i++) {
+    for (i=0; i<4; i++) {
         if (ata_probe(i,&nblocks,&blocksize,longname)) {
 
             console_printf("ata unit %d: %s %d MB %s\n",i,blocksize==512 ? "ata disk" : "atapi cdrom", nblocks*blocksize/1024/1024,longname);

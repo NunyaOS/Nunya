@@ -131,7 +131,7 @@ static void printf_puthexdigit(uint8_t i) {
 
 static void printf_puthex(uint32_t i) {
     int j;
-    for(j=28;j>=0;j=j-4) {
+    for (j=28; j>=0; j=j-4) {
         printf_puthexdigit((i>>j)&0x0f);
     }
 }
