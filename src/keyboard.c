@@ -66,7 +66,7 @@ static int alt_mode = 0;
 static int ctrl_mode = 0;
 static int shiftlock_mode = 0;
 
-static char keyboard_map( int code)
+static char keyboard_map(int code)
 {
 	int direction;
 
@@ -111,7 +111,7 @@ static char keyboard_map( int code)
 	}
 }
 
-void keyboard_interrupt( int i, int code)
+void keyboard_interrupt(int i, int code)
 {
 	char c;
 	c = keyboard_map(keyboard_scan());

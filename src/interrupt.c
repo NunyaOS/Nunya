@@ -34,7 +34,7 @@ static const char * exception_names[] = {
         "coprocessor error"
 };
 
-static void unknown_exception( int i, int code)
+static void unknown_exception(int i, int code)
 {
 	unsigned vaddr, paddr;
 
@@ -63,7 +63,7 @@ static void unknown_exception( int i, int code)
 	}
 }
 
-static void unknown_hardware( int i, int code)
+static void unknown_hardware(int i, int code)
 {
 	if(!interrupt_spurious[i]) {
 		console_printf("interrupt: spurious interrupt %d\n",i);
@@ -71,12 +71,12 @@ static void unknown_hardware( int i, int code)
 	interrupt_spurious[i]++;
 }
 
-void interrupt_register( int i, interrupt_handler_t handler)
+void interrupt_register(int i, interrupt_handler_t handler)
 {
 	interrupt_handler_table[i] = handler;
 }
 
-static void interrupt_acknowledge( int i)
+static void interrupt_acknowledge(int i)
 {
 	if(i<32) {
 		/* do nothing */
@@ -109,14 +109,14 @@ void interrupt_init()
 	console_printf("interrupt: ready\n");
 }
 
-void interrupt_handler( int i, int code)
+void interrupt_handler(int i, int code)
 {
 	(interrupt_handler_table[i]) (i,code);
 	interrupt_acknowledge(i);
 	interrupt_count[i]++;
 }
 
-void interrupt_enable( int i)
+void interrupt_enable(int i)
 {
 	if(i<32) {
 		/* do nothing */
@@ -125,7 +125,7 @@ void interrupt_enable( int i)
 	}
 }
 
-void interrupt_disable( int i)
+void interrupt_disable(int i)
 {
 	if(i<32) {
 		/* do nothing */

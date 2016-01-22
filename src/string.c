@@ -11,7 +11,7 @@ See the file LICENSE for details.
 
 #include "stdarg.h"
 
-void strcpy( char *d, const char *s)
+void strcpy(char *d, const char *s)
 {
 	while(*s) {
 		*d++ = *s++;
@@ -19,7 +19,7 @@ void strcpy( char *d, const char *s)
 	*d = 0;
 }
 
-int strcmp( const char *a, const char *b)
+int strcmp(const char *a, const char *b)
 {
 	while(1) {
 		if(*a<*b) {
@@ -35,7 +35,7 @@ int strcmp( const char *a, const char *b)
 	}
 }
 
-int strncmp( const char *a, const char *b, unsigned length)
+int strncmp(const char *a, const char *b, unsigned length)
 {
 	while(length>0) {
 		if(*a<*b) {
@@ -53,7 +53,7 @@ int strncmp( const char *a, const char *b, unsigned length)
 	return 0;
 }
 
-unsigned strlen( const char *s)
+unsigned strlen(const char *s)
 {
 	unsigned len=0;
 	while(*s) {
@@ -63,7 +63,7 @@ unsigned strlen( const char *s)
 	return len;
 }
 
-const char * strchr( const char *s, char ch)
+const char * strchr(const char *s, char ch)
 {
 	while(*s) {
 		if(*s==ch) return s;
@@ -72,7 +72,7 @@ const char * strchr( const char *s, char ch)
 	return 0;
 }
 
-char * strtok ( char *s, const char *delim)
+char * strtok (char *s, const char *delim)
 {
 	static char *oldword=0;
 	char *word;
@@ -99,7 +99,7 @@ char * strtok ( char *s, const char *delim)
 	return word;
 }
 
-void	memset( void *vd, char value, unsigned length)
+void	memset(void *vd, char value, unsigned length)
 {
 	char *d = vd;
 	while(length) {
@@ -109,7 +109,7 @@ void	memset( void *vd, char value, unsigned length)
 	}
 }
 
-void	memcpy( void *vd, const void *vs, unsigned length)
+void	memcpy(void *vd, const void *vs, unsigned length)
 {
 	char *d = vd;
 	const char *s = vs;
@@ -121,17 +121,17 @@ void	memcpy( void *vd, const void *vs, unsigned length)
 	}
 }
 
-static void printf_putchar( char c)
+static void printf_putchar(char c)
 {
 	console_write(0,&c,1,0);
 }
 
-static void printf_putstring( char *s)
+static void printf_putstring(char *s)
 {
 	console_write(0,s,strlen(s),0);
 }
 
-static void printf_puthexdigit( uint8_t i)
+static void printf_puthexdigit(uint8_t i)
 {
 	if(i<10) {
 		printf_putchar('0'+i);
@@ -140,7 +140,7 @@ static void printf_puthexdigit( uint8_t i)
 	}
 }
 
-static void printf_puthex( uint32_t i)
+static void printf_puthex(uint32_t i)
 {
 	int j;
 	for(j=28;j>=0;j=j-4) {
@@ -148,7 +148,7 @@ static void printf_puthex( uint32_t i)
 	}
 }
 
-static void printf_putint( int32_t i)
+static void printf_putint(int32_t i)
 {
 	int f, d;
 	if(i<0 && i!=0) {
@@ -170,7 +170,7 @@ static void printf_putint( int32_t i)
 	}
 }
 
-void printf( const char *s, ...)
+void printf(const char *s, ...)
 {
 	va_list args;
 

@@ -23,7 +23,7 @@ static uint32_t seconds=0;
 
 static struct list queue = {0,0};
 
-static void clock_interrupt( int i, int code)
+static void clock_interrupt(int i, int code)
 {
     clicks++;
     process_wakeup_all(&queue);
@@ -43,7 +43,7 @@ clock_t clock_read()
     return result;
 }
 
-clock_t clock_diff( clock_t start, clock_t stop)
+clock_t clock_diff(clock_t start, clock_t stop)
 {
     clock_t result;
     if(stop.millis<start.millis) {
@@ -55,7 +55,7 @@ clock_t clock_diff( clock_t start, clock_t stop)
     return result;
 }
 
-void clock_wait( uint32_t millis)
+void clock_wait(uint32_t millis)
 {
     clock_t start, elapsed;
     uint32_t total;

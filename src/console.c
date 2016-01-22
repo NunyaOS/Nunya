@@ -22,7 +22,7 @@ static void console_reset()
     graphics_clear(bgcolor);
 }
 
-static void console_writechar( int x, int y, char ch)
+static void console_writechar(int x, int y, char ch)
 {
     graphics_char(x*8,y*8,ch,fgcolor,bgcolor);
 }
@@ -38,7 +38,7 @@ void console_heartbeat()
     onoff = !onoff;
 }
 
-void console_putchar( char c)
+void console_putchar(char c)
 {
     console_writechar(xpos,ypos,' ');
 
@@ -77,7 +77,7 @@ void console_putchar( char c)
     console_writechar(xpos,ypos,'_');
 }
 
-void console_putstring( const char *s)
+void console_putstring(const char *s)
 {
     while(*s) {
         console_putchar(*s);
@@ -85,7 +85,7 @@ void console_putstring( const char *s)
     }
 }
 
-int console_write( int unit, const void *buffer, int length, int offset)
+int console_write(int unit, const void *buffer, int length, int offset)
 {
     char *cbuffer = (char*)buffer;
     while(length>0) {

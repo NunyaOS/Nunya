@@ -11,8 +11,8 @@ See the file LICENSE for details.
 #include "string.h"
 
 void console_init();
-void console_putchar( char c);
-int  console_write( int unit, const void *buffer, int nblocks, int offset);
+void console_putchar(char c);
+int  console_write(int unit, const void *buffer, int nblocks, int offset);
 void console_heartbeat();
 
 /**

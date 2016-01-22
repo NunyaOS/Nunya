@@ -29,7 +29,7 @@ void process_init()
 	console_printf("process: ready\n");
 }
 
-static void process_stack_init( struct process *p)
+static void process_stack_init(struct process *p)
 {
 	struct x86_stack *s;
 
@@ -52,7 +52,7 @@ static void process_stack_init( struct process *p)
 	s->ss = X86_SEGMENT_USER_DATA;
 }
 
-struct process * process_create( unsigned code_size, unsigned stack_size)
+struct process * process_create(unsigned code_size, unsigned stack_size)
 {
 	struct process *p;
 
@@ -71,7 +71,7 @@ struct process * process_create( unsigned code_size, unsigned stack_size)
 	return p;
 }
 
-static void process_switch( int newstate)
+static void process_switch(int newstate)
 {
 	interrupt_block();
 
@@ -133,20 +133,20 @@ void process_yield()
 	process_switch(PROCESS_STATE_READY);
 }
 
-void process_exit( int code)
+void process_exit(int code)
 {
 	console_printf("process exiting with status %d...\n",code);
 	current->exitcode = code;
 	process_switch(PROCESS_STATE_GRAVE);
 }
 
-void process_wait( struct list * q)
+void process_wait(struct list * q)
 {
 	list_push_tail(q,&current->node);
 	process_switch(PROCESS_STATE_BLOCKED);
 }
 
-void process_wakeup( struct list *q)
+void process_wakeup(struct list *q)
 {
 	struct process *p;
 	p = (struct process *)list_pop_head(q);
@@ -156,7 +156,7 @@ void process_wakeup( struct list *q)
 	}
 }
 
-void process_wakeup_all( struct list *q)
+void process_wakeup_all(struct list *q)
 {
 	struct process *p;
 	while((p = (struct process*)list_pop_head(q))) {
@@ -165,7 +165,7 @@ void process_wakeup_all( struct list *q)
 	}
 }
 
-void process_dump( struct process *p)
+void process_dump(struct process *p)
 {
 	struct x86_stack *s = (struct x86_stack*)(p->kstack+PAGE_SIZE-sizeof(*s));
 	console_printf("kstack: %x\n",p->kstack);
