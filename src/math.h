@@ -17,7 +17,7 @@ See the file LICENSE for details.
  * @param x The value, between 0 and 2 PI
  * @return The approximate cosine value
  */
-double cos( double x );
+double cos(double x);
 
 /**
  * @brief A sine approximation of x
@@ -27,7 +27,7 @@ double cos( double x );
  * @param x The value, between 0 and 2 PI
  * @return The approximate sine value
  */
-double sin( double x );
+double sin(double x);
 
 /**
  * @brief A tangent approximation of x
@@ -36,6 +36,6 @@ double sin( double x );
  * @param x The value, between 0 and 2 PI
  * @return The approximate tangent value
  */
-double tan( double x );
+double tan(double x);
 
 #endif
