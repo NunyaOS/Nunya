@@ -29,17 +29,17 @@ void graphics_rect(int x, int y, int w, int h, struct graphics_color c) {
 
     for (j=0; j<h; j++) {
         for (i=0; i<w; i++) {
-            plot_pixel(x+i,y+j,c);
+            plot_pixel(x+i, y+j, c);
         }
     }
 }
 
 void graphics_clear(struct graphics_color c) {
-    graphics_rect(0,0,video_xres,video_yres,c);
+    graphics_rect(0, 0, video_xres, video_yres, c);
 }
 
 void graphics_bitmap(int x, int y, int width, int height, uint8_t *data, struct graphics_color fgcolor, struct graphics_color bgcolor) {
-    int i,j,b;
+    int i, j, b;
     int value;
 
     b=0;
@@ -48,9 +48,9 @@ void graphics_bitmap(int x, int y, int width, int height, uint8_t *data, struct 
         for (i=0; i<width; i++) {
             value = ((*data)<<b)&0x80;
             if (value) {
-                plot_pixel(x+i,y+j,fgcolor);
+                plot_pixel(x+i, y+j, fgcolor);
             } else {
-                plot_pixel(x+i,y+j,bgcolor);
+                plot_pixel(x+i, y+j, bgcolor);
             }
             b++;
             if (b==8) {
@@ -63,5 +63,5 @@ void graphics_bitmap(int x, int y, int width, int height, uint8_t *data, struct 
 
 void graphics_char(int x, int y, char ch, struct graphics_color fgcolor, struct graphics_color bgcolor) {
     int u = ((int)ch)*FONT_WIDTH*FONT_HEIGHT/8;
-    return graphics_bitmap(x,y,FONT_WIDTH,FONT_HEIGHT,&fontdata[u],fgcolor,bgcolor);
+    return graphics_bitmap(x, y, FONT_WIDTH, FONT_HEIGHT, &fontdata[u], fgcolor, bgcolor);
 }

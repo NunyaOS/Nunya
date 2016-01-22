@@ -49,7 +49,7 @@ static inline void outl(uint32_t value, int port) {
 }
 
 static inline void iowait() {
-    outb(0,0x80);
+    outb(0, 0x80);
 }
 
 static inline uint8_t inb_slow(int port) {
@@ -71,17 +71,17 @@ static inline uint32_t inl_slow(int port) {
 }
 
 static inline void outb_slow(uint8_t value, int port) {
-    outb(value,port);
+    outb(value, port);
     iowait();
 }
 
 static inline void outw_slow(uint16_t value, int port) {
-    outw(value,port);
+    outw(value, port);
     iowait();
 }
 
 static inline void outl_slow(uint32_t value, int port) {
-    outl(value,port);
+    outl(value, port);
     iowait();
 }
 

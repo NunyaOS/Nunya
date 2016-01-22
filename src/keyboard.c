@@ -41,7 +41,7 @@ static int buffer_write = 0;
 
 static char str_buffer[BUFFER_SIZE];
 
-static struct list queue = {0,0};
+static struct list queue = {0, 0};
 
 static int keyboard_scan()
 {
@@ -53,9 +53,9 @@ static int keyboard_scan()
     ack = inb(KEYBOARD_PORT_B);
     iowait();
     ack |= KEYBOARD_ACK;
-    outb(ack,KEYBOARD_PORT_B);
+    outb(ack, KEYBOARD_PORT_B);
     iowait();
-    outb(ack,KEYBOARD_PORT_B);
+    outb(ack, KEYBOARD_PORT_B);
     iowait();
 
     return code;
@@ -151,7 +151,7 @@ const char *keyboard_read_str() {
 }
 
 void keyboard_init() {
-    interrupt_register(33,keyboard_interrupt);
+    interrupt_register(33, keyboard_interrupt);
     keyboard_scan();
     interrupt_enable(33);
     console_printf("keyboard: ready\n");

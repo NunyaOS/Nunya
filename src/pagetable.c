@@ -37,14 +37,14 @@ struct pagetable * pagetable_create() {
 }
 
 void pagetable_init(struct pagetable *p) {
-    unsigned i,stop;
+    unsigned i, stop;
     stop = total_memory*1024*1024;
     for (i=0; i<stop; i+=PAGE_SIZE) {
-        pagetable_map(p,i,i,PAGE_FLAG_KERNEL|PAGE_FLAG_READWRITE);
+        pagetable_map(p, i, i, PAGE_FLAG_KERNEL|PAGE_FLAG_READWRITE);
     }
     stop = (unsigned)video_buffer+video_xres*video_yres*3;
     for (i=(unsigned)video_buffer; i<=stop; i+=PAGE_SIZE) {
-        pagetable_map(p,i,i,PAGE_FLAG_KERNEL|PAGE_FLAG_READWRITE);
+        pagetable_map(p, i, i, PAGE_FLAG_KERNEL|PAGE_FLAG_READWRITE);
     }
 }
 
@@ -134,7 +134,7 @@ void pagetable_unmap(struct pagetable *p, unsigned vaddr) {
 }
 
 void pagetable_delete(struct pagetable *p) {
-    unsigned i,j;
+    unsigned i, j;
 
     struct pageentry *e;
     struct pagetable *q;
@@ -165,8 +165,8 @@ void pagetable_alloc(struct pagetable *p, unsigned vaddr, unsigned length, int f
 
     while (npages>0) {
         unsigned paddr;
-        if (!pagetable_getmap(p,vaddr,&paddr)) {
-            pagetable_map(p,vaddr,0,flags|PAGE_FLAG_ALLOC);
+        if (!pagetable_getmap(p, vaddr, &paddr)) {
+            pagetable_map(p, vaddr, 0, flags|PAGE_FLAG_ALLOC);
         }
         vaddr += PAGE_SIZE;
         npages--;

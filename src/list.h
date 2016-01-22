@@ -22,7 +22,7 @@ struct list_node {
     int priority;
 };
 
-#define LIST_INIT {0,0}
+#define LIST_INIT {0, 0}
 
 void list_push_head(struct list *list, struct list_node *node);
 void list_push_tail(struct list *list, struct list_node *node);

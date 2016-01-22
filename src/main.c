@@ -30,8 +30,8 @@ int kernel_main()
 {
 	console_init();
 
-	console_printf("video: %d x %d\n",video_xres,video_yres,video_xbytes);
-	console_printf("kernel: %d bytes\n",kernel_size);
+	console_printf("video: %d x %d\n", video_xres, video_yres, video_xbytes);
+	console_printf("kernel: %d bytes\n", kernel_size);
 
 	memory_init();
 	interrupt_init();
@@ -50,7 +50,7 @@ process_init() is a big step.  This initializes the process table, but also give
 	console_printf("\nBASEKERNEL READY:\n");
 
     //change text color to white after bootup
-    console_set_fgcolor(255,255,255);
+    console_set_fgcolor(255, 255, 255);
 
 	while (1) {
 		keyboard_read_str();

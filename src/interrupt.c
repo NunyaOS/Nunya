@@ -39,18 +39,18 @@ static void unknown_exception(int i, int code) {
 
     if (i==14) {
         asm("mov %%cr2, %0" : "=r" (vaddr));
-        if (pagetable_getmap(current->pagetable,vaddr,&paddr)) {
-            console_printf("interrupt: illegal page access at vaddr %x\n",vaddr);
+        if (pagetable_getmap(current->pagetable, vaddr, &paddr)) {
+            console_printf("interrupt: illegal page access at vaddr %x\n", vaddr);
             process_dump(current);
             process_exit(0);
         } else {
-            printf("interrupt: page fault at %x\n",vaddr);
+            printf("interrupt: page fault at %x\n", vaddr);
             printf("please write a fault handler in interrupt.c!\n");
             printf("kernel halted.\n");
             halt();
         }
     } else {
-        console_printf("interrupt: exception %d: %s (code %x)\n",i,exception_names[i],code);
+        console_printf("interrupt: exception %d: %s (code %x)\n", i, exception_names[i], code);
         process_dump(current);
     }
 
@@ -64,7 +64,7 @@ static void unknown_exception(int i, int code) {
 
 static void unknown_hardware(int i, int code) {
     if (!interrupt_spurious[i]) {
-        console_printf("interrupt: spurious interrupt %d\n",i);
+        console_printf("interrupt: spurious interrupt %d\n", i);
     }
     interrupt_spurious[i]++;
 }
@@ -83,7 +83,7 @@ static void interrupt_acknowledge(int i) {
 
 void interrupt_init() {
     int i;
-    pic_init(32,40);
+    pic_init(32, 40);
     for (i=32; i<48; i++) {
         interrupt_disable(i);
         interrupt_acknowledge(i);
@@ -105,7 +105,7 @@ void interrupt_init() {
 }
 
 void interrupt_handler(int i, int code) {
-    (interrupt_handler_table[i]) (i,code);
+    (interrupt_handler_table[i]) (i, code);
     interrupt_acknowledge(i);
     interrupt_count[i]++;
 }

@@ -15,10 +15,10 @@ See the file LICENSE for details.
 #include "kernelcore.h"
 
 struct process *current=0;
-struct list ready_list = {0,0};
+struct list ready_list = {0, 0};
 
 void process_init() {
-    current = process_create(0,0);
+    current = process_create(0, 0);
 
     pagetable_load(current->pagetable);
     pagetable_enable();
@@ -57,8 +57,8 @@ struct process * process_create(unsigned code_size, unsigned stack_size) {
 
     p->pagetable = pagetable_create();
     pagetable_init(p->pagetable);
-    pagetable_alloc(p->pagetable,PROCESS_ENTRY_POINT,code_size,PAGE_FLAG_USER|PAGE_FLAG_READWRITE);
-    pagetable_alloc(p->pagetable,PROCESS_STACK_INIT-stack_size,stack_size,PAGE_FLAG_USER|PAGE_FLAG_READWRITE);
+    pagetable_alloc(p->pagetable, PROCESS_ENTRY_POINT, code_size, PAGE_FLAG_USER|PAGE_FLAG_READWRITE);
+    pagetable_alloc(p->pagetable, PROCESS_STACK_INIT-stack_size, stack_size, PAGE_FLAG_USER|PAGE_FLAG_READWRITE);
 
     p->kstack = memory_alloc_page(1);
     p->entry = PROCESS_ENTRY_POINT;
@@ -85,7 +85,7 @@ static void process_switch (int newstate) {
         interrupt_stack_pointer = (void*)INTERRUPT_STACK_TOP;
         current->state = newstate;
         if (newstate==PROCESS_STATE_READY) {
-            list_push_tail(&ready_list,&current->node);
+            list_push_tail(&ready_list, &current->node);
         }
     }
 
@@ -128,13 +128,13 @@ void process_yield() {
 }
 
 void process_exit(int code) {
-    console_printf("process exiting with status %d...\n",code);
+    console_printf("process exiting with status %d...\n", code);
     current->exitcode = code;
     process_switch (PROCESS_STATE_GRAVE);
 }
 
 void process_wait(struct list * q) {
-    list_push_tail(q,&current->node);
+    list_push_tail(q, &current->node);
     process_switch (PROCESS_STATE_BLOCKED);
 }
 
@@ -143,7 +143,7 @@ void process_wakeup(struct list *q) {
     p = (struct process *)list_pop_head(q);
     if (p) {
         p->state = PROCESS_STATE_READY;
-        list_push_tail(&ready_list,&p->node);
+        list_push_tail(&ready_list, &p->node);
     }
 }
 
@@ -151,22 +151,22 @@ void process_wakeup_all(struct list *q) {
     struct process *p;
     while ((p = (struct process*)list_pop_head(q))) {
         p->state = PROCESS_STATE_READY;
-        list_push_tail(&ready_list,&p->node);
+        list_push_tail(&ready_list, &p->node);
     }
 }
 
 void process_dump(struct process *p) {
     struct x86_stack *s = (struct x86_stack*)(p->kstack+PAGE_SIZE-sizeof(*s));
-    console_printf("kstack: %x\n",p->kstack);
-    console_printf("stackp: %x\n",p->stack_ptr);
-    console_printf("eax: %x     cs: %x\n",s->regs1.eax,s->cs);
-    console_printf("ebx: %x     ds: %x\n",s->regs1.ebx,s->ds);
-    console_printf("ecx: %x     ss: %x\n",s->regs1.ecx,s->ss);
-    console_printf("edx: %x eflags: %x\n",s->regs1.edx,s->eflags);
-    console_printf("esi: %x\n",s->regs1.esi);
-    console_printf("edi: %x\n",s->regs1.edi);
-    console_printf("ebp: %x\n",s->regs1.ebp);
-    console_printf("esp: %x\n",s->esp);
-    console_printf("eip: %x\n",s->eip);
+    console_printf("kstack: %x\n", p->kstack);
+    console_printf("stackp: %x\n", p->stack_ptr);
+    console_printf("eax: %x     cs: %x\n", s->regs1.eax, s->cs);
+    console_printf("ebx: %x     ds: %x\n", s->regs1.ebx, s->ds);
+    console_printf("ecx: %x     ss: %x\n", s->regs1.ecx, s->ss);
+    console_printf("edx: %x eflags: %x\n", s->regs1.edx, s->eflags);
+    console_printf("esi: %x\n", s->regs1.esi);
+    console_printf("edi: %x\n", s->regs1.edi);
+    console_printf("ebp: %x\n", s->regs1.ebp);
+    console_printf("esp: %x\n", s->esp);
+    console_printf("eip: %x\n", s->eip);
 }
 

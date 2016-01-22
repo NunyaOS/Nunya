@@ -33,7 +33,7 @@ void list_push_priority(struct list *list, struct list_node *node, int pri) {
     int i=0;
 
     if (!list->head) {
-        list_push_head(list,node);
+        list_push_head(list, node);
         return;
     }
 
@@ -55,7 +55,7 @@ void list_push_priority(struct list *list, struct list_node *node, int pri) {
         i++;
     }
 
-    list_push_tail(list,node);
+    list_push_tail(list, node);
 }
 
 struct list_node * list_pop_head(struct list *list) {

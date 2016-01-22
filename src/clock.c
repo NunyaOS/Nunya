@@ -21,7 +21,7 @@ See the file LICENSE for details.
 static uint32_t clicks=0;
 static uint32_t seconds=0;
 
-static struct list queue = {0,0};
+static struct list queue = {0, 0};
 
 static void clock_interrupt(int i, int code) {
     clicks++;
@@ -59,17 +59,17 @@ void clock_wait(uint32_t millis) {
     start = clock_read();
     do {
         process_wait(&queue);
-        elapsed = clock_diff(start,clock_read());
+        elapsed = clock_diff(start, clock_read());
         total = elapsed.millis + elapsed.seconds*1000;
     } while (total<millis);
 }
 
 void clock_init() {
-    outb(SQUARE_WAVE,TIMER_MODE);
-    outb((TIMER_COUNT&0xff),TIMER0);
-    outb((TIMER_COUNT>>8)&0xff,TIMER0);
+    outb(SQUARE_WAVE, TIMER_MODE);
+    outb((TIMER_COUNT&0xff), TIMER0);
+    outb((TIMER_COUNT>>8)&0xff, TIMER0);
 
-    interrupt_register(32,clock_interrupt);
+    interrupt_register(32, clock_interrupt);
     interrupt_enable(32);
 
     console_printf("clock: ticking\n");

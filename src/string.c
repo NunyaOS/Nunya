@@ -73,7 +73,7 @@ char *strtok (char *s, const char *delim) {
 
     if (!s) s=oldword;
 
-    while (*s && strchr(delim,*s)) s++;
+    while (*s && strchr(delim, *s)) s++;
 
     if (!*s) {
         oldword = s;
@@ -81,7 +81,7 @@ char *strtok (char *s, const char *delim) {
     }
 
     word = s;
-    while (*s && !strchr(delim,*s)) s++;
+    while (*s && !strchr(delim, *s)) s++;
 
     if (*s) {
         *s = 0;
@@ -114,11 +114,11 @@ void memcpy(void *vd, const void *vs, unsigned length) {
 }
 
 static void printf_putchar(char c) {
-    console_write(0,&c,1,0);
+    console_write(0, &c, 1, 0);
 }
 
 static void printf_putstring(char *s) {
-    console_write(0,s,strlen(s),0);
+    console_write(0, s, strlen(s), 0);
 }
 
 static void printf_puthexdigit(uint8_t i) {
@@ -164,7 +164,7 @@ void printf(const char *s, ...) {
     int32_t i;
     char *str;
 
-    va_start(args,s);
+    va_start(args, s);
 
     while (*s) {
         if (*s!='%') {
@@ -173,15 +173,15 @@ void printf(const char *s, ...) {
             s++;
             switch (*s) {
                 case 'd':
-                    i = va_arg(args,int32_t);
+                    i = va_arg(args, int32_t);
                     printf_putint(i);
                     break;
                 case 'x':
-                    u = va_arg(args,uint32_t);
+                    u = va_arg(args, uint32_t);
                     printf_puthex(u);
                     break;
                 case 's':
-                    str = va_arg(args,char*);
+                    str = va_arg(args, char*);
                     printf_putstring(str);
                     break;
                 case 0:

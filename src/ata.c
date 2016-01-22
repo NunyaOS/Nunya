@@ -72,9 +72,9 @@ See the file LICENSE for details.
 #define ATA_CONTROL_RESET       0x04
 #define ATA_CONTROL_DISABLEINT  0x02
 
-static const int ata_base[4] = {ATA_BASE0,ATA_BASE0,ATA_BASE1,ATA_BASE1};
+static const int ata_base[4] = {ATA_BASE0, ATA_BASE0, ATA_BASE1, ATA_BASE1};
 static int ata_interrupt_active = 0;
-static struct list queue = {0,0};
+static struct list queue = {0, 0};
 static struct mutex ata_mutex = MUTEX_INIT;
 
 static void ata_interrupt(int intr, int code) {
@@ -83,9 +83,9 @@ static void ata_interrupt(int intr, int code) {
 }
 
 void ata_reset(int id) {
-    outb(ATA_CONTROL_RESET,ata_base[id]+ATA_CONTROL);
+    outb(ATA_CONTROL_RESET, ata_base[id]+ATA_CONTROL);
     clock_wait(1);
-    outb(0,ata_base[id]+ATA_CONTROL);
+    outb(0, ata_base[id]+ATA_CONTROL);
     clock_wait(1);
 }
 
@@ -105,7 +105,7 @@ static int ata_wait(int id, int mask, int state) {
             ata_reset(id);
             return 0;
         }
-        elapsed = clock_diff(start,clock_read());
+        elapsed = clock_diff(start, clock_read());
         if (elapsed.seconds>ATA_TIMEOUT) {
             console_printf("ata: timeout\n");
             ata_reset(id);
@@ -127,7 +127,7 @@ static void ata_pio_read(int id, void *buffer, int size) {
 static void ata_pio_write(int id, const void *buffer, int size) {
     uint16_t *wbuffer = (uint16_t*)buffer;
     while (size>0) {
-        outw(*wbuffer,ata_base[id]+ATA_DATA);
+        outw(*wbuffer, ata_base[id]+ATA_DATA);
         wbuffer++;
         size-=2;
     }
@@ -150,46 +150,46 @@ static int ata_begin(int id, int command, int nblocks, int offset) {
     flags  |= (offset>>24) & 0x0f;
 
     // wait for the disk to calm down
-    if (!ata_wait(id,ATA_STATUS_BSY,0)) return 0;
+    if (!ata_wait(id, ATA_STATUS_BSY, 0)) return 0;
 
     // get the attention of the proper disk
-    outb(flags,base+ATA_FDH);
+    outb(flags, base+ATA_FDH);
 
     // wait again for the disk to indicate ready
-    if (!ata_wait(id,ATA_STATUS_BSY|ATA_STATUS_RDY,ATA_STATUS_RDY)) return 0;
+    if (!ata_wait(id, ATA_STATUS_BSY|ATA_STATUS_RDY, ATA_STATUS_RDY)) return 0;
 
     // send the arguments
-    outb(0,base+ATA_CONTROL);
-    outb(nblocks,base+ATA_COUNT);
-    outb(sector,base+ATA_SECTOR);
-    outb(clow,base+ATA_CYL_LO);
-    outb(chigh,base+ATA_CYL_HI);
-    outb(flags,base+ATA_FDH);
+    outb(0, base+ATA_CONTROL);
+    outb(nblocks, base+ATA_COUNT);
+    outb(sector, base+ATA_SECTOR);
+    outb(clow, base+ATA_CYL_LO);
+    outb(chigh, base+ATA_CYL_HI);
+    outb(flags, base+ATA_FDH);
 
     // execute the command
-    outb(command,base+ATA_COMMAND);
+    outb(command, base+ATA_COMMAND);
 
     return 1;
 }
 
 static int ata_read_unlocked(int id, void *buffer, int nblocks, int offset) {
     int i;
-    if (!ata_begin(id,ATA_COMMAND_READ,nblocks,offset)) return 0;
+    if (!ata_begin(id, ATA_COMMAND_READ, nblocks, offset)) return 0;
     if (ata_interrupt_active) process_wait(&queue);
     for (i=0; i<nblocks; i++) {
-        if (!ata_wait(id,ATA_STATUS_DRQ,ATA_STATUS_DRQ)) return 0;
-        ata_pio_read(id,buffer,ATA_BLOCKSIZE);
+        if (!ata_wait(id, ATA_STATUS_DRQ, ATA_STATUS_DRQ)) return 0;
+        ata_pio_read(id, buffer, ATA_BLOCKSIZE);
         buffer = ((char*)buffer)+ATA_BLOCKSIZE;
         offset++;
     }
-    if (!ata_wait(id,ATA_STATUS_BSY,0)) return 0;
+    if (!ata_wait(id, ATA_STATUS_BSY, 0)) return 0;
     return nblocks;
 }
 
 int ata_read(int id, void *buffer, int nblocks, int offset) {
     int result;
     mutex_lock(&ata_mutex);
-    result = ata_read_unlocked(id,buffer,nblocks,offset);
+    result = ata_read_unlocked(id, buffer, nblocks, offset);
     mutex_unlock(&ata_mutex);
     return result;
 }
@@ -205,29 +205,29 @@ static int atapi_begin(int id, void *data, int length) {
     if (id%2) flags |= ATA_FLAGS_SLV;
 
     // wait for the disk to calm down
-    if (!ata_wait(id,ATA_STATUS_BSY,0)) return 0;
+    if (!ata_wait(id, ATA_STATUS_BSY, 0)) return 0;
 
     // get the attention of the proper disk
-    outb(flags,base+ATA_FDH);
+    outb(flags, base+ATA_FDH);
 
     // wait again for the disk to indicate ready
-    if (!ata_wait(id,ATA_STATUS_BSY|ATA_STATUS_RDY,ATA_STATUS_RDY)) return 0;
+    if (!ata_wait(id, ATA_STATUS_BSY|ATA_STATUS_RDY, ATA_STATUS_RDY)) return 0;
 
     // send the arguments
-    outb(0,base+ATAPI_FEATURE);
-    outb(0,base+ATAPI_IRR);
-    outb(0,base+ATAPI_SAMTAG);
-    outb(length&0xff,base+ATAPI_COUNT_LO);
-    outb(length>>8,base+ATAPI_COUNT_HI);
+    outb(0, base+ATAPI_FEATURE);
+    outb(0, base+ATAPI_IRR);
+    outb(0, base+ATAPI_SAMTAG);
+    outb(length&0xff, base+ATAPI_COUNT_LO);
+    outb(length>>8, base+ATAPI_COUNT_HI);
 
     // execute the command
-    outb(ATAPI_COMMAND_PACKET,base+ATA_COMMAND);
+    outb(ATAPI_COMMAND_PACKET, base+ATA_COMMAND);
 
     // wait for ready
-    if (!ata_wait(id,ATA_STATUS_BSY|ATA_STATUS_DRQ,ATA_STATUS_DRQ));
+    if (!ata_wait(id, ATA_STATUS_BSY|ATA_STATUS_DRQ, ATA_STATUS_DRQ));
 
     // send the ATAPI packet
-    ata_pio_write(id,data,length);
+    ata_pio_write(id, data, length);
 
     return 1;
 }
@@ -250,13 +250,13 @@ static int atapi_read_unlocked(int id, void *buffer, int nblocks, int offset) {
     packet[10] = 0;
     packet[11] = 0;
 
-    if (!atapi_begin(id,packet,length)) return 0;
+    if (!atapi_begin(id, packet, length)) return 0;
 
     if (ata_interrupt_active) process_wait(&queue);
 
     for (i=0; i<nblocks; i++) {
-        if (!ata_wait(id,ATA_STATUS_DRQ,ATA_STATUS_DRQ)) return 0;
-        ata_pio_read(id,buffer,ATAPI_BLOCKSIZE);
+        if (!ata_wait(id, ATA_STATUS_DRQ, ATA_STATUS_DRQ)) return 0;
+        ata_pio_read(id, buffer, ATAPI_BLOCKSIZE);
         buffer = ((char*)buffer)+ATAPI_BLOCKSIZE;
         offset++;
     }
@@ -267,29 +267,29 @@ static int atapi_read_unlocked(int id, void *buffer, int nblocks, int offset) {
 int atapi_read(int id, void *buffer, int nblocks, int offset) {
     int result;
     mutex_lock(&ata_mutex);
-    result = atapi_read_unlocked(id,buffer,nblocks,offset);
+    result = atapi_read_unlocked(id, buffer, nblocks, offset);
     mutex_unlock(&ata_mutex);
     return result;
 }
 
 static int ata_write_unlocked(int id, const void *buffer, int nblocks, int offset) {
     int i;
-    if (!ata_begin(id,ATA_COMMAND_WRITE,nblocks,offset)) return 0;
+    if (!ata_begin(id, ATA_COMMAND_WRITE, nblocks, offset)) return 0;
     for (i=0; i<nblocks; i++) {
-        if (!ata_wait(id,ATA_STATUS_DRQ,ATA_STATUS_DRQ)) return 0;
-        ata_pio_write(id,buffer,ATA_BLOCKSIZE);
+        if (!ata_wait(id, ATA_STATUS_DRQ, ATA_STATUS_DRQ)) return 0;
+        ata_pio_write(id, buffer, ATA_BLOCKSIZE);
         buffer = ((char*)buffer)+ATA_BLOCKSIZE;
         offset++;
     }
     if (ata_interrupt_active) process_wait(&queue);
-    if (!ata_wait(id,ATA_STATUS_BSY,0)) return 0;
+    if (!ata_wait(id, ATA_STATUS_BSY, 0)) return 0;
     return nblocks;
 }
 
 int ata_write(int id, void *buffer, int nblocks, int offset) {
     int result;
     mutex_lock(&ata_mutex);
-    result = ata_write_unlocked(id,buffer,nblocks,offset);
+    result = ata_write_unlocked(id, buffer, nblocks, offset);
     mutex_unlock(&ata_mutex);
     return result;
 }
@@ -303,9 +303,9 @@ the the device is simply not connected.
 */
 
 static int ata_identify(int id, int command, void *buffer) {
-    if (!ata_begin(id,command,0,0)) return 0;
-    if (!ata_wait(id,ATA_STATUS_DRQ,ATA_STATUS_DRQ)) return 0;
-    ata_pio_read(id,buffer,512);
+    if (!ata_begin(id, command, 0, 0)) return 0;
+    if (!ata_wait(id, ATA_STATUS_DRQ, ATA_STATUS_DRQ)) return 0;
+    ata_pio_read(id, buffer, 512);
     return 1;
 }
 
@@ -321,17 +321,17 @@ int ata_probe(int id, int *nblocks, int *blocksize, char *name) {
     */
 
     t = inb(ata_base[id]+ATA_CYL_LO);
-    outb(~t,ata_base[id]+ATA_CYL_LO);
+    outb(~t, ata_base[id]+ATA_CYL_LO);
     if (inb(ata_base[id]+ATA_CYL_LO)==t) return 0;
 
-    memset(cbuffer,0,512);
+    memset(cbuffer, 0, 512);
 
     ata_reset(id);
 
-    if (ata_identify(id,ATA_COMMAND_IDENTIFY,cbuffer)) {
+    if (ata_identify(id, ATA_COMMAND_IDENTIFY, cbuffer)) {
         *nblocks = buffer[1]*buffer[3]*buffer[6];
         *blocksize = 512;
-    } else if (ata_identify(id,ATAPI_COMMAND_IDENTIFY,cbuffer)) {
+    } else if (ata_identify(id, ATAPI_COMMAND_IDENTIFY, cbuffer)) {
         *nblocks = 337920;
         *blocksize = 2048;
     } else {
@@ -349,7 +349,7 @@ int ata_probe(int id, int *nblocks, int *blocksize, char *name) {
 
     /* Vendor supplied name is at byte 54 */
 
-    strcpy(name,&cbuffer[54]);
+    strcpy(name, &cbuffer[54]);
     name[40] = 0;
 
     return 1;
@@ -363,20 +363,20 @@ void ata_init() {
 
     console_printf("ata: setting up interrupts\n");
 
-    interrupt_register(ATA_IRQ0,ata_interrupt);
+    interrupt_register(ATA_IRQ0, ata_interrupt);
     interrupt_enable(ATA_IRQ0);
 
-    interrupt_register(ATA_IRQ1,ata_interrupt);
+    interrupt_register(ATA_IRQ1, ata_interrupt);
     interrupt_enable(ATA_IRQ1);
 
     console_printf("ata: probing devices\n");
 
     for (i=0; i<4; i++) {
-        if (ata_probe(i,&nblocks,&blocksize,longname)) {
+        if (ata_probe(i, &nblocks, &blocksize, longname)) {
 
-            console_printf("ata unit %d: %s %d MB %s\n",i,blocksize==512 ? "ata disk" : "atapi cdrom", nblocks*blocksize/1024/1024,longname);
+            console_printf("ata unit %d: %s %d MB %s\n", i, blocksize==512 ? "ata disk" : "atapi cdrom", nblocks*blocksize/1024/1024, longname);
         } else {
-            console_printf("ata unit %d: not present\n",i);
+            console_printf("ata unit %d: not present\n", i);
         }
     }
 }

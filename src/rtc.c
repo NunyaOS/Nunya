@@ -72,13 +72,13 @@ static uint8_t rtc_bcd_to_binary(uint8_t bcd) {
 }
 
 static uint8_t rtc_read_port(uint16_t address) {
-    outb_slow(address,RTC_ADDRESS_PORT);
+    outb_slow(address, RTC_ADDRESS_PORT);
     return inb_slow(RTC_DATA_PORT);
 }
 
 static void rtc_write_port(uint8_t value, uint16_t address) {
-    outb_slow(address,RTC_ADDRESS_PORT);
-    outb_slow(value,RTC_DATA_PORT);
+    outb_slow(address, RTC_ADDRESS_PORT);
+    outb_slow(value, RTC_DATA_PORT);
 }
 
 static struct rtc_time cached_time;
@@ -133,9 +133,9 @@ void rtc_init() {
 
     status = rtc_read_port(RTC_REGISTER_B);
     status |= RTC_B_UIE;
-    rtc_write_port(status,RTC_REGISTER_B);
+    rtc_write_port(status, RTC_REGISTER_B);
 
-    interrupt_register(40,rtc_interrupt_handler);
+    interrupt_register(40, rtc_interrupt_handler);
     interrupt_enable(40);
 
     console_printf("rtc: ready\n");
@@ -143,5 +143,5 @@ void rtc_init() {
 
 void rtc_read(struct rtc_time *tout) {
     rtc_fetch_time();
-    memcpy(tout,&cached_time,sizeof(cached_time));
+    memcpy(tout, &cached_time, sizeof(cached_time));
 }
