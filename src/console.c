@@ -16,19 +16,16 @@ static int ypos=0;
 struct graphics_color bgcolor = {0,0,0};
 struct graphics_color fgcolor = {255,0,0};
 
-static void console_reset()
-{
+static void console_reset() {
     xpos = ypos = 0;
     graphics_clear(bgcolor);
 }
 
-static void console_writechar(int x, int y, char ch)
-{
+static void console_writechar(int x, int y, char ch) {
     graphics_char(x*8,y*8,ch,fgcolor,bgcolor);
 }
 
-void console_heartbeat()
-{
+void console_heartbeat() {
     static int onoff=0;
     if(onoff) {
         graphics_char(xpos*8,ypos*8,'_',fgcolor,bgcolor);
@@ -38,8 +35,7 @@ void console_heartbeat()
     onoff = !onoff;
 }
 
-void console_putchar(char c)
-{
+void console_putchar(char c) {
     console_writechar(xpos,ypos,' ');
 
     switch(c) {
@@ -77,16 +73,14 @@ void console_putchar(char c)
     console_writechar(xpos,ypos,'_');
 }
 
-void console_putstring(const char *s)
-{
+void console_putstring(const char *s) {
     while(*s) {
         console_putchar(*s);
         s++;
     }
 }
 
-int console_write(int unit, const void *buffer, int length, int offset)
-{
+int console_write(int unit, const void *buffer, int length, int offset) {
     char *cbuffer = (char*)buffer;
     while(length>0) {
         console_putchar(*cbuffer);
@@ -96,22 +90,20 @@ int console_write(int unit, const void *buffer, int length, int offset)
     return 1;
 }
 
-void console_init()
-{
+void console_init() {
     xsize = graphics_width()/8;
     ysize = graphics_height()/8;
     console_reset();
     console_putstring("\nconsole: initialized\n");
 }
 
-uint8_t console_verify_color_range(uint8_t x)
-{
+uint8_t console_verify_color_range(uint8_t x) {
     if(x < 0) return 0;
     if(x > 255) return 255;
     return x;
 }
-void console_set_fgcolor(uint8_t r, uint8_t g, uint8_t b)
-{
+
+void console_set_fgcolor(uint8_t r, uint8_t g, uint8_t b) {
     r = console_verify_color_range(r);
     g = console_verify_color_range(g);
     b = console_verify_color_range(b);
@@ -120,8 +112,7 @@ void console_set_fgcolor(uint8_t r, uint8_t g, uint8_t b)
     fgcolor.b = b;
 }
 
-void console_set_bgcolor(uint8_t r, uint8_t g, uint8_t b)
-{
+void console_set_bgcolor(uint8_t r, uint8_t g, uint8_t b) {
     r = console_verify_color_range(r);
     g = console_verify_color_range(g);
     b = console_verify_color_range(b);

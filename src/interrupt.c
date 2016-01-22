@@ -34,8 +34,7 @@ static const char * exception_names[] = {
         "coprocessor error"
 };
 
-static void unknown_exception(int i, int code)
-{
+static void unknown_exception(int i, int code) {
     unsigned vaddr, paddr;
 
     if(i==14) {
@@ -63,21 +62,18 @@ static void unknown_exception(int i, int code)
     }
 }
 
-static void unknown_hardware(int i, int code)
-{
+static void unknown_hardware(int i, int code) {
     if(!interrupt_spurious[i]) {
         console_printf("interrupt: spurious interrupt %d\n",i);
     }
     interrupt_spurious[i]++;
 }
 
-void interrupt_register(int i, interrupt_handler_t handler)
-{
+void interrupt_register(int i, interrupt_handler_t handler) {
     interrupt_handler_table[i] = handler;
 }
 
-static void interrupt_acknowledge(int i)
-{
+static void interrupt_acknowledge(int i) {
     if(i<32) {
         /* do nothing */
     } else {
@@ -85,8 +81,7 @@ static void interrupt_acknowledge(int i)
     }
 }
 
-void interrupt_init()
-{
+void interrupt_init() {
     int i;
     pic_init(32,40);
     for(i=32;i<48;i++) {
@@ -109,15 +104,13 @@ void interrupt_init()
     console_printf("interrupt: ready\n");
 }
 
-void interrupt_handler(int i, int code)
-{
+void interrupt_handler(int i, int code) {
     (interrupt_handler_table[i]) (i,code);
     interrupt_acknowledge(i);
     interrupt_count[i]++;
 }
 
-void interrupt_enable(int i)
-{
+void interrupt_enable(int i) {
     if(i<32) {
         /* do nothing */
     } else {
@@ -125,8 +118,7 @@ void interrupt_enable(int i)
     }
 }
 
-void interrupt_disable(int i)
-{
+void interrupt_disable(int i) {
     if(i<32) {
         /* do nothing */
     } else {
@@ -134,18 +126,15 @@ void interrupt_disable(int i)
     }
 }
 
-void interrupt_block()
-{
+void interrupt_block() {
     asm("cli");
 }
 
-void interrupt_unblock()
-{
+void interrupt_unblock() {
     asm("sti");
 }
 
-void interrupt_wait()
-{
+void interrupt_wait() {
     asm("sti");
     asm("hlt");
 }

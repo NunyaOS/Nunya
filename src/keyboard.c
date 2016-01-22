@@ -111,8 +111,7 @@ static char keyboard_map(int code)
     }
 }
 
-void keyboard_interrupt(int i, int code)
-{
+void keyboard_interrupt(int i, int code) {
     char c;
     c = keyboard_map(keyboard_scan());
     if(c==KEY_INVALID) return;
@@ -122,8 +121,7 @@ void keyboard_interrupt(int i, int code)
     process_wakeup(&queue);
 }
 
-char keyboard_read()
-{
+char keyboard_read() {
     int result;
     while(buffer_read==buffer_write) {
         process_wait(&queue);
@@ -152,8 +150,7 @@ const char *keyboard_read_str() {
     return str_buffer;
 }
 
-void keyboard_init()
-{
+void keyboard_init() {
     interrupt_register(33,keyboard_interrupt);
     keyboard_scan();
     interrupt_enable(33);

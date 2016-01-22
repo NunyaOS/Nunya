@@ -32,13 +32,11 @@ struct pagetable {
     struct pageentry entry[ENTRIES_PER_TABLE];
 };
 
-struct pagetable * pagetable_create()
-{
+struct pagetable * pagetable_create() {
     return memory_alloc_page(1);
 }
 
-void pagetable_init(struct pagetable *p)
-{
+void pagetable_init(struct pagetable *p) {
     unsigned i,stop;
     stop = total_memory*1024*1024;
     for(i=0;i<stop;i+=PAGE_SIZE) {
@@ -50,8 +48,7 @@ void pagetable_init(struct pagetable *p)
     }
 }
 
-int pagetable_getmap(struct pagetable *p, unsigned vaddr, unsigned *paddr)
-{
+int pagetable_getmap(struct pagetable *p, unsigned vaddr, unsigned *paddr) {
     struct pagetable *q;
     struct pageentry *e;
 
@@ -71,8 +68,7 @@ int pagetable_getmap(struct pagetable *p, unsigned vaddr, unsigned *paddr)
     return 1;
 }
 
-int pagetable_map(struct pagetable *p, unsigned vaddr, unsigned paddr, int flags)
-{
+int pagetable_map(struct pagetable *p, unsigned vaddr, unsigned paddr, int flags) {
     struct pagetable *q;
     struct pageentry *e;
 
@@ -122,8 +118,7 @@ int pagetable_map(struct pagetable *p, unsigned vaddr, unsigned paddr, int flags
     return 1;
 }
 
-void pagetable_unmap(struct pagetable *p, unsigned vaddr)
-{
+void pagetable_unmap(struct pagetable *p, unsigned vaddr) {
     struct pagetable *q;
     struct pageentry *e;
 
@@ -138,8 +133,7 @@ void pagetable_unmap(struct pagetable *p, unsigned vaddr)
     }
 }
 
-void pagetable_delete(struct pagetable *p)
-{
+void pagetable_delete(struct pagetable *p) {
     unsigned i,j;
 
     struct pageentry *e;
@@ -162,8 +156,7 @@ void pagetable_delete(struct pagetable *p)
     }
 }
 
-void pagetable_alloc(struct pagetable *p, unsigned vaddr, unsigned length, int flags)
-{
+void pagetable_alloc(struct pagetable *p, unsigned vaddr, unsigned length, int flags) {
     unsigned npages = length/PAGE_SIZE;
 
     if(length%PAGE_SIZE) npages++;
@@ -180,22 +173,19 @@ void pagetable_alloc(struct pagetable *p, unsigned vaddr, unsigned length, int f
     }
 }
 
-struct pagetable * pagetable_load(struct pagetable *p)
-{
+struct pagetable * pagetable_load(struct pagetable *p) {
     struct pagetable *oldp;
     asm("mov %%cr3, %0" : "=r" (oldp));
     asm("mov %0, %%cr3" :: "r" (p));
     return oldp;
 }
 
-void pagetable_refresh()
-{
+void pagetable_refresh() {
     asm("mov %cr3, %eax");
     asm("mov %eax, %cr3");
 }
 
-void pagetable_enable()
-{
+void pagetable_enable() {
     asm("movl %cr0, %eax");
     asm("orl $0x80000000, %eax");
     asm("movl %eax, %cr0");

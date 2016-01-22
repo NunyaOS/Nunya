@@ -27,51 +27,51 @@ See the file LICENSE for details.
 
 #define ATA_TIMEOUT     5
 
-#define ATA_DATA    0   /* data register */
-#define ATA_ERROR   1   /* error register */
-#define ATA_COUNT   2   /* sectors to transfer */
-#define ATA_SECTOR  3   /* sector number */
-#define ATA_CYL_LO  4   /* low byte of cylinder number */
-#define ATA_CYL_HI  5   /* high byte of cylinder number */
-#define ATA_FDH     6   /* flags, drive and head */
-#define ATA_STATUS  7
-#define ATA_COMMAND 7
-#define ATA_CONTROL 0x206
+#define ATA_DATA                0   /* data register */
+#define ATA_ERROR               1   /* error register */
+#define ATA_COUNT               2   /* sectors to transfer */
+#define ATA_SECTOR              3   /* sector number */
+#define ATA_CYL_LO              4   /* low byte of cylinder number */
+#define ATA_CYL_HI              5   /* high byte of cylinder number */
+#define ATA_FDH                 6   /* flags, drive and head */
+#define ATA_STATUS              7
+#define ATA_COMMAND             7
+#define ATA_CONTROL             0x206
 
-#define ATA_FLAGS_ECC   0x80    /* enable error correction */
-#define ATA_FLAGS_LBA   0x40    /* enable linear addressing */
-#define ATA_FLAGS_SEC   0x20    /* enable 512-byte sectors */
-#define ATA_FLAGS_SLV   0x10    /* address the slave drive */
+#define ATA_FLAGS_ECC           0x80    /* enable error correction */
+#define ATA_FLAGS_LBA           0x40    /* enable linear addressing */
+#define ATA_FLAGS_SEC           0x20    /* enable 512-byte sectors */
+#define ATA_FLAGS_SLV           0x10    /* address the slave drive */
 
-#define ATA_STATUS_BSY  0x80    /* controller busy */
-#define ATA_STATUS_RDY  0x40    /* drive ready */
-#define ATA_STATUS_WF   0x20    /* write fault */
-#define ATA_STATUS_SC   0x10    /* seek complete (obsolete) */
-#define ATA_STATUS_DRQ  0x08    /* data transfer request */
-#define ATA_STATUS_CRD  0x04    /* corrected data */
-#define ATA_STATUS_IDX  0x02    /* index pulse */
-#define ATA_STATUS_ERR  0x01    /* error */
+#define ATA_STATUS_BSY          0x80    /* controller busy */
+#define ATA_STATUS_RDY          0x40    /* drive ready */
+#define ATA_STATUS_WF           0x20    /* write fault */
+#define ATA_STATUS_SC           0x10    /* seek complete (obsolete) */
+#define ATA_STATUS_DRQ          0x08    /* data transfer request */
+#define ATA_STATUS_CRD          0x04    /* corrected data */
+#define ATA_STATUS_IDX          0x02    /* index pulse */
+#define ATA_STATUS_ERR          0x01    /* error */
 
 #define ATA_COMMAND_IDLE        0x00
 #define ATA_COMMAND_READ        0x20    /* read data */
 #define ATA_COMMAND_WRITE       0x30    /* write data */
-#define ATA_COMMAND_IDENTIFY        0xec
+#define ATA_COMMAND_IDENTIFY    0xec
 
-#define ATAPI_COMMAND_IDENTIFY 0xa1
-#define ATAPI_COMMAND_PACKET   0xa0
+#define ATAPI_COMMAND_IDENTIFY  0xa1
+#define ATAPI_COMMAND_PACKET    0xa0
 
-#define ATAPI_FEATURE   1
-#define ATAPI_IRR 2
-#define ATAPI_SAMTAG 3
-#define ATAPI_COUNT_LO 4
-#define ATAPI_COUNT_HI 5
-#define ATAPI_DRIVE 6
-#define ATAPI_BLOCKSIZE 2048
+#define ATAPI_FEATURE           1
+#define ATAPI_IRR               2
+#define ATAPI_SAMTAG            3
+#define ATAPI_COUNT_LO          4
+#define ATAPI_COUNT_HI          5
+#define ATAPI_DRIVE             6
+#define ATAPI_BLOCKSIZE         2048
 
-#define SCSI_READ10            0x28
-#define SCSI_SENSE             0x03
+#define SCSI_READ10             0x28
+#define SCSI_SENSE              0x03
 
-#define ATA_CONTROL_RESET   0x04
+#define ATA_CONTROL_RESET       0x04
 #define ATA_CONTROL_DISABLEINT  0x02
 
 static const int ata_base[4] = {ATA_BASE0,ATA_BASE0,ATA_BASE1,ATA_BASE1};

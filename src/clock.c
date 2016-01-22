@@ -23,8 +23,7 @@ static uint32_t seconds=0;
 
 static struct list queue = {0,0};
 
-static void clock_interrupt(int i, int code)
-{
+static void clock_interrupt(int i, int code) {
     clicks++;
     process_wakeup_all(&queue);
     if(clicks>=CLICKS_PER_SECOND) {
@@ -35,16 +34,14 @@ static void clock_interrupt(int i, int code)
     }
 }
 
-clock_t clock_read()
-{
+clock_t clock_read() {
     clock_t result;
     result.seconds = seconds;
     result.millis = 1000*clicks/CLICKS_PER_SECOND;
     return result;
 }
 
-clock_t clock_diff(clock_t start, clock_t stop)
-{
+clock_t clock_diff(clock_t start, clock_t stop) {
     clock_t result;
     if(stop.millis<start.millis) {
         stop.millis+=1000;
@@ -55,8 +52,7 @@ clock_t clock_diff(clock_t start, clock_t stop)
     return result;
 }
 
-void clock_wait(uint32_t millis)
-{
+void clock_wait(uint32_t millis) {
     clock_t start, elapsed;
     uint32_t total;
 
@@ -68,8 +64,7 @@ void clock_wait(uint32_t millis)
     } while(total<millis);
 }
 
-void clock_init()
-{
+void clock_init() {
     outb(SQUARE_WAVE,TIMER_MODE);
     outb((TIMER_COUNT&0xff),TIMER0);
     outb((TIMER_COUNT>>8)&0xff,TIMER0);

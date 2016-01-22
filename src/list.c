@@ -6,8 +6,7 @@ See the file LICENSE for details.
 
 #include "list.h"
 
-void list_push_head(struct list *list, struct list_node *node)
-{
+void list_push_head(struct list *list, struct list_node *node) {
     node->next = list->head;
     node->prev = 0;
     node->priority = 0;
@@ -18,8 +17,7 @@ void list_push_head(struct list *list, struct list_node *node)
     node->list = list;
 }
 
-void list_push_tail(struct list *list, struct list_node *node)
-{
+void list_push_tail(struct list *list, struct list_node *node) {
     node->prev = list->tail;
     node->next = 0;
     node->priority = 0;
@@ -30,8 +28,7 @@ void list_push_tail(struct list *list, struct list_node *node)
     node->list = list;
 }
 
-void list_push_priority(struct list *list, struct list_node *node, int pri)
-{
+void list_push_priority(struct list *list, struct list_node *node, int pri) {
     struct list_node *n;
     int i=0;
 
@@ -61,8 +58,7 @@ void list_push_priority(struct list *list, struct list_node *node, int pri)
     list_push_tail(list,node);
 }
 
-struct list_node * list_pop_head(struct list *list)
-{
+struct list_node * list_pop_head(struct list *list) {
     struct list_node *result = list->head;
 
     if(list->head) {
@@ -77,8 +73,7 @@ struct list_node * list_pop_head(struct list *list)
     return result;
 }
 
-struct list_node * list_pop_tail(struct list *list)
-{
+struct list_node * list_pop_tail(struct list *list) {
     struct list_node *result = list->tail;
 
     if(list->tail) {
@@ -93,8 +88,7 @@ struct list_node * list_pop_tail(struct list *list)
     return result;
 }
 
-void list_remove(struct list_node *node)
-{
+void list_remove(struct list_node *node) {
     if(!node->list) return;
 
     if(node->list->head==node) {
