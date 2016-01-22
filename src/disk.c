@@ -15,14 +15,6 @@ See the file LICENSE for details.
 
 #define DEFAULT_ATA_UNIT 0
 
-int disk_write(char *source, int block, int offset, int num_bytes)
-{
-	/*
-	 * Still needs to be implemented!!
-	 */
-	return 0;
-}
-
 /**
  * @brief Read in data from a particular disk block
  * @details Read exactly num_bytes characters from a specified block and offset

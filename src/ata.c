@@ -387,7 +387,7 @@ void ata_init()
 
 	console_printf("ata: probing devices\n");
 
-	for(i=0;i<1;i++) {
+	for(i=0;i<4;i++) {
 		if(ata_probe(i,&nblocks,&blocksize,longname)) {
 
 			console_printf("ata unit %d: %s %d MB %s\n",i,blocksize==512 ? "ata disk" : "atapi cdrom", nblocks*blocksize/1024/1024,longname);
