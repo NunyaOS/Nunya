@@ -52,14 +52,6 @@ process_init() is a big step.  This initializes the process table, but also give
     //change text color to white after bootup
     console_set_fgcolor(255,255,255);
 
-    char read_buffer[25];
-    disk_read(read_buffer, 4, 5, 25);
-    read_buffer[24] = '\0';
-
-    ata_write(0, "1234567890ABCEFGHIJKLMNOPQRSTUVWXYZ", 1, 4);
-
-    console_printf("contents: %s\n", read_buffer);
-
 	while(1) {
 		keyboard_read_str();
 	}
