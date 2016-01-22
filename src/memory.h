@@ -9,8 +9,8 @@ See the file LICENSE for details.
 
 #include "kerneltypes.h"
 
-void	memory_init();
-void *	memory_alloc_page( bool zeroit );
-void	memory_free_page( void *addr );
+void memory_init();
+void *memory_alloc_page(bool zeroit);
+void memory_free_page(void *addr);
 
 #endif

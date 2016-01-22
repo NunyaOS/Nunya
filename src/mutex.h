@@ -10,13 +10,13 @@ See the file LICENSE for details.
 #include "list.h"
 
 struct mutex {
-	int locked;
-	struct list waitqueue;
+    int locked;
+    struct list waitqueue;
 };
 
 #define MUTEX_INIT {0,LIST_INIT}
 
-void mutex_lock( struct mutex *m );
-void mutex_unlock( struct mutex *m );
+void mutex_lock(struct mutex *m);
+void mutex_unlock(struct mutex *m);
 
 #endif

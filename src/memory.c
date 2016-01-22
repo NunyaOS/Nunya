@@ -42,7 +42,9 @@ void memory_init()
 		freemap_bits, freemap_bytes, freemap_cells, freemap_pages);
 
 	memset(freemap,0xff,freemap_bytes);
-	for(i=0;i<freemap_pages;i++) memory_alloc_page(0);
+	for (i=0; i<freemap_pages; i++) {
+		memory_alloc_page(0);
+	}
 
 	// This is ahack that I don't understand yet.
 	// vmware doesn't like the use of a particular page
@@ -70,20 +72,20 @@ void * memory_alloc_page( bool zeroit )
 	uint32_t pagenumber;
 	void * pageaddr;
 
-	if(!freemap) {
+	if (!freemap) {
 		console_printf("memory: not initialized yet!\n");
 		return 0;
 	}
 
-	for(i=0;i<freemap_cells;i++) {
-		if(freemap[i]!=0) {
-			for(j=0;j<CELL_BITS;j++) {
+	for (i=0; i<freemap_cells; i++) {
+		if (freemap[i]!=0) {
+			for (j=0; j<CELL_BITS; j++) {
 				cellmask = (1<<j);
-				if(freemap[i]&cellmask) {
+				if (freemap[i]&cellmask) {
 					freemap[i] &= ~cellmask;
 					pagenumber = i*CELL_BITS+j;
 					pageaddr = (pagenumber<<PAGE_BITS)+alloc_memory_start;
-					if(zeroit) memset(pageaddr,0,PAGE_SIZE);
+					if (zeroit) memset(pageaddr,0,PAGE_SIZE);
 					pages_free--;
 					return pageaddr;
 				}

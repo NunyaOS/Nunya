@@ -21,14 +21,12 @@ typedef unsigned char  uint8_t;
 
 typedef uint8_t bool;
 
-static inline uint16_t ntoh16( uint16_t x )
-{
-	return (x&0xff)<<8 | (x>>8);
+static inline uint16_t ntoh16(uint16_t x) {
+    return (x&0xff)<<8 | (x>>8);
 }
 
-static inline uint16_t hton16( uint16_t x )
-{
-	return (x&0xff)<<8 | (x>>8);
+static inline uint16_t hton16(uint16_t x) {
+    return (x&0xff)<<8 | (x>>8);
 }
 
 #endif
