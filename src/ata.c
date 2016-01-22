@@ -13,8 +13,6 @@ See the file LICENSE for details.
 #include "process.h"
 #include "mutex.h"
 
-#define ATA_BLOCKSIZE 512
-
 #define ATA_IRQ0	32+14
 #define ATA_IRQ1	32+15
 #define ATA_IRQ2	32+11
@@ -389,7 +387,7 @@ void ata_init()
 
 	console_printf("ata: probing devices\n");
 
-	for(i=0;i<4;i++) {
+	for(i=0;i<1;i++) {
 		if(ata_probe(i,&nblocks,&blocksize,longname)) {
 
 			console_printf("ata unit %d: %s %d MB %s\n",i,blocksize==512 ? "ata disk" : "atapi cdrom", nblocks*blocksize/1024/1024,longname);
