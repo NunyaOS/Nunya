@@ -19,23 +19,23 @@ void interrupt_wait();
 
 /*
 PC Interrupts:
-IRQ	Interrupt
-0	32	System Timer
-1	33	Keyboard
-2	34	Cascade
-3	35	Serial Port 2
-4	36	Serial Port 1
-5	37	Parallel Port 2 or Sound Card
-6	38	Floppy
-7	39	Parallel Port 1
-8	40	Real Time Clock
-9	41	Network
-10	42	Network/Sound/SCSI
-11	43	SCSI Other
-12	44	PS/2 Mouse
-13	45	FPU
-14	46	ATA 0
-16	47	ATA 1
+IRQ Interrupt
+0   32  System Timer
+1   33  Keyboard
+2   34  Cascade
+3   35  Serial Port 2
+4   36  Serial Port 1
+5   37  Parallel Port 2 or Sound Card
+6   38  Floppy
+7   39  Parallel Port 1
+8   40  Real Time Clock
+9   41  Network
+10  42  Network/Sound/SCSI
+11  43  SCSI Other
+12  44  PS/2 Mouse
+13  45  FPU
+14  46  ATA 0
+16  47  ATA 1
 */
 
 

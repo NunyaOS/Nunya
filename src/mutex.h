@@ -10,8 +10,8 @@ See the file LICENSE for details.
 #include "list.h"
 
 struct mutex {
-	int locked;
-	struct list waitqueue;
+    int locked;
+    struct list waitqueue;
 };
 
 #define MUTEX_INIT {0,LIST_INIT}

@@ -11,15 +11,15 @@ struct list;
 struct list_node;
 
 struct list {
-	struct list_node *head;
-	struct list_node *tail;
+    struct list_node *head;
+    struct list_node *tail;
 };
 
 struct list_node {
-	struct list_node *next;
-	struct list_node *prev;
-	struct list *list;
-	int priority;
+    struct list_node *next;
+    struct list_node *prev;
+    struct list *list;
+    int priority;
 };
 
 #define LIST_INIT {0,0}
