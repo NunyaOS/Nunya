@@ -113,7 +113,7 @@ void memory_free_page( void *pageaddr )
 struct kmalloc_page_info * kmalloc_create_page_info(unsigned paddr)
 {
     struct kmalloc_page_info *n = (struct kmalloc_page_info *)paddr;
-    n->max_free_space = PAGE_SIZE - 0;
+    n->max_free_gap = PAGE_SIZE - 0;
     memset(n->free, 0, sizeof(uint8_t)*KMALLOC_NUM_SLOTS);
     return (struct kmalloc_page_info *) n;  
 }
@@ -142,29 +142,97 @@ void kmalloc_get_page()
     current->kmalloc_head = pg_info;
 }
 
-void *  kmalloc(unsigned int size)
-{
-    struct kmalloc_page_info *page = current->kmalloc_head;
-    while(page){
-        if(page->max_free_space >= ( size - sizeof(uint16_t)) ){
-           break; 
+uint8_t kmalloc_locate_sufficient_gap(struct kmalloc_page_info * page_info, int num_slots){
+    int gaps_first_slot = 0;
+    int consecutive_safe = 0;
+
+    int i;
+    for(i = 0; i < KMALLOC_NUM_SLOTS; i++){
+        if(page_info->free[i] == 1){
+            consecutive_safe++;
+            if(consecutive_safe == num_slots){
+                return gaps_first_slot;
+            }
         }
-        page = page->next;
+        else{
+            consecutive_safe = 0;
+            gaps_first_slot = i + 1;
+        }
     }
-    if(!page){
-        kmalloc_get_page();
-        page = current->kmalloc_head;
-    }
-
-    //find first large enough gap
-
-    //mark these as malloc'd in kmalloc_page
-
-    //wanted to get it compiling first
-    return (void *)0;
+    return -1; 
 }
 
+//Returns the largest gap in terms of the number of slots required
+//for that gap.
+int kmalloc_get_largest_gap_size(struct kmalloc_page_info * page_info)
+{
+    int i;
+    int biggest_gap_in_slots = 0;
+    int current_gap_in_slots = 0;
+    for(i = 0; i < KMALLOC_NUM_SLOTS; i++){
+        if(page_info->free[i]){
+            current_gap_in_slots++;
+            if(current_gap_in_slots > biggest_gap_in_slots){
+                biggest_gap_in_slots = current_gap_in_slots;
+            }
+        }
+        else{
+            current_gap_in_slots = 0;
+        }
+    }
 
+    //Return available number of slots in the largest gap.
+    //Everything regarding the space in the front to track the number of slots
+    //is taken care of in kmalloc proper.
+    return (biggest_gap_in_slots);
+}
+
+void *  kmalloc(unsigned int size)
+{
+    uint16_t slots_needed = (size + sizeof(uint16_t))/ KMALLOC_SLOT_SIZE;
+    //addresses integer division truncation
+    if(size % 8){
+        slots_needed++;
+    }
+    
+    //start at head, iterate through looking for a page with a large enough gap
+    struct kmalloc_page_info *page_info = current->kmalloc_head;
+    while(page_info){
+        if(page_info->max_free_gap >= ( slots_needed ) ){
+           break; 
+        }
+        page_info = page_info->next;
+    }
+
+    //If no such page exists, grab another!
+    if(!page_info){
+        kmalloc_get_page();
+        page_info = current->kmalloc_head;
+    }
+
+    //find some large enough gap
+    int slots_start_index = kmalloc_locate_sufficient_gap(page_info, slots_needed);
+    
+    //fill in the front of the first slot with number of slots info
+    //phys addr is addr of page info plus size of page info plus slot offset * slot size
+    //needs to fit a memory address of 4 bytes
+    uint32_t first_slot_phys_addr = (uint32_t)&(page_info) + sizeof(struct kmalloc_page_info) + (KMALLOC_SLOT_SIZE * slots_start_index);
+    
+    //dereference an integer which was cast to void * and fill it with slots needed, a 16 bit integer
+    *((uint16_t *)first_slot_phys_addr) = (uint16_t)slots_needed;
+
+    //mark these as malloc'd in kmalloc_page
+    int i;
+    for(i = 0; i < slots_needed; i++){
+        page_info->free[slots_start_index + i] = 1;
+    }
+
+    //find largest remaining gap
+    page_info->max_free_gap = kmalloc_get_largest_gap_size(page_info);
+
+    //return a pointer to the useful memory area.
+    return (void *)(first_slot_phys_addr + sizeof(uint16_t));
+}
 
 void kfree(void * to_free)
 {

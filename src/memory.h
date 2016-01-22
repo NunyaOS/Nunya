@@ -14,7 +14,7 @@ See the file LICENSE for details.
 
 struct kmalloc_page_info{
     struct kmalloc_page_info *next;  // next page pointer
-    int max_free_space;   // size of largest continguous section of free slots 
+    int max_free_gap;   // number of slots in the largest continguous free gap
     uint8_t free[KMALLOC_NUM_SLOTS]; // bit vector of free slots
 };
 
