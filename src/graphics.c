@@ -39,25 +39,28 @@ void graphics_rect( int x, int y, int w, int h, struct graphics_color c )
 	}
 }
 
-/** Draw a line on the display
- *
- *  Based on Bresenham's algorithm
- *
- */
+int graphics_check_bounds_x(int x) {
+    x = x >= video_xres ? video_xres - 1 : x;
+    x = x < 0 ? 0 : x;
+    return x;
+}
+
+int graphics_check_bounds_y(int y) {
+    y = y >= video_yres ? video_yres - 1 : y;
+    y = y < 0 ? 0: y;
+    return y;
+}
+
 void graphics_line(int x1, int y1, int x2, int y2, struct graphics_color c) {
     // check for bounds
-    x1 = x1 >= video_xres ? video_xres - 1 : x1;
-    y1 = y1 >= video_yres ? video_yres - 1 : y1;
-    x2 = x2 >= video_xres ? video_xres - 1 : x2;
-    y2 = y2 >= video_yres ? video_yres - 1 : y2;
-    x1 = x1 < 0 ? 0 : x1;
-    y1 = y1 < 0 ? 0 : y1;
-    x2 = x2 < 0 ? 0 : x2;
-    y2 = y2 < 0 ? 0 : y2;
+    x1 = graphics_check_bounds_x(x1);
+    x2 = graphics_check_bounds_x(x2);
+    y1 = graphics_check_bounds_y(y1);
+    y2 = graphics_check_bounds_y(y2);
 
     int tmp;
     // flip points if x2 is less than x1
-    if(x2 < x1) {
+    if (x2 < x1) {
         tmp = x2;
         x2 = x1;
         x1 = tmp;
@@ -70,9 +73,9 @@ void graphics_line(int x1, int y1, int x2, int y2, struct graphics_color c) {
     double error = 0;
 
     // vertical line
-    if(deltax == 0) {
+    if (deltax == 0) {
         // flip vertical line where y2 < y1
-        if(y2 < y1) {
+        if (y2 < y1) {
             tmp = y2;
             y2 = y1;
             y1 = tmp;
@@ -90,17 +93,17 @@ void graphics_line(int x1, int y1, int x2, int y2, struct graphics_color c) {
         int x;
         int dy = y2 - y1;
 
-        if(dy < 0) {
+        if (dy < 0) {
             sign = -1;
         }
         else {
             sign = 1;
         }
 
-        for(x = x1; x <= x2; x++) {
+        for (x = x1; x <= x2; x++) {
             plot_pixel(x, y, c);
             error = error + deltaerr;
-            while(error >= 0.5) {
+            while (error >= 0.5) {
                 plot_pixel(x, y, c);
                 y = y + sign;
                 error = error - 1.0;
