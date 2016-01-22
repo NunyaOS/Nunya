@@ -8,7 +8,7 @@ See the file LICENSE for details.
 #include "interrupt.h"
 #include "process.h"
 
-void mutex_lock( struct mutex *m )
+void mutex_lock( struct mutex *m)
 {
 	interrupt_block();
 	while(m->locked) {
@@ -19,7 +19,7 @@ void mutex_lock( struct mutex *m )
 	interrupt_unblock();
 }
 
-void mutex_unlock( struct mutex *m )
+void mutex_unlock( struct mutex *m)
 {
 	interrupt_block();
 	m->locked=0;

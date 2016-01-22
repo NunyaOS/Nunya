@@ -9,7 +9,7 @@ See the file LICENSE for details.
 
 #include "kerneltypes.h"
 
-#define X86_SEGMENT_SELECTOR( seg, rpl )  (((seg)<<3)+(rpl))
+#define X86_SEGMENT_SELECTOR( seg, rpl)  (((seg)<<3)+(rpl))
 
 #define X86_SEGMENT_KERNEL_CODE  X86_SEGMENT_SELECTOR(1,0)
 #define X86_SEGMENT_KERNEL_DATA  X86_SEGMENT_SELECTOR(2,0)
@@ -89,7 +89,7 @@ struct x86_segment {
 	unsigned granularity:1;
 
 	uint8_t base2;
-}; 
+};
 
 struct x86_tss {
 	int16_t	prev;

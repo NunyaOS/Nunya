@@ -48,7 +48,7 @@ static int keyboard_scan()
 	int code;
 	int ack;
 
-	code = inb(KEYBOARD_PORT_A);	
+	code = inb(KEYBOARD_PORT_A);
 	iowait();
 	ack = inb(KEYBOARD_PORT_B);
 	iowait();
@@ -66,7 +66,7 @@ static int alt_mode = 0;
 static int ctrl_mode = 0;
 static int shiftlock_mode = 0;
 
-static char keyboard_map( int code )
+static char keyboard_map( int code)
 {
 	int direction;
 
@@ -78,7 +78,7 @@ static char keyboard_map( int code )
 	}
 
 	if(keymap[code].special==SPECIAL_SHIFT) {
-		shift_mode = direction;		
+		shift_mode = direction;
 		return KEY_INVALID;
 	} else if(keymap[code].special==SPECIAL_ALT) {
 		alt_mode = direction;
@@ -100,9 +100,9 @@ static char keyboard_map( int code )
 				return keymap[code].shifted;
 			}
 		} else if(shift_mode) {
-			return keymap[code].shifted;		
+			return keymap[code].shifted;
 		} else if(ctrl_mode) {
-			return keymap[code].ctrled;		
+			return keymap[code].ctrled;
 		} else {
 			return keymap[code].normal;
 		}
@@ -111,7 +111,7 @@ static char keyboard_map( int code )
 	}
 }
 
-void keyboard_interrupt( int i, int code )
+void keyboard_interrupt( int i, int code)
 {
 	char c;
 	c = keyboard_map(keyboard_scan());
@@ -139,15 +139,15 @@ const char *keyboard_read_str() {
 	while(c != '\n' && c != '\r' && i < BUFFER_SIZE-1) {
 		console_putchar(c);
 		str_buffer[i++] = c;
-		
+
 		c = keyboard_read();
 	}
-	
+
 	// Mark the end of the line
 	str_buffer[i] = '\0';
-	
+
 	// Print the newline
-	console_putchar(c); 
+	console_putchar(c);
 
 	return str_buffer;
 }

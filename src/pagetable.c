@@ -37,7 +37,7 @@ struct pagetable * pagetable_create()
 	return memory_alloc_page(1);
 }
 
-void pagetable_init( struct pagetable *p )
+void pagetable_init( struct pagetable *p)
 {
 	unsigned i,stop;
 	stop = total_memory*1024*1024;
@@ -50,7 +50,7 @@ void pagetable_init( struct pagetable *p )
 	}
 }
 
-int pagetable_getmap( struct pagetable *p, unsigned vaddr, unsigned *paddr )
+int pagetable_getmap( struct pagetable *p, unsigned vaddr, unsigned *paddr)
 {
 	struct pagetable *q;
 	struct pageentry *e;
@@ -71,7 +71,7 @@ int pagetable_getmap( struct pagetable *p, unsigned vaddr, unsigned *paddr )
 	return 1;
 }
 
-int pagetable_map( struct pagetable *p, unsigned vaddr, unsigned paddr, int flags )
+int pagetable_map( struct pagetable *p, unsigned vaddr, unsigned paddr, int flags)
 {
 	struct pagetable *q;
 	struct pageentry *e;
@@ -122,7 +122,7 @@ int pagetable_map( struct pagetable *p, unsigned vaddr, unsigned paddr, int flag
 	return 1;
 }
 
-void pagetable_unmap( struct pagetable *p, unsigned vaddr )
+void pagetable_unmap( struct pagetable *p, unsigned vaddr)
 {
 	struct pagetable *q;
 	struct pageentry *e;
@@ -138,7 +138,7 @@ void pagetable_unmap( struct pagetable *p, unsigned vaddr )
 	}
 }
 
-void pagetable_delete( struct pagetable *p )
+void pagetable_delete( struct pagetable *p)
 {
 	unsigned i,j;
 
@@ -162,7 +162,7 @@ void pagetable_delete( struct pagetable *p )
 	}
 }
 
-void pagetable_alloc( struct pagetable *p, unsigned vaddr, unsigned length, int flags )
+void pagetable_alloc( struct pagetable *p, unsigned vaddr, unsigned length, int flags)
 {
 	unsigned npages = length/PAGE_SIZE;
 
@@ -180,7 +180,7 @@ void pagetable_alloc( struct pagetable *p, unsigned vaddr, unsigned length, int 
 	}
 }
 
-struct pagetable * pagetable_load( struct pagetable *p )
+struct pagetable * pagetable_load( struct pagetable *p)
 {
 	struct pagetable *oldp;
 	asm("mov %%cr3, %0" : "=r" (oldp));
@@ -201,5 +201,5 @@ void pagetable_enable()
 	asm("movl %eax, %cr0");
 }
 
-void pagetable_copy( struct pagetable *sp, unsigned saddr, struct pagetable *tp, unsigned taddr, unsigned length );
+void pagetable_copy( struct pagetable *sp, unsigned saddr, struct pagetable *tp, unsigned taddr, unsigned length);
 

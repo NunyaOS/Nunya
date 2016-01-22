@@ -16,7 +16,7 @@ See the file LICENSE for details.
 static uint8_t pic_control[2] = { 0x20, 0xa0 };
 static uint8_t pic_data[2]    = { 0x21, 0xa1 };
 
-void pic_init( int pic0base, int pic1base )
+void pic_init( int pic0base, int pic1base)
 {
 	outb(PIC_ICW1,pic_control[0]);
 	outb(pic0base,pic_data[0]);
@@ -33,7 +33,7 @@ void pic_init( int pic0base, int pic1base )
 	console_printf("pic: ready\n");
 }
 
-void pic_enable( uint8_t irq )
+void pic_enable( uint8_t irq)
 {
       	uint8_t mask;
 	if(irq<8) {
@@ -48,7 +48,7 @@ void pic_enable( uint8_t irq )
 	}
 }
 
-void pic_disable( uint8_t irq )
+void pic_disable( uint8_t irq)
 {
 	uint8_t mask;
 	if(irq<8) {
@@ -62,8 +62,8 @@ void pic_disable( uint8_t irq )
 	}
 }
 
-void pic_acknowledge( uint8_t irq )
-{	
+void pic_acknowledge( uint8_t irq)
+{
 	if(irq>=8) {
 		outb(PIC_ACK_SPECIFIC+(irq-8),pic_control[1]);
 		outb(PIC_ACK_SPECIFIC+(2),pic_control[0]);
