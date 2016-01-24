@@ -7,14 +7,14 @@ See the file LICENSE for details.
 #include "console.h"
 #include "graphics.h"
 
-static int xsize=80;
-static int ysize=25;
+static int xsize = 80;
+static int ysize = 25;
 
-static int xpos=0;
-static int ypos=0;
+static int xpos = 0;
+static int ypos = 0;
 
-struct graphics_color bgcolor = {0, 0, 0};
-struct graphics_color fgcolor = {255, 0, 0};
+struct graphics_color bgcolor = { 0, 0, 0 };
+struct graphics_color fgcolor = { 255, 0, 0 };
 
 static void console_reset() {
     xpos = ypos = 0;
@@ -22,15 +22,15 @@ static void console_reset() {
 }
 
 static void console_writechar(int x, int y, char ch) {
-    graphics_char(x*8, y*8, ch, fgcolor, bgcolor);
+    graphics_char(x * 8, y * 8, ch, fgcolor, bgcolor);
 }
 
 void console_heartbeat() {
-    static int onoff=0;
+    static int onoff = 0;
     if (onoff) {
-        graphics_char(xpos*8, ypos*8, '_', fgcolor, bgcolor);
+        graphics_char(xpos * 8, ypos * 8, '_', fgcolor, bgcolor);
     } else {
-        graphics_char(xpos*8, ypos*8, '_', bgcolor, bgcolor);
+        graphics_char(xpos * 8, ypos * 8, '_', bgcolor, bgcolor);
     }
     onoff = !onoff;
 }
@@ -41,7 +41,7 @@ void console_putchar(char c) {
     switch (c) {
         case 13:
         case 10:
-            xpos=0;
+            xpos = 0;
             ypos++;
             break;
         case '\f':
@@ -56,17 +56,17 @@ void console_putchar(char c) {
             break;
     }
 
-    if (xpos<0) {
-        xpos=xsize-1;
+    if (xpos < 0) {
+        xpos = xsize - 1;
         ypos--;
     }
 
-    if (xpos>=xsize) {
-        xpos=0;
+    if (xpos >= xsize) {
+        xpos = 0;
         ypos++;
     }
 
-    if (ypos>=ysize) {
+    if (ypos >= ysize) {
         console_reset();
     }
 
@@ -81,8 +81,8 @@ void console_putstring(const char *s) {
 }
 
 int console_write(int unit, const void *buffer, int length, int offset) {
-    char *cbuffer = (char*)buffer;
-    while (length>0) {
+    char *cbuffer = (char *)buffer;
+    while (length > 0) {
         console_putchar(*cbuffer);
         cbuffer++;
         length--;
@@ -91,15 +91,19 @@ int console_write(int unit, const void *buffer, int length, int offset) {
 }
 
 void console_init() {
-    xsize = graphics_width()/8;
-    ysize = graphics_height()/8;
+    xsize = graphics_width() / 8;
+    ysize = graphics_height() / 8;
     console_reset();
     console_putstring("\nconsole: initialized\n");
 }
 
 uint8_t console_verify_color_range(uint8_t x) {
-    if (x < 0) return 0;
-    if (x > 255) return 255;
+    if (x < 0) {
+        return 0;
+    }
+    if (x > 255) {
+        return 255;
+    }
     return x;
 }
 
@@ -120,5 +124,3 @@ void console_set_bgcolor(uint8_t r, uint8_t g, uint8_t b) {
     bgcolor.g = g;
     bgcolor.b = b;
 }
-
-

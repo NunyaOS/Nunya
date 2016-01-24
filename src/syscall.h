@@ -13,7 +13,8 @@ See the file LICENSE for details.
 #define SYSCALL_testcall 2
 #define SYSCALL_yield    3
 
-uint32_t syscall(uint32_t n, uint32_t a, uint32_t b, uint32_t c, uint32_t d, uint32_t e);
+uint32_t syscall(uint32_t n, uint32_t a, uint32_t b, uint32_t c, uint32_t d,
+                 uint32_t e);
 
 static inline int32_t exit(uint32_t status) {
     return syscall(SYSCALL_exit, status, 0, 0, 0, 0);

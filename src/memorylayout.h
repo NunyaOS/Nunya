@@ -69,4 +69,3 @@ grow down.  Addresses below 0x8000000 are all supervisor mode.
 
 #define PROCESS_ENTRY_POINT 0x8000000
 #define PROCESS_STACK_INIT  0xffffff0
-

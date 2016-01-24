@@ -25,14 +25,14 @@ See the file LICENSE for details.
 #define BUFFER_SIZE 256
 
 struct keymap {
-    char    normal;
-    char    shifted;
-    char    ctrled;
-    char    special;
+    char normal;
+    char shifted;
+    char ctrled;
+    char special;
 };
 
 static struct keymap keymap[] = {
-    #include "keymap.us.c"
+#include "keymap.us.c"
 };
 
 static char buffer[BUFFER_SIZE];
@@ -41,10 +41,9 @@ static int buffer_write = 0;
 
 static char str_buffer[BUFFER_SIZE];
 
-static struct list queue = {0, 0};
+static struct list queue = { 0, 0 };
 
-static int keyboard_scan()
-{
+static int keyboard_scan() {
     int code;
     int ack;
 
@@ -66,31 +65,32 @@ static int alt_mode = 0;
 static int ctrl_mode = 0;
 static int shiftlock_mode = 0;
 
-static char keyboard_map(int code)
-{
+static char keyboard_map(int code) {
     int direction;
 
-    if (code&0x80) {
+    if (code & 0x80) {
         direction = 0;
-        code = code&0x7f;
+        code = code & 0x7f;
     } else {
         direction = 1;
     }
 
-    if (keymap[code].special==SPECIAL_SHIFT) {
+    if (keymap[code].special == SPECIAL_SHIFT) {
         shift_mode = direction;
         return KEY_INVALID;
-    } else if (keymap[code].special==SPECIAL_ALT) {
+    } else if (keymap[code].special == SPECIAL_ALT) {
         alt_mode = direction;
         return KEY_INVALID;
-    } else if (keymap[code].special==SPECIAL_CTRL) {
+    } else if (keymap[code].special == SPECIAL_CTRL) {
         ctrl_mode = direction;
         return KEY_INVALID;
-    } else if (keymap[code].special==SPECIAL_SHIFTLOCK) {
-        if (direction==0) shiftlock_mode = !shiftlock_mode;
+    } else if (keymap[code].special == SPECIAL_SHIFTLOCK) {
+        if (direction == 0) {
+            shiftlock_mode = !shiftlock_mode;
+        }
         return KEY_INVALID;
     } else if (direction) {
-        if (ctrl_mode && alt_mode && keymap[code].normal==ASCII_DEL) {
+        if (ctrl_mode && alt_mode && keymap[code].normal == ASCII_DEL) {
             reboot();
             return KEY_INVALID;
         } else if (shiftlock_mode) {
@@ -114,27 +114,31 @@ static char keyboard_map(int code)
 void keyboard_interrupt(int i, int code) {
     char c;
     c = keyboard_map(keyboard_scan());
-    if (c==KEY_INVALID) return;
-    if ((buffer_write+1) == (buffer_read%BUFFER_SIZE)) return;
+    if (c == KEY_INVALID) {
+        return;
+    }
+    if ((buffer_write + 1) == (buffer_read % BUFFER_SIZE)) {
+        return;
+    }
     buffer[buffer_write] = c;
-    buffer_write = (buffer_write+1)%BUFFER_SIZE;
+    buffer_write = (buffer_write + 1) % BUFFER_SIZE;
     process_wakeup(&queue);
 }
 
 char keyboard_read() {
     int result;
-    while (buffer_read==buffer_write) {
+    while (buffer_read == buffer_write) {
         process_wait(&queue);
     }
     result = buffer[buffer_read];
-    buffer_read = (buffer_read+1)%BUFFER_SIZE;
+    buffer_read = (buffer_read + 1) % BUFFER_SIZE;
     return result;
 }
 
 const char *keyboard_read_str() {
     int i = 0;
     char c = keyboard_read();
-    while (c != '\n' && c != '\r' && i < BUFFER_SIZE-1) {
+    while (c != '\n' && c != '\r' && i < BUFFER_SIZE - 1) {
         console_putchar(c);
         str_buffer[i++] = c;
 
@@ -156,4 +160,3 @@ void keyboard_init() {
     interrupt_enable(33);
     console_printf("keyboard: ready\n");
 }
-

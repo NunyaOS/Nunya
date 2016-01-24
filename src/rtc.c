@@ -50,25 +50,25 @@ Recommended reading: page 11-15 of the RTC data sheet
 
 /* Register B bits */
 
-#define RTC_B_SET  (1<<7) /* if set, may write new time */
-#define RTC_B_PIE  (1<<6) /* periodic interrupt enabled */
-#define RTC_B_AIE  (1<<5) /* alarm interrupt enabled */
-#define RTC_B_UIE  (1<<4) /* update interrupt enabled */
-#define RTC_B_SQWE (1<<3) /* square wave enabled */
-#define RTC_B_DM   (1<<2) /* data mode: 1=binary 0=decimal */
-#define RTC_B_2412 (1<<1) /* 1=24 hour mode 0=12 hour mode */
-#define RTC_B_DSE  (1<<0) /* daylight savings enable */
+#define RTC_B_SET  (1<<7)       /* if set, may write new time */
+#define RTC_B_PIE  (1<<6)       /* periodic interrupt enabled */
+#define RTC_B_AIE  (1<<5)       /* alarm interrupt enabled */
+#define RTC_B_UIE  (1<<4)       /* update interrupt enabled */
+#define RTC_B_SQWE (1<<3)       /* square wave enabled */
+#define RTC_B_DM   (1<<2)       /* data mode: 1=binary 0=decimal */
+#define RTC_B_2412 (1<<1)       /* 1=24 hour mode 0=12 hour mode */
+#define RTC_B_DSE  (1<<0)       /* daylight savings enable */
 
 /* Register C bits */
 /* Note that reading C is necessary to acknowledge an interrupt */
 
-#define RTC_C_IRQF (1<<7) /* 1=any interrupt pending */
-#define RTC_C_PF   (1<<6) /* periodic interrupt pending */
-#define RTC_C_AF   (1<<5) /* alarm interrupt pending */
-#define RTC_C_UF   (1<<4) /* update interrupt pending */
+#define RTC_C_IRQF (1<<7)       /* 1=any interrupt pending */
+#define RTC_C_PF   (1<<6)       /* periodic interrupt pending */
+#define RTC_C_AF   (1<<5)       /* alarm interrupt pending */
+#define RTC_C_UF   (1<<4)       /* update interrupt pending */
 
 static uint8_t rtc_bcd_to_binary(uint8_t bcd) {
-    return (bcd&0x0f) + (bcd>>4)*10;
+    return (bcd & 0x0f) + (bcd >> 4) * 10;
 }
 
 static uint8_t rtc_read_port(uint16_t address) {
@@ -86,7 +86,7 @@ static struct rtc_time cached_time;
 static void rtc_fetch_time() {
     struct rtc_time t;
 
-    int addpm=0;
+    int addpm = 0;
 
     do {
         t.second = rtc_read_port(RTC_SECONDS);
@@ -97,7 +97,7 @@ static void rtc_fetch_time() {
         t.year = rtc_read_port(RTC_YEAR);
     } while (t.second != rtc_read_port(RTC_SECONDS));
 
-    if (t.hour&0x80) {
+    if (t.hour & 0x80) {
         addpm = 1;
         t.hour &= 0x7f;
     } else {
@@ -106,13 +106,15 @@ static void rtc_fetch_time() {
 
     t.second = rtc_bcd_to_binary(t.second);
     t.minute = rtc_bcd_to_binary(t.minute);
-    t.hour   = rtc_bcd_to_binary(t.hour);
-    if (addpm) t.hour += 12;
-    t.day    = rtc_bcd_to_binary(t.day);
-    t.month  = rtc_bcd_to_binary(t.month);
-    t.year   = rtc_bcd_to_binary(t.year);
+    t.hour = rtc_bcd_to_binary(t.hour);
+    if (addpm) {
+        t.hour += 12;
+    }
+    t.day = rtc_bcd_to_binary(t.day);
+    t.month = rtc_bcd_to_binary(t.month);
+    t.year = rtc_bcd_to_binary(t.year);
 
-    if (t.year>=70) {
+    if (t.year >= 70) {
         t.year += 1900;
     } else {
         t.year += 2000;

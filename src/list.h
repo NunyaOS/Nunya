@@ -27,8 +27,9 @@ struct list_node {
 void list_push_head(struct list *list, struct list_node *node);
 void list_push_tail(struct list *list, struct list_node *node);
 void list_push_priority(struct list *list, struct list_node *node, int pri);
-struct list_node * list_pop_head(struct list *list);
-struct list_node * list_pop_tail(struct list *list);
+struct list_node *list_pop_head(struct list *list);
+struct list_node *list_pop_tail(struct list *list);
 void list_remove(struct list_node *n);
 
-#endif
+#endif /*
+ */

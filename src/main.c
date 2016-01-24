@@ -26,35 +26,34 @@ with interrupts disabled, a valid C stack, but no malloc heap.
 Now we initialize each subsystem in the proper order:
 */
 
-int kernel_main()
-{
-	console_init();
+int kernel_main() {
+    console_init();
 
-	console_printf("video: %d x %d\n", video_xres, video_yres, video_xbytes);
-	console_printf("kernel: %d bytes\n", kernel_size);
+    console_printf("video: %d x %d\n", video_xres, video_yres, video_xbytes);
+    console_printf("kernel: %d bytes\n", kernel_size);
 
-	memory_init();
-	interrupt_init();
-	rtc_init();
-	clock_init();
-	keyboard_init();
+    memory_init();
+    interrupt_init();
+    rtc_init();
+    clock_init();
+    keyboard_init();
 
-/*
-process_init() is a big step.  This initializes the process table, but also gives us our own process structure, private stack, and enables paging.  Now we can do complex things like wait upon events.
-*/
-	process_init();
+    /*
+    process_init() is a big step.  This initializes the process table, but also gives us our own process structure, private stack, and enables paging.  Now we can do complex things like wait upon events.
+    */
+    process_init();
 
-	ata_init();
+    ata_init();
 
 
-	console_printf("\nBASEKERNEL READY:\n");
+    console_printf("\nBASEKERNEL READY:\n");
 
     //change text color to white after bootup
     console_set_fgcolor(255, 255, 255);
 
-	while (1) {
-		keyboard_read_str();
-	}
+    while (1) {
+        keyboard_read_str();
+    }
 
-	return 0;
+    return 0;
 }

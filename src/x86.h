@@ -30,23 +30,23 @@ struct x86_eflags {
 
     unsigned trap:1;
     unsigned interrupt:1;
-    unsigned direction:1;
-    unsigned overflow:1;
+        unsigned direction:1;
+        unsigned overflow:1;
 
-    unsigned iopl:2;
-    unsigned nested:1;
-    unsigned reserved3:1;
+        unsigned iopl:2;
+        unsigned nested:1;
+        unsigned reserved3:1;
 
-    unsigned resume:1;
-    unsigned v86:1;
-    unsigned align:1;
-    unsigned vinterrupt:1;
+        unsigned resume:1;
+        unsigned v86:1;
+        unsigned align:1;
+        unsigned vinterrupt:1;
 
-    unsigned vpending:1;
-    unsigned id:1;
-};
+        unsigned vpending:1;
+        unsigned id:1;
+    };
 
-struct x86_regs {
+    struct x86_regs {
     int32_t eax;
     int32_t ebx;
     int32_t ecx;
@@ -57,18 +57,18 @@ struct x86_regs {
 };
 
 struct x86_stack {
-    struct x86_regs     regs2;
-    int32_t             old_ebp;
-    int32_t             old_addr;
-    struct x86_regs     regs1;
-    int32_t             ds;
-    int32_t             intr_num;
-    int32_t             intr_code;
-    int32_t             eip;
-    int32_t             cs;
-    struct x86_eflags   eflags;
-    int32_t             esp;
-    int32_t             ss;
+    struct x86_regs regs2;
+    int32_t old_ebp;
+    int32_t old_addr;
+    struct x86_regs regs1;
+    int32_t ds;
+    int32_t intr_num;
+    int32_t intr_code;
+    int32_t eip;
+    int32_t cs;
+    struct x86_eflags eflags;
+    int32_t esp;
+    int32_t ss;
 };
 
 struct x86_segment {
