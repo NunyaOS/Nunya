@@ -17,6 +17,7 @@ See the file LICENSE for details.
 #include "syscall.h"
 #include "rtc.h"
 #include "kernelcore.h"
+#include "disk.h"
 
 /*
 This is the C initialization point of the kernel.
@@ -44,6 +45,7 @@ process_init() is a big step.  This initializes the process table, but also give
 	process_init();
 
 	ata_init();
+
 
 	console_printf("\nBASEKERNEL READY:\n");
     
