@@ -28,8 +28,6 @@ struct process {
 	char *kstack_top;
 	char *stack_ptr;
 	uint32_t entry;
-    struct kmalloc_page_info * kmalloc_head;
-    unsigned kmalloc_next_page_vaddr;
 };
 
 void process_init();

@@ -46,7 +46,10 @@ process_init() is a big step.  This initializes the process table, but also give
 	ata_init();
 
 	console_printf("\nBASEKERNEL READY:\n");
-
+    
+    int spot1 = (int)kmalloc( (KMALLOC_NUM_SLOTS - 1) * 8 - 4 ); //should require 1 less than all blocks
+    int spot2 = (int)kmalloc(sizeof(char));  //should require 1 block
+    //int spot3 = (int)kmalloc(sizeof(char));  //should require 1 block
     //change text color to white after bootup
     console_set_fgcolor(255,255,255);
 
