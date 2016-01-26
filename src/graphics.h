@@ -22,6 +22,7 @@ void graphics_line( int x1, int y1, int x2, int y2, struct graphics_color c );
 void graphics_rect( int x, int y, int w, int h, struct graphics_color c );
 void graphics_clear( struct graphics_color c );
 void graphics_char( int x, int y, char ch, struct graphics_color fgcolor, struct graphics_color bgcolor );
+void graphics_bitmap( int x, int y, int width, int height, uint8_t *data, struct graphics_color fgcolor, struct graphics_color bgcolor );
 
 #endif
 
