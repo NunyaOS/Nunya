@@ -10,6 +10,7 @@ See the file LICENSE for details.
 #include "kerneltypes.h"
 
 #define KMALLOC_SLOT_SIZE 8
+
 //462 is the size of a struct kmalloc_page_info.
 //It comes from x = 8 + 454, as pointer and max_free_gap sum to 8 bytes, then 4094 = (8 * x) + (8 + x)
 //where the first term is the space for the slots and the second is the sizeof(struct kmalloc_page_info)
@@ -21,10 +22,9 @@ struct __attribute__((__packed__)) kmalloc_page_info {
     uint8_t free[KMALLOC_NUM_SLOTS]; // bit vector of free slots
 };
 
-
-void	memory_init();
-void *	memory_alloc_page( bool zeroit );
-void	memory_free_page( void *addr );
+void memory_init();
+void *memory_alloc_page(bool zeroit);
+void memory_free_page(void *addr);
 
 /**
 * @brief Kernel allocation of the parameter requested size of memory
@@ -33,6 +33,6 @@ void	memory_free_page( void *addr );
 * @param
 * @return
 */
-void *  kmalloc(unsigned int size);
-void    kfree(void * to_free);
+void *kmalloc(unsigned int size);
+void kfree(void * to_free);
 #endif

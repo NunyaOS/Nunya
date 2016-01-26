@@ -26,38 +26,33 @@ with interrupts disabled, a valid C stack, but no malloc heap.
 Now we initialize each subsystem in the proper order:
 */
 
-int kernel_main()
-{
-	console_init();
+int kernel_main() {
+    console_init();
 
-	console_printf("video: %d x %d\n",video_xres,video_yres,video_xbytes);
-	console_printf("kernel: %d bytes\n",kernel_size);
+    console_printf("video: %d x %d\n", video_xres, video_yres, video_xbytes);
+    console_printf("kernel: %d bytes\n", kernel_size);
 
-	memory_init();
-	interrupt_init();
-	rtc_init();
-	clock_init();
-	keyboard_init();
+    memory_init();
+    interrupt_init();
+    rtc_init();
+    clock_init();
+    keyboard_init();
 
-/*
-process_init() is a big step.  This initializes the process table, but also gives us our own process structure, private stack, and enables paging.  Now we can do complex things like wait upon events.
-*/
-	process_init();
+    /*
+    process_init() is a big step.  This initializes the process table, but also gives us our own process structure, private stack, and enables paging.  Now we can do complex things like wait upon events.
+    */
+    process_init();
 
-	ata_init();
-
+    ata_init();
 
 	console_printf("\nBASEKERNEL READY:\n");
     
-    int spot1 = (int)kmalloc( (KMALLOC_NUM_SLOTS - 1) * 8 - 4 ); //should require 1 less than all blocks
-    int spot2 = (int)kmalloc(sizeof(char));  //should require 1 block
-    //int spot3 = (int)kmalloc(sizeof(char));  //should require 1 block
     //change text color to white after bootup
-    console_set_fgcolor(255,255,255);
+    console_set_fgcolor(255, 255, 255);
 
-	while(1) {
-		keyboard_read_str();
-	}
+    while (1) {
+        keyboard_read_str();
+    }
 
-	return 0;
+    return 0;
 }
