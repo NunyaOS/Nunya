@@ -17,8 +17,9 @@ See the file LICENSE for details.
 
 int disk_read(char *destination, int start_block_index, int offset, int num_bytes) {
 	int blocks_needed = ((offset + num_bytes) / ATA_BLOCKSIZE) + 1;
-	if( ((offset + num_bytes) % ATA_BLOCKSIZE) == 0)
+	if(((offset + num_bytes) % ATA_BLOCKSIZE) == 0) {
 		blocks_needed--;
+    }
 
 	int blocks_read_in = 0;
 	char block_buffer[ATA_BLOCKSIZE];
