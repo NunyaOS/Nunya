@@ -260,7 +260,52 @@ void *kmalloc(unsigned int size)
     return (void *)(first_slot_phys_addr + sizeof(uint16_t));
 }
 
-void kfree(void * to_free) {
-    //TODO: implement
+void kfree_mark_free(struct kmalloc_page_info *page_info, void *mem_loc) {
+    //the number of consecutive slots consumed is stored just ahead of the pointer given
+    uint16_t slots_consumed = *((uint16_t *)(mem_loc - sizeof(uint16_t)));
+    console_printf("Freeing %d blocks beginning at mem_loc %x\n", slots_consumed, mem_loc - sizeof(uint16_t));
+
+    //find offset for how far into the page memloc is in units of slots
+    int first_slot_index = ((uint32_t)mem_loc - (uint32_t)page_info - sizeof(uint16_t) - sizeof(struct kmalloc_page_info)) / KMALLOC_SLOT_SIZE;
+
+    //mark the slots which were consumed all free, starting with first_slot_index
+    int i;
+    for (i = 0; i < slots_consumed; i++) {
+        page_info->free[first_slot_index + i] = 1;
+    }
+}
+
+void kfree(void *to_free) {
+    if (!to_free) {
+        console_printf("kfree is being asked to free a NULL pointer\n");
+        return;
+    }
+
+    uint32_t to_free_as_int = (uint32_t)to_free;
+    struct kmalloc_page_info *page_info = kmalloc_head;
+    int is_freed = 0;
+    while (page_info && is_freed == 0) {
+        uint32_t page_start = (uint32_t)page_info;
+
+        //not <= and >= because pointers should never be on first or last byte of page
+        if ( page_start < to_free && page_start + PAGE_SIZE > to_free) {
+            //liberate pointer from page
+            kfree_mark_free(page_info, to_free);
+
+            is_freed = 1;
+        }
+        else {
+            page_info = page_info->next;
+        }
+    }
+
+    if (is_freed == 0) {
+        console_printf("kfree(%x) failed as %x was not kmalloc'd\n");
+        //TODO: raise error?
+    }
+    else {
+        page_info->max_free_gap = kmalloc_get_largest_gap_size(page_info);
+    }
+
     return;
 }

@@ -35,5 +35,13 @@ void memory_free_page(void *addr);
 */
 void *kmalloc(unsigned int size);
 
-void kfree(void * to_free);
+/**
+* @brief Frees previously allocated memory in the kernel's portion of memory
+* @detail Takes the given pointer, and finding the appropriate page in memory, marks that region as free on that page's kmalloc_page_info.
+*
+* @param to_free The pointer to the segment of memory to be free'd. This should have been obtained from a call to kmalloc.
+* @return void
+*/
+void kfree(void* to_free);
+
 #endif
