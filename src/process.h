@@ -19,27 +19,27 @@ See the file LICENSE for details.
 #define PROCESS_STATE_GRAVE   4
 
 struct process {
-	struct list_node node;
-	int state;
-	int exitcode;
-	struct pagetable *pagetable;
-	char *kstack;
-	char *kstack_top;
-	char *stack_ptr;
-	uint32_t entry;
+    struct list_node node;
+    int state;
+    int exitcode;
+    struct pagetable *pagetable;
+    char *kstack;
+    char *kstack_top;
+    char *stack_ptr;
+    uint32_t entry;
 };
 
 void process_init();
 
-struct process * process_create( unsigned code_size, unsigned stack_size );
+struct process *process_create(unsigned code_size, unsigned stack_size);
 void process_yield();
 void process_preempt();
-void process_exit( int code );
-void process_dump( struct process *p );
+void process_exit(int code);
+void process_dump(struct process *p);
 
-void process_wait( struct list *q );
-void process_wakeup( struct list *q );
-void process_wakeup_all( struct list *q );
+void process_wait(struct list *q);
+void process_wakeup(struct list *q);
+void process_wakeup_all(struct list *q);
 
 extern struct process *current;
 
