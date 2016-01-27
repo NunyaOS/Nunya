@@ -30,9 +30,10 @@ void memory_free_page(void *addr);
 * @brief Kernel allocation of the parameter requested size of memory
 * @details Looks goes through a linked list of pages for a large enough gap of contiguous free slots of fixed size . If no page for kmalloc has a large enough gap, a new gap is asked from memory.
 *
-* @param
-* @return
+* @param size The size in bytes of the chunk of memory requested from kmalloc, not to exceed 3632
+* @return A pointer to the allocated memory that needs to be kfree()'d to be released.
 */
 void *kmalloc(unsigned int size);
+
 void kfree(void * to_free);
 #endif

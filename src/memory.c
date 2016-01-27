@@ -117,18 +117,16 @@ void memory_free_page(void *pageaddr) {
     pages_free++;
 }
 
-struct kmalloc_page_info * kmalloc_create_page_info(unsigned paddr)
-{
+struct kmalloc_page_info * kmalloc_create_page_info(unsigned paddr) {
     struct kmalloc_page_info *n = (struct kmalloc_page_info *)paddr;
-    n->max_free_gap = PAGE_SIZE - 0;
-    memset(n->free, 1, sizeof(uint8_t)*KMALLOC_NUM_SLOTS);
-    return (struct kmalloc_page_info *) n;  
+    n->max_free_gap = KMALLOC_NUM_SLOTS;
+    memset(n->free, 1, KMALLOC_SLOT_SIZE * KMALLOC_NUM_SLOTS);
+    return (struct kmalloc_page_info *)n;
 }
 
-void kmalloc_get_page()
-{
+void kmalloc_get_page() {
     //get current process's pagetable
-    struct pagetable * pt = current->pagetable;
+    struct pagetable *pt = current->pagetable;
     unsigned vaddr = kmalloc_next_vaddr;
     unsigned phys_addr;
 
@@ -143,32 +141,35 @@ void kmalloc_get_page()
         return;
     }
 
+    console_printf("Got page with vaddr: %x, and paddr: %x\n", vaddr, phys_addr);
+
+    //prepare for the next page requested by updating the global variable for it.
     kmalloc_next_vaddr += PAGE_SIZE;
     
     // build the page struct
     struct kmalloc_page_info *pg_info = kmalloc_create_page_info(phys_addr);
     
-    console_printf("Got page with vaddr: %x, and paddr: %x\n", kmalloc_next_vaddr - PAGE_SIZE, phys_addr);
  
+    //rearrange the linked list of pages with the new page at the beginning.
     pg_info->next = kmalloc_head;
     kmalloc_head = pg_info;
 }
 
-int kmalloc_locate_sufficient_gap(struct kmalloc_page_info * page_info, int num_slots) {
+int kmalloc_locate_sufficient_gap(struct kmalloc_page_info *page_info, int num_slots) {
     console_printf("Looking for a gap of %d slots\n", num_slots);
     int gaps_first_slot = 0;
     int consecutive_safe = 0;
 
     int i;
-    for(i = 0; i < KMALLOC_NUM_SLOTS; i++){
-        if(page_info->free[i] == 1){
+    for (i = 0; i < KMALLOC_NUM_SLOTS; i++) {
+        if (page_info->free[i] == 1) {
             consecutive_safe++;
-            //console_printf("cs=%d:i=%d,",consecutive_safe,i);
-            if(consecutive_safe == num_slots){
+            console_printf("cs=%d:i=%d,",consecutive_safe,i);
+            if (consecutive_safe == num_slots) {
                 return gaps_first_slot;
             }
         }
-        else{
+        else {
             consecutive_safe = 0;
             gaps_first_slot = i + 1;
         }
@@ -178,19 +179,19 @@ int kmalloc_locate_sufficient_gap(struct kmalloc_page_info * page_info, int num_
 
 //Returns the largest gap in terms of the number of slots required
 //for that gap.
-int kmalloc_get_largest_gap_size(struct kmalloc_page_info * page_info)
+int kmalloc_get_largest_gap_size(struct kmalloc_page_info *page_info)
 {
     int i;
     int biggest_gap_in_slots = 0;
     int current_gap_in_slots = 0;
-    for(i = 0; i < KMALLOC_NUM_SLOTS; i++){
-        if(page_info->free[i]){
+    for (i = 0; i < KMALLOC_NUM_SLOTS; i++) {
+        if (page_info->free[i]) {
             current_gap_in_slots++;
-            if(current_gap_in_slots > biggest_gap_in_slots){
+            if (current_gap_in_slots > biggest_gap_in_slots) {
                 biggest_gap_in_slots = current_gap_in_slots;
             }
         }
-        else{
+        else {
             current_gap_in_slots = 0;
         }
     }
@@ -206,7 +207,7 @@ void *kmalloc(unsigned int size)
     //console_printf("In kmalloc with requested size: %d\n", size);
     uint16_t slots_needed = (size + sizeof(uint16_t)) / KMALLOC_SLOT_SIZE;
     //addresses integer division truncation
-    if(size % 8){
+    if (size % 8 != 0) {
         slots_needed++;
     }
     
@@ -214,9 +215,9 @@ void *kmalloc(unsigned int size)
 
     //start at head, iterate through looking for a page with a large enough gap
     struct kmalloc_page_info *page_info = kmalloc_head;
-    while(page_info){
+    while (page_info) {
         console_printf("Checking out page %x\n", (int)page_info);
-        if(page_info->max_free_gap >= ( slots_needed ) ){
+        if (page_info->max_free_gap >= slots_needed) {
             console_printf("suitable page found with max gap of %d\n", page_info->max_free_gap);
             break; 
         }
@@ -225,7 +226,7 @@ void *kmalloc(unsigned int size)
     }
 
     //If no such page exists, grab another!
-    if(!page_info){
+    if (!page_info) {
         console_printf("no suitable pages found, getting a new page\n");
         kmalloc_get_page();
         page_info = kmalloc_head;
@@ -241,12 +242,12 @@ void *kmalloc(unsigned int size)
     uint32_t first_slot_phys_addr = (uint32_t)page_info + sizeof(struct kmalloc_page_info) + (KMALLOC_SLOT_SIZE * slots_start_index);
     console_printf("Found slot with first_slot_phys_addr = %d\n", first_slot_phys_addr);
  
-    //dereference an integer which was cast to void * and fill it with slots needed, a 16 bit integer
+    //cast first_slot_phys_addr to uint16_t *, so that we can dereference it and fill it with slots needed, a 16 bit integer
     *((uint16_t *)first_slot_phys_addr) = (uint16_t)slots_needed;
 
     //mark these as malloc'd in kmalloc_page
     int i;
-    for(i = 0; i < slots_needed; i++){
+    for (i = 0; i < slots_needed; i++) {
         page_info->free[slots_start_index + i] = 0;
 
     }
@@ -254,16 +255,12 @@ void *kmalloc(unsigned int size)
     //find largest remaining gap
     page_info->max_free_gap = kmalloc_get_largest_gap_size(page_info);
     console_printf("\nLargest remaining gap is %d slots\n", page_info->max_free_gap);
-    //for(i = 0; i < KMALLOC_NUM_SLOTS; i++) {
-    //    console_printf("%d,", page_info->free[i]);
-    //}
 
-    //return a pointer to the useful memory area.
+    //return a pointer to the useful memory area, which is sizeof(uint16_t) into the first slot.
     return (void *)(first_slot_phys_addr + sizeof(uint16_t));
 }
 
-void kfree(void * to_free)
-{
+void kfree(void * to_free) {
     //TODO: implement
     return;
 }
