@@ -82,14 +82,14 @@ double abs(double x) {
 }
 
 double ceil(double x) {
-    int intnum = (int) x;
+    int intnum = (int)x;
     // if x has no floating point part
-    if (x == (double) intnum) {
+    if (x == (double)intnum) {
         return x;
     }
-    return (double) (intnum + 1);
+    return (double)(intnum + 1);
 }
 
 double floor(double x) {
-    return (double) ((int) (x));
+    return (double)((int)(x));
 }
