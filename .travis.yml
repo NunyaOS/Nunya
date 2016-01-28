@@ -1,5 +1,6 @@
 language: c
-before_install: sudo apt-get update && sudo apt-get upgrade -y && sudo apt-get dist-upgrade -y && sudo apt-get install genisoimage
+before_install: sudo apt-get update && sudo apt-get install genisoimage
+    #&& sudo apt-get upgrade -y && sudo apt-get dist-upgrade -y && sudo apt-get install genisoimage
 script: cd src && make
 compiler:
     - gcc
