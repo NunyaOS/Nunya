@@ -1,5 +1,9 @@
 language: c
-install: genisoimage
+before_install: genisoimage
 script: cd src && make
 compiler:
     - gcc
+
+notifications:
+    email: false
+
