@@ -1,5 +1,5 @@
 language: c
-before_install: genisoimage
+before_install: sudo apt-get install genisoimage
 script: cd src && make
 compiler:
     - gcc
