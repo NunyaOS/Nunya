@@ -1,5 +1,4 @@
 language: c
-install: cd src/
-    make
+script: cd src && make
 compiler:
     - gcc
