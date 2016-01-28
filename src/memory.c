@@ -12,7 +12,6 @@ See the file LICENSE for details.
 #include "memorylayout.h"
 #include "kernelcore.h"
 #include "pagetable.h"
-#include "memory.h"
 
 static uint32_t pages_free = 0;
 static uint32_t pages_total = 0;
@@ -117,17 +116,22 @@ void memory_free_page(void *pageaddr) {
     pages_free++;
 }
 
-struct kmalloc_page_info * kmalloc_create_page_info(unsigned paddr) {
+struct kmalloc_page_info *kmalloc_create_page_info(unsigned paddr) {
     struct kmalloc_page_info *n = (struct kmalloc_page_info *)paddr;
     n->max_free_gap = KMALLOC_NUM_SLOTS;
     memset(n->free, 1, KMALLOC_SLOT_SIZE * KMALLOC_NUM_SLOTS);
-    return (struct kmalloc_page_info *)n;
+    return n;
 }
 
+/**
+* @brief Put a new page at the head of the kmalloc linked list of pages in use.
+* @details When kmalloc does not have sufficient space on any of the allocated pages on its linked list, this function helps it by using a new page from the pagetable, putting a struct kmalloc_page_info at the start of it, and inserting said page at the beginning of the linked list of pages.
+*
+* @return void
+*/
 void kmalloc_get_page() {
     //get current process's pagetable
     struct pagetable *pt = current->pagetable;
-    unsigned vaddr = kmalloc_next_vaddr;
     unsigned phys_addr;
 
     if (kmalloc_next_vaddr >= PROCESS_ENTRY_POINT) {
@@ -136,11 +140,10 @@ void kmalloc_get_page() {
         return;
     }
  
-    if (pagetable_getmap(pt, vaddr, &phys_addr) != 1) {
+    if (pagetable_getmap(pt, kmalloc_next_vaddr, &phys_addr) != 1) {
         console_printf("kmalloc: Unable to get mapping to next vmem page\n");
         return;
     }
-
 
     //prepare for the next page requested by updating the global variable for it.
     kmalloc_next_vaddr += PAGE_SIZE;
@@ -148,12 +151,19 @@ void kmalloc_get_page() {
     // build the page struct
     struct kmalloc_page_info *pg_info = kmalloc_create_page_info(phys_addr);
     
- 
     //rearrange the linked list of pages with the new page at the beginning.
     pg_info->next = kmalloc_head;
     kmalloc_head = pg_info;
 }
 
+/**
+* @brief Find the slot index at the start of a sufficiently large gap in memory for kmalloc
+* @details Examines the free vector of the pointer to page_info and gives the index of the first slot of the first sufficiently large gap in the page.
+*
+* @param page_info Pointer to the kmalloc_page_info which maintains the details regarding the page we're looking for the largest gap in.
+* @param num_slots Assumedly positive, integer number of required contiguous free slots
+* @return The index of a free slot on the page that begins a string of at least num_slots consecutive free slots
+*/
 int kmalloc_locate_sufficient_gap(struct kmalloc_page_info *page_info, int num_slots) {
     int gaps_first_slot = 0;
     int consecutive_safe = 0;
@@ -165,8 +175,7 @@ int kmalloc_locate_sufficient_gap(struct kmalloc_page_info *page_info, int num_s
             if (consecutive_safe == num_slots) {
                 return gaps_first_slot;
             }
-        }
-        else {
+        } else {
             consecutive_safe = 0;
             gaps_first_slot = i + 1;
         }
@@ -174,8 +183,13 @@ int kmalloc_locate_sufficient_gap(struct kmalloc_page_info *page_info, int num_s
     return -1; 
 }
 
-//Returns the largest gap in terms of the number of slots required
-//for that gap.
+/**
+* @brief Returns the largest gap in terms of the number of slots in that gap.
+* @details Looks through the arugments free array, looking for the longest consecutive string of free slots
+*
+* @param page_info Pointer to the kmalloc_page_info which maintains the details regarding the page we're looking for the largest gap in.
+* @return The number of slots in the largest continuous, free gap on the page.
+*/
 int kmalloc_get_largest_gap_size(struct kmalloc_page_info *page_info)
 {
     int i;
@@ -187,8 +201,7 @@ int kmalloc_get_largest_gap_size(struct kmalloc_page_info *page_info)
             if (current_gap_in_slots > biggest_gap_in_slots) {
                 biggest_gap_in_slots = current_gap_in_slots;
             }
-        }
-        else {
+        } else {
             current_gap_in_slots = 0;
         }
     }
@@ -199,8 +212,7 @@ int kmalloc_get_largest_gap_size(struct kmalloc_page_info *page_info)
     return biggest_gap_in_slots;
 }
 
-void *kmalloc(unsigned int size)
-{
+void *kmalloc(unsigned int size) {
     uint16_t slots_needed = (size + sizeof(uint16_t)) / KMALLOC_SLOT_SIZE;
     //addresses integer division truncation
     if (size % 8 != 0) {
@@ -226,7 +238,7 @@ void *kmalloc(unsigned int size)
     //phys addr is addr of page info plus size of page info plus slot offset * slot size
     //needs to fit a memory address of 4 bytes
     uint32_t first_slot_phys_addr = (uint32_t)page_info + sizeof(struct kmalloc_page_info) + (KMALLOC_SLOT_SIZE * slots_start_index);
- 
+
     //cast first_slot_phys_addr to uint16_t *, so that we can dereference it and fill it with slots needed, a 16 bit integer
     *((uint16_t *)first_slot_phys_addr) = (uint16_t)slots_needed;
 
@@ -243,6 +255,14 @@ void *kmalloc(unsigned int size)
     return (void *)(first_slot_phys_addr + sizeof(uint16_t));
 }
 
+/**
+* @brief Mark the memory being kfree'd as free in the kmalloc_page_info
+* @details Identifies the number of slots consumed by the pointer given as the mem_loc argument, and marks these as free in the page_info given.
+*
+* @param page_info Pointer to the kmalloc_page_info which maintains the details regarding the page we're freeing memory in.
+* @param mem_loc The pointer to the memory block to be freed.
+* @return void
+*/
 void kfree_mark_free(struct kmalloc_page_info *page_info, void *mem_loc) {
     //the number of consecutive slots consumed is stored just ahead of the pointer given
     uint16_t slots_consumed = *((uint16_t *)(mem_loc - sizeof(uint16_t)));
@@ -269,13 +289,12 @@ void kfree(void *to_free) {
         uint32_t page_start = (uint32_t)page_info;
 
         //not <= and >= because pointers should never be on first or last byte of page
-        if ( page_start < to_free && page_start + PAGE_SIZE > to_free) {
+        if (page_start < (uint32_t)to_free && page_start + PAGE_SIZE > (uint32_t)to_free) {
             //liberate pointer from page
             kfree_mark_free(page_info, to_free);
 
             is_freed = 1;
-        }
-        else {
+        } else {
             page_info = page_info->next;
         }
     }
@@ -283,8 +302,7 @@ void kfree(void *to_free) {
     if (is_freed == 0) {
         console_printf("kfree(%x) failed as %x was not kmalloc'd\n");
         //TODO: raise error?
-    }
-    else {
+    } else {
         page_info->max_free_gap = kmalloc_get_largest_gap_size(page_info);
     }
 
