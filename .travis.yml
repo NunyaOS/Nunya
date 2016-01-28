@@ -1,4 +1,5 @@
 language: c
+install: genisoimage
 script: cd src && make
 compiler:
     - gcc
