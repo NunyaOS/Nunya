@@ -12,8 +12,8 @@ branches:
     only:
         - master
 
-after_success:
-    - bash ./deploy.sh
+deploy:
+    provider: bash ./deploy.sh
 
 env:
     global:
