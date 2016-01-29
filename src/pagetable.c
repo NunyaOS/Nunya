@@ -26,22 +26,31 @@ struct pageentry {
     unsigned avail:3;
 
     unsigned addr:20;
-};
+};  // 32 bits = 4 bytes
 
 struct pagetable {
     struct pageentry entry[ENTRIES_PER_TABLE];
 };
 
 struct pagetable *pagetable_create() {
+    // Each pagetable is one page (4096 bytes) with 2^10 entries
+    // Each process has a 4 MB large pagetable
     return (struct pagetable *)memory_alloc_page(1);
 }
 
 void pagetable_init(struct pagetable *p) {
     unsigned i, stop;
+    // TODO (SL): Find out how to partially map memory instead of mapping
+    // total_memory
     stop = total_memory * 1024 * 1024;
     for (i = 0; i < stop; i += PAGE_SIZE) {
         pagetable_map(p, i, i, PAGE_FLAG_KERNEL | PAGE_FLAG_READWRITE);
     }
+
+    // SL: in VirtualBox, vram is separate from ram, and no matter how much
+    // physical memory it has, video_buffer is always 0xe0000000.
+    // TODO (SL): Ensure video buffer is mapped into superviser mode even
+    // without vram present
     stop = (unsigned)video_buffer + video_xres * video_yres * 3;
     for (i = (unsigned)video_buffer; i <= stop; i += PAGE_SIZE) {
         pagetable_map(p, i, i, PAGE_FLAG_KERNEL | PAGE_FLAG_READWRITE);
@@ -52,17 +61,17 @@ int pagetable_getmap(struct pagetable *p, unsigned vaddr, unsigned *paddr) {
     struct pagetable *q;
     struct pageentry *e;
 
-    unsigned a = vaddr >> 22;
-    unsigned b = (vaddr >> 12) & 0x3ff;
+    unsigned a = vaddr >> 22;           // page directory index: top 10 bits
+    unsigned b = (vaddr >> 12) & 0x3ff; // page table index: middle 10 bits
 
-    e = &p->entry[a];
+    e = &p->entry[a];                   // e: page table in directory
     if (!e->present) {
         return 0;
     }
 
-    q = (struct pagetable *)(e->addr << 12);
+    q = (struct pagetable *)(e->addr << 12);    // q: page table address
 
-    e = &q->entry[b];
+    e = &q->entry[b];                   // e: physical page address
     if (!e->present) {
         return 0;
     }
@@ -80,6 +89,9 @@ int pagetable_map(struct pagetable *p, unsigned vaddr, unsigned paddr,
     unsigned a = vaddr >> 22;
     unsigned b = (vaddr >> 12) & 0x3ff;
 
+    // If we need to allocate the page, allocate first
+    // TODO (SL): if the virtual address is already mapped in the page table,
+    // what should we do?
     if (flags & PAGE_FLAG_ALLOC) {
         paddr = (unsigned)memory_alloc_page(0);
         if (!paddr) {
@@ -90,6 +102,7 @@ int pagetable_map(struct pagetable *p, unsigned vaddr, unsigned paddr,
     e = &p->entry[a];
 
     if (!e->present) {
+        // Create page directory entry
         q = pagetable_create();
         if (!q) {
             return 0;
@@ -109,9 +122,9 @@ int pagetable_map(struct pagetable *p, unsigned vaddr, unsigned paddr,
         q = (struct pagetable *)(((unsigned)e->addr) << 12);
     }
 
-
     e = &q->entry[b];
 
+    // Create page table entry
     e->present = 1;
     e->readwrite = (flags & PAGE_FLAG_READWRITE) ? 1 : 0;
     e->user = (flags & PAGE_FLAG_KERNEL) ? 0 : 1;
@@ -155,8 +168,7 @@ void pagetable_delete(struct pagetable *p) {
             for (j = 0; j < ENTRIES_PER_TABLE; j++) {
                 e = &q->entry[i];
                 if (e->present && e->avail) {
-                    void *paddr;
-                    paddr = (void *)(e->addr << 12);
+                    void *paddr = (void *)(e->addr << 12);
                     memory_free_page(paddr);
                 }
             }

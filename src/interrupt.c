@@ -39,12 +39,17 @@ static void unknown_exception(int i, int code) {
 
     if (i == 14) {
         asm("mov %%cr2, %0":"=r"(vaddr));
+        // When a page fault exception is thrown, test if the vaddr is mapped
         if (pagetable_getmap(current->pagetable, vaddr, &paddr)) {
+            // If it's mapped, then it means we can't access the vaddr.
+            // Dump the process
             console_printf("interrupt: illegal page access at vaddr %x\n",
                            vaddr);
             process_dump(current);
             process_exit(0);
         } else {
+            // Otherwise, we know we have a legit page fault, and need to invoke
+            // a handler
             printf("interrupt: page fault at %x\n", vaddr);
             printf("please write a fault handler in interrupt.c!\n");
             printf("kernel halted.\n");
