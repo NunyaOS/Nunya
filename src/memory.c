@@ -126,8 +126,6 @@ struct kmalloc_page_info *kmalloc_create_page_info(unsigned paddr) {
 /**
 * @brief Put a new page at the head of the kmalloc linked list of pages in use.
 * @details When kmalloc does not have sufficient space on any of the allocated pages on its linked list, this function helps it by using a new page from the pagetable, putting a struct kmalloc_page_info at the start of it, and inserting said page at the beginning of the linked list of pages.
-*
-* @return void
 */
 void kmalloc_get_page() {
     //get current process's pagetable
@@ -147,10 +145,10 @@ void kmalloc_get_page() {
 
     //prepare for the next page requested by updating the global variable for it.
     kmalloc_next_vaddr += PAGE_SIZE;
-    
+
     // build the page struct
     struct kmalloc_page_info *pg_info = kmalloc_create_page_info(phys_addr);
-    
+
     //rearrange the linked list of pages with the new page at the beginning.
     pg_info->next = kmalloc_head;
     kmalloc_head = pg_info;
@@ -190,8 +188,7 @@ int kmalloc_locate_sufficient_gap(struct kmalloc_page_info *page_info, int num_s
 * @param page_info Pointer to the kmalloc_page_info which maintains the details regarding the page we're looking for the largest gap in.
 * @return The number of slots in the largest continuous, free gap on the page.
 */
-int kmalloc_get_largest_gap_size(struct kmalloc_page_info *page_info)
-{
+int kmalloc_get_largest_gap_size(struct kmalloc_page_info *page_info) {
     int i;
     int biggest_gap_in_slots = 0;
     int current_gap_in_slots = 0;
@@ -261,7 +258,6 @@ void *kmalloc(unsigned int size) {
 *
 * @param page_info Pointer to the kmalloc_page_info which maintains the details regarding the page we're freeing memory in.
 * @param mem_loc The pointer to the memory block to be freed.
-* @return void
 */
 void kfree_mark_free(struct kmalloc_page_info *page_info, void *mem_loc) {
     //the number of consecutive slots consumed is stored just ahead of the pointer given
@@ -282,7 +278,6 @@ void kfree(void *to_free) {
         return;
     }
 
-    uint32_t to_free_as_int = (uint32_t)to_free;
     struct kmalloc_page_info *page_info = kmalloc_head;
     int is_freed = 0;
     while (page_info && is_freed == 0) {
