@@ -23,7 +23,7 @@ See the file LICENSE for details.
 #define ATA_BASE2   0x1E8
 #define ATA_BASE3   0x168
 
-#define ATA_TIMEOUT     5
+#define ATA_TIMEOUT     1
 
 #define ATA_DATA                0       /* data register */
 #define ATA_ERROR               1       /* error register */
