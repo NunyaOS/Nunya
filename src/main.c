@@ -51,10 +51,6 @@ int kernel_main() {
     //change text color to white after bootup
     console_set_fgcolor(255, 255, 255);
 
-    // Draw a circle
-    struct graphics_color c = {0,255,0};
-	graphics_circle(300,400,75, c);
-
     while (1) {
         keyboard_read_str();
     }
