@@ -1,15 +1,19 @@
 language: c
 before_install: sudo apt-get update -qq && sudo apt-get install genisoimage
     #&& sudo apt-get upgrade -y && sudo apt-get dist-upgrade -y && sudo apt-get install genisoimage
-script: cd src && make && cd .. && bash ./deploy.sh
+script: cd src && make
 compiler:
     - gcc
 
 notifications:
     email: false
 
-deploy:
-    provider: bash ./deploy.sh
+branches:
+    only:
+        - master
+
+after_success:
+    - bash ./deploy.sh
 
 env:
     global:
