@@ -8,6 +8,9 @@ See the file LICENSE for details.
 #include "kerneltypes.h"
 #include "font.h"
 #include "kernelcore.h"
+#include "math.h"
+
+#define ARC_DT 0.01
 
 int graphics_width() {
     return video_xres;
@@ -24,9 +27,27 @@ static inline void plot_pixel(int x, int y, struct graphics_color c) {
     v[0] = c.b;
 }
 
+void graphics_arc(int x, int y, double r, double start_theta, double end_theta, struct graphics_color c) {
+    for (; start_theta < end_theta; start_theta += ARC_DT) {
+        int nx = r * cos(start_theta) + x;
+        int ny = r * sin(start_theta) + y;
+
+        plot_pixel(nx, ny, c);
+    }
+}
+
+void graphics_circle(int x, int y, double r, struct graphics_color c) {
+    double t;
+    for (t = 0.0; t < 2 * M_PI; t += ARC_DT) {
+        int nx = r * cos(t) + x;
+        int ny = r * sin(t) + y;
+
+        plot_pixel(nx, ny, c);
+    }
+}
+
 void graphics_rect(int x, int y, int w, int h, struct graphics_color c) {
     int i, j;
-
     for (j = 0; j < h; j++) {
         for (i = 0; i < w; i++) {
             plot_pixel(x + i, y + j, c);
