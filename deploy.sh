@@ -3,8 +3,9 @@
 set -e  # exit with nonzero exit code if anything fails
 
 # delete .iso in out directory
-
+# make directory if it doesn't exist
 mkdir -p out
+# remove everything in directory
 rm -f out/*
 
 # make the .iso
