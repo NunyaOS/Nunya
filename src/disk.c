@@ -15,40 +15,53 @@ See the file LICENSE for details.
 
 #define DEFAULT_ATA_UNIT 0
 
-
-int disk_read(char *destination, int start_block_index, int offset,
-              int num_bytes) {
-    int blocks_needed = ((offset + num_bytes) / ATA_BLOCKSIZE) + 1;
-    if (((offset + num_bytes) % ATA_BLOCKSIZE) == 0) {
-        blocks_needed--;
+int disk_read(char *destination, int start_block_index, int offset, int num_bytes) {
+    int blocks_needed = ((offset + num_bytes) / ATA_BLOCKSIZE);
+    if(((offset + num_bytes) % ATA_BLOCKSIZE) != 0) {
+        blocks_needed++;
     }
 
-
-    int blocks_read_in = 0;
+    int blocks_read_in;
     char block_buffer[ATA_BLOCKSIZE];
     int memcpy_offset;
     int bytes_in_destination = 0;
-    int bytes_after_block_offset;       // Usually ATA_BLOCKSIZE except on first block with offset
 
     //Take one block at a time for memory and performance and such
     for (blocks_read_in = 0; blocks_read_in < blocks_needed; blocks_read_in++) {
-        ata_read(DEFAULT_ATA_UNIT, block_buffer, 1,
-                 start_block_index + blocks_read_in);
-        if (blocks_read_in == 0) {
-            memcpy_offset = offset;
-            bytes_after_block_offset = ATA_BLOCKSIZE - offset;
-        } else {
-            memcpy_offset = 0;
-            bytes_after_block_offset = ATA_BLOCKSIZE;
-        }
-        int bytes_to_copy =
-            ((bytes_in_destination + bytes_after_block_offset) >
-             num_bytes) ? num_bytes -
-            bytes_in_destination : bytes_after_block_offset;
+        ata_read(DEFAULT_ATA_UNIT, block_buffer, 1, start_block_index + blocks_read_in);
+        memcpy_offset = blocks_read_in == 0 ? offset : 0;
 
-        memcpy(destination, block_buffer + memcpy_offset, bytes_to_copy);
+        int bytes_to_copy = ((num_bytes - bytes_in_destination) + memcpy_offset) > ATA_BLOCKSIZE ? ATA_BLOCKSIZE - memcpy_offset : num_bytes - bytes_in_destination;
+
+        memcpy(destination + bytes_in_destination, block_buffer + memcpy_offset, bytes_to_copy);
         bytes_in_destination += bytes_to_copy;
     }
 
     return bytes_in_destination;
+}
+
+int disk_write(char *source, int start_block_index, int offset, int num_bytes) {
+    int blocks_needed = ((offset + num_bytes) / ATA_BLOCKSIZE);
+    if (((offset + num_bytes) % ATA_BLOCKSIZE) != 0) {
+        blocks_needed++;
+    }
+
+    char block_buffer[ATA_BLOCKSIZE];
+    int blocks_read_in;
+    int memcpy_offset;
+    int bytes_written = 0;
+    int bytes_to_write;
+
+    for (blocks_read_in = 0; blocks_read_in < blocks_needed; blocks_read_in++) {
+        ata_read(DEFAULT_ATA_UNIT, block_buffer, 1, start_block_index);
+        memcpy_offset = blocks_read_in == 0 ? offset : 0;
+
+        bytes_to_write = ((num_bytes - bytes_written) + memcpy_offset) > ATA_BLOCKSIZE ? ATA_BLOCKSIZE - memcpy_offset : num_bytes - bytes_written;
+        memcpy(block_buffer + memcpy_offset, source + bytes_written, bytes_to_write);
+        bytes_written += bytes_to_write;
+
+        ata_write(DEFAULT_ATA_UNIT, block_buffer, 1, start_block_index + blocks_read_in);
+    }
+
+    return bytes_written;
 }
