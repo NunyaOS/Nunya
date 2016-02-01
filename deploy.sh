@@ -16,7 +16,7 @@ cd .. && cp src/*.iso out
 cd out
 git init
 git config user.name "Travis CI"
-git config user.email "alexmrwu@gmail.com"
+#git config user.email ""
 
 # Only commit to the new Git repo
 git add .
