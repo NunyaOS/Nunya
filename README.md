@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/NunyaOS/Nunya.svg?branch=master)](https://travis-ci.org/NunyaOS/Nunya)
+
 # NunyaOS, an operating system. 
 
 NunyaOS is an ongoing project, an experimental operating system whose overarching goal is hierarchy and process containment. Security and permission are central tenets of the system, which led to its name: Nunya, short for "None of your business!"
