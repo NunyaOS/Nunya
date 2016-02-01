@@ -77,19 +77,28 @@ double tan(double x) {
     return sin(x) / cos(x);
 }
 
-double abs(double x) {
+inline double abs(double x) {
     return x < 0 ? -x : x;
 }
 
-double ceil(double x) {
+inline double ceil(double x) {
     int intnum = (int)x;
     // if x has no floating point part
     if (x == (double)intnum) {
         return x;
     }
-    return (double)(intnum + 1);
+    return x < 0 ? (double)intnum : (double)(intnum + 1);
 }
 
-double floor(double x) {
-    return (double)((int)(x));
+inline double floor(double x) {
+    return (double)((int)x);
 }
+
+inline double min(double x, double y) {
+    return (x < y) ? x : y;
+}
+
+inline double max(double x, double y) {
+    return (x > y) ? x : y;
+}
+

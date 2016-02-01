@@ -38,38 +38,62 @@ double sin(double x);
  */
 double tan(double x);
 
-/** 
+/**
  * @brief absolute value of x
- * 
+ *
  * @details returns -x if x is less than 0; x otherwise
- * 
+ *
  * @param x some number
- * 
+ *
  * @return absolute value of x
  */
 inline double abs(double x);
 
-/** 
+/**
  * @brief ceiling of x
- * 
+ *
  * @details returns the ceiling of a number. because of casting, this may not correctly grab the
  * ceiling of a number with no fractional part
- * 
+ *
  * @param x some number
- * 
+ *
  * @return ceiling of x
  */
 inline double ceil(double x);
 
-/** 
+/**
  * @brief floor of x
- * 
+ *
  * @details returns the floor of a number
- * 
+ *
  * @param x some number
- * 
+ *
  * @return floor of x
  */
 inline double floor(double x);
+
+/**
+ * @brief returns the min of two numbers
+ *
+ * @details returns the min of (x, y)
+ *
+ * @param x some number
+ * @param y some number
+ *
+ * @return the min
+ */
+inline double min(double x, double y);
+
+/**
+ * @brief returns the max of two numbers
+ *
+ * @details returns the max of (x, y)
+ *
+ * @param x some number
+ * @param y some number
+ *
+ * @return the max
+ */
+inline double max(double x, double y) {
 
 #endif
