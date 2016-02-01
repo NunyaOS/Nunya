@@ -77,11 +77,8 @@ double tan(double x) {
     return sin(x) / cos(x);
 }
 
-inline double abs(double x) {
-    return x < 0 ? -x : x;
-}
 
-inline double ceil(double x) {
+double ceil(double x) {
     int intnum = (int)x;
     // if x has no floating point part
     if (x == (double)intnum) {
@@ -90,15 +87,8 @@ inline double ceil(double x) {
     return x < 0 ? (double)intnum : (double)(intnum + 1);
 }
 
-inline double floor(double x) {
+double floor(double x) {
     return (double)((int)x);
 }
 
-inline double min(double x, double y) {
-    return (x < y) ? x : y;
-}
-
-inline double max(double x, double y) {
-    return (x > y) ? x : y;
-}
 

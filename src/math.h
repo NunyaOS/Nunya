@@ -47,7 +47,9 @@ double tan(double x);
  *
  * @return absolute value of x
  */
-inline double abs(double x);
+static inline double abs(double x) {
+    return x < 0 ? -x : x;
+}
 
 /**
  * @brief ceiling of x
@@ -59,7 +61,7 @@ inline double abs(double x);
  *
  * @return ceiling of x
  */
-inline double ceil(double x);
+double ceil(double x);
 
 /**
  * @brief floor of x
@@ -70,7 +72,7 @@ inline double ceil(double x);
  *
  * @return floor of x
  */
-inline double floor(double x);
+double floor(double x);
 
 /**
  * @brief returns the min of two numbers
@@ -82,7 +84,9 @@ inline double floor(double x);
  *
  * @return the min
  */
-inline double min(double x, double y);
+static inline double min(double x, double y) {
+    return (x < y) ? x : y;
+}
 
 /**
  * @brief returns the max of two numbers
@@ -94,6 +98,8 @@ inline double min(double x, double y);
  *
  * @return the max
  */
-inline double max(double x, double y) {
+static inline double max(double x, double y) {
+    return (x > y) ? x : y;
+}
 
 #endif
