@@ -8,12 +8,11 @@ compiler:
 notifications:
     email: false
 
-branches:
-    only:
-        - master
-
 deploy:
-    provider: bash ./deploy.sh
+    provider: script
+    script: bash ./deploy.sh
+    on:
+        branch: master
 
 env:
     global:
