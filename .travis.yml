@@ -5,6 +5,10 @@ script: cd src && make && cd ..
 compiler:
     - gcc
 
+branches:
+    only:
+        - master
+
 notifications:
     email: false
 
