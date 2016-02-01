@@ -1,27 +1,9 @@
-# The Basekernel Operating System Kernel
+# NunyaOS, an operating system. 
 
-Basekernel is a simple operating system kernel for research, teaching, and fun.
+NunyaOS is an ongoing project, an experimental operating system whose overarching goal is hierarchy and process containment. Security and permission are central tenets of the system, which led to its name: Nunya, short for "None of your business!"
 
-Basekernel is *not* a complete operating system, but it is a starting
-point for those who wish to study and develop new operating system code.
-If you want to build something *different* than Windows, Linux, or Multics,
-Basekernel may be a good place to try out your new ideas.
 
-Basekernel can boot an Intel PC-compatible machine (or VM) in 32-bit protected
-mode, with support for VESA framebuffer graphics, ATA hard disks, ATAPI optical
-devices, basic system calls, and paged virtual memory.  From there, it's
-your job to write filesystem code, a windowing system, or whatever you like.
-
-Our goal is to keep Basekernel simple and easy to understand,
-so that others can build on it and take it in different directions.
-We encourage you to fork the code, give it a new name,
-and develop something completely new on top of it.
-
-To be clear, this is raw low-level code, and there is no guarantee that
-it will work on your particular machine, or work at all. If you fix bugs
-or solve build problems, we would be happy to accept your contributions.
-
-## How to Run Basekernel
+## How to Run NunyaOS
 
 From a standard Linux X86 machine with the GCC compiler:
 

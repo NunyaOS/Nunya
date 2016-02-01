@@ -11,6 +11,7 @@ See the file LICENSE for details.
 #include "list.h"
 #include "pagetable.h"
 #include "x86.h"
+#include "memory.h"
 
 #define PROCESS_STATE_CRADLE  0
 #define PROCESS_STATE_READY   1
