@@ -19,6 +19,18 @@ int graphics_width();
 int graphics_height();
 
 /**
+ * @brief Draws a line on the display from (x1, y1) to (x2, y2)
+ * @details Order of points does not matter. Points outside of display will be rounded to the closest edge
+ *
+ * @param x1
+ * @param y1
+ * @param x2
+ * @param y2
+ * @param c: color of line
+ * @return
+ */
+void graphics_line(int x1, int y1, int x2, int y2, struct graphics_color c);
+/**
  * @brief Draws a curve with given radius and range
  * @details This draws a curve from start_t to end_t with
  * a given radius. The curve will be circular as opposed to elliptical.
