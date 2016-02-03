@@ -13,6 +13,7 @@ cd Nunya
 git config user.name "Travis CI"
 #git config user.email ""
 
+git add .
 git commit -m "Build for PR #${TRAVIS_PULL_REQUEST}"
 LAST_COMMIT="$(git log -1 --pretty=%B)"
 #git commit -m "
