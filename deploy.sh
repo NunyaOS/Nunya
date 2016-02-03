@@ -18,8 +18,8 @@ git commit -m "Build for PR #${TRAVIS_PULL_REQUEST}"
 LAST_COMMIT="$(git log -1 --pretty=%B)"
 #git commit -m "
 
-# push from to build branch
-git push origin build
+# push to build branch
+git push "https://${GH_TOKEN}@${GH_REF}" build:build
 # Force push from the current repo's master branch to the remote repo's build branch.
 # (All previous history will be lost since we are overwriting it)
 # --force --quiet "https://${GH_TOKEN}@${GH_REF}" master:build > /dev/null 2>&1
