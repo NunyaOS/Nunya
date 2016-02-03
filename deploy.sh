@@ -2,6 +2,7 @@
 # Based on this gist: https://gist.github.com/domenic/ec8b0fc8ab45f39403dd
 set -e  # exit with nonzero exit code if anything fails
 
+LAST_COMMIT="$(git log -1 --pretty=%B)"
 # clone build branch of Nunya
 git clone -b build https://${GH_REF}
 
@@ -14,7 +15,6 @@ git config user.name "Travis CI"
 #git config user.email ""
 
 git add .
-LAST_COMMIT="$(git log -1 --pretty=%B)"
 git commit -m "${LAST_COMMIT}"
 
 # push to build branch
