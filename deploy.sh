@@ -2,26 +2,23 @@
 # Based on this gist: https://gist.github.com/domenic/ec8b0fc8ab45f39403dd
 set -e  # exit with nonzero exit code if anything fails
 
-# delete .iso in out directory
-# make directory if it doesn't exist
-mkdir -p out
-# remove everything in directory
-rm -f out/*
+# clone build branch of Nunya
+git clone -b build https://${GH_REF}
 
-# make the .iso
+# make the .iso and copy it into the Nunya git repo (build branch
 cd src && make
-cd .. && cp src/*.iso out
+cd .. && cp src/*.iso Nunya
+cd Nunya
 
-# create new Git repo in out/
-cd out
-git init
 git config user.name "Travis CI"
 #git config user.email ""
 
-# Only commit to the new Git repo
-git add .
-git commit -m "Deploy .iso"
+git commit -m "Build for PR #${TRAVIS_PULL_REQUEST}"
+LAST_COMMIT="$(git log -1 --pretty=%B)"
+#git commit -m "
 
+# push from to build branch
+git push origin build
 # Force push from the current repo's master branch to the remote repo's build branch.
 # (All previous history will be lost since we are overwriting it)
-git push --force --quiet "https://${GH_TOKEN}@${GH_REF}" master:build > /dev/null 2>&1
+# --force --quiet "https://${GH_TOKEN}@${GH_REF}" master:build > /dev/null 2>&1
