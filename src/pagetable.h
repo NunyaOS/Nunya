@@ -30,10 +30,10 @@ struct pagetable *pagetable_create();
 
 /**
  * @brief   Initialize a direct-mapped pagetable
- * @details Initialize a given pagetable. TODO (SL): Currently we direct map
- *          all available memory, contingent on the current 512MB limit, but in
- *          the future we should only allocate up to the 2GB limit, and map
- *          higher addresses on demand.
+ * @details Initialize a given pagetable by direct mapping kernel space memory
+ *          up until 2GB, and direct mapping video memory for the video system.
+ *          TODO (SL): we should ensure video memory is correctly mapped into
+ *          kernel space even without vram in the future.
  *
  * @param   p A pointer to the pagetable to be initialized
  */

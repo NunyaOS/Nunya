@@ -39,10 +39,15 @@ struct pagetable *pagetable_create() {
 }
 
 void pagetable_init(struct pagetable *p) {
-    unsigned i, stop;
-    // TODO (SL): Find out how to partially map memory instead of mapping
-    // total_memory
-    stop = total_memory * 1024 * 1024;
+    uint32_t lower_half_memory_top = (2048 - 1) * 1024 * 1024;
+    uint32_t stop = total_memory * 1024 * 1024;
+    if (stop > lower_half_memory_top) {
+        // Cap stop at the 2GB boundary, to avoid direct-mapping the higher
+        // user space memory
+        stop = lower_half_memory_top;
+    }
+
+    uint32_t i;
     for (i = 0; i < stop; i += PAGE_SIZE) {
         pagetable_map(p, i, i, PAGE_FLAG_KERNEL | PAGE_FLAG_READWRITE);
     }
@@ -51,8 +56,8 @@ void pagetable_init(struct pagetable *p) {
     // physical memory it has, video_buffer is always 0xe0000000.
     // TODO (SL): Ensure video buffer is mapped into superviser mode even
     // without vram present
-    stop = (unsigned)video_buffer + video_xres * video_yres * 3;
-    for (i = (unsigned)video_buffer; i <= stop; i += PAGE_SIZE) {
+    stop = (uint32_t)video_buffer + video_xres * video_yres * 3;
+    for (i = (uint32_t)video_buffer; i <= stop; i += PAGE_SIZE) {
         pagetable_map(p, i, i, PAGE_FLAG_KERNEL | PAGE_FLAG_READWRITE);
     }
 }
