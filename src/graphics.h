@@ -19,6 +19,32 @@ int graphics_width();
 int graphics_height();
 
 /**
+ * @brief Initializes the graphics system
+ * @details Sets up the initial drawing bounds of the system
+ * and prepares to being drawing
+ */
+void graphics_init();
+
+/**
+ * @brief Sets bounds for restricted drawing
+ * @details This will restrict all drawing to the given area of the screen.
+ * Drawing outside this area will have no effect
+ *
+ * @param x The x position of the top left corner of the bounding box
+ * @param y The y position of the top left corner of the bounding box
+ * @param width The width of the bounding box
+ * @param height The height of the bounding box
+ */
+void graphics_set_bounds(int x, int y, int width, int height);
+
+/**
+ * @brief Clears the graphics drawing restrictions
+ * @details This removes any restriction on drawing area that was added
+ * by graphics_set_bounds
+ */
+void graphics_clear_bounds();
+
+/**
  * @brief Draws a line on the display from (x1, y1) to (x2, y2)
  * @details Order of points does not matter. Points outside of display will be rounded to the closest edge
  *
@@ -44,7 +70,7 @@ void graphics_line(int x1, int y1, int x2, int y2, struct graphics_color c);
  * @param graphics_color The color to draw in
  */
 void graphics_arc(int x, int y, double r, double start_theta, double end_theta,
-				  struct graphics_color c);
+                  struct graphics_color c);
 
 /**
  * @brief Draws a circle centered at given point
