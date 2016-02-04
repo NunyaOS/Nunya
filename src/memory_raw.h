@@ -4,9 +4,13 @@ This software is distributed under the GNU General Public License.
 See the file LICENSE for details.
 */
 
-#ifndef MEMORY_H
-#define MEMORY_H
+#ifndef MEMORY_RAW_H
+#define MEMORY_RAW_H
 
-#include "kmalloc.h"
+#include "kerneltypes.h"
+
+void memory_init();
+void *memory_alloc_page(bool zeroit);
+void memory_free_page(void *addr);
 
 #endif

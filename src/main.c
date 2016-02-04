@@ -6,6 +6,7 @@ See the file LICENSE for details.
 
 #include "console.h"
 #include "memory.h"
+#include "memory_raw.h"     // memory_init
 #include "process.h"
 #include "interrupt.h"
 #include "keyboard.h"
