@@ -1,4 +1,6 @@
-OBJECTS=kernelcore.o main.o console.o memory.o keyboard.o clock.o interrupt.o pic.o ata.o string.o graphics.o font.o syscall.o syscall_handler.o process.o mutex.o list.o pagetable.o rtc.o disk.o math.o
+OBJECTS=kernelcore.o main.o console.o $(MEMORY_OBJS) keyboard.o clock.o interrupt.o pic.o ata.o string.o graphics.o font.o syscall.o syscall_handler.o process.o mutex.o list.o pagetable.o rtc.o disk.o math.o
+
+MEMORY_OBJS=memory_raw.o kmalloc.o
 
 KERNEL_CCFLAGS=-Wall -c -ffreestanding -m32 -march=i386
 KERNEL_LDFLAGS=-m elf_i386

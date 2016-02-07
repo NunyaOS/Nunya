@@ -14,6 +14,8 @@ See the file LICENSE for details.
 #include "memorylayout.h"
 #include "kernelcore.h"
 
+#include "memory_raw.h" // memory_alloc_page, memory_free_page
+
 struct process *current = 0;
 struct list ready_list = { 0, 0 };
 
@@ -53,7 +55,7 @@ static void process_stack_init(struct process *p) {
 struct process *process_create(unsigned code_size, unsigned stack_size) {
     struct process *p;
 
-    p = memory_alloc_page(1);
+    p = (struct process *)memory_alloc_page(1);
 
     p->pagetable = pagetable_create();
     pagetable_init(p->pagetable);
