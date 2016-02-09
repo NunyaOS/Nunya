@@ -2,6 +2,8 @@ all: iso
 
 iso: iso.c iso.h 
 	gcc -o iso iso.c 
+	rm filesystem.iso
+	genisoimage -o filesystem.iso ../../test_FS
 
 console.o: console.c console.h
 	gcc -o console.o console.c

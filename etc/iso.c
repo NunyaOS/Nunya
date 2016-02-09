@@ -6,10 +6,17 @@ See the file LICENSE for details.
 
 #include "iso.h"
 #include <string.h>
-#include "kerneltypes.h"
+//#include "kerneltypes.h"
+#include <stdlib.h>
+#include <stdint.h>
 
-#define PVD_OFFSET 156
 #define ISO_BLOCK 2048
+#define PVD_OFFSET 16 * ISO_BLOCK
+#define ROOT_DR_OFFSET (PVD_OFFSET) + 156
+#define PVD_PATH_TABLE_SIZE_OFFSET (PVD_OFFSET) + 132
+#define PVD_PATH_TABLE_OFFSET (PVD_OFFSET) + 148
+
+const char *iso_file_name = "/home/jesse/Documents/Open Source Software Development/Nunya/etc/filesystem.iso";
 
 struct directory_record {
     uint8_t length_of_record;
@@ -25,11 +32,23 @@ struct directory_record {
     char file_identifier[2048];
 };
 
+struct path_table_entry {
+	uint8_t length_of_identifier;
+	uint8_t attr_length;
+	char loc_of_ext[4];
+	uint16_t parent_dir_num;
+	char dir_identifier[256];
+};
+
 struct directory_record get_directory_record(FILE *fp);
+struct path_table_entry get_path_table_entry(FILE *fp);
 int have_equal_extents(char *first, char *second);
 int hex_to_int(char *src, int len);
 int is_dir(int flags);
 int is_valid_record(struct directory_record *dr);
+int look_up_directory_offset(const char *dir_name);
+int look_up_file_offset(int dir_offset, const char *fname);
+int look_up_path_offset(const char *pname);
 void print_dr_name(struct directory_record *dr);
 void print_n_tabs(int n);
 void print_subdirectory(FILE *fp, char *loc_of_subdir, char *loc_of_parent, int depth);
@@ -56,6 +75,27 @@ struct directory_record get_directory_record(FILE *fp) {
 
     fseek(fp, dr.length_of_record - bytes_read, SEEK_CUR);
     return dr;
+}
+
+struct path_table_entry get_path_table_entry(FILE *fp){
+	int bytes_read = 0;
+
+	struct path_table_entry pt;
+	fread(&(pt.length_of_identifier), sizeof(pt.length_of_identifier), 1, fp);
+	fread(&(pt.attr_length), sizeof(pt.attr_length), 1, fp);
+	fread(pt.loc_of_ext, 1, 4, fp);
+	fread(&(pt.parent_dir_num), sizeof(uint16_t), 1, fp);
+	bytes_read += 8;
+
+	fread(pt.dir_identifier, 1, pt.length_of_identifier, fp);
+	pt.dir_identifier[pt.length_of_identifier] = '\0';
+	bytes_read += pt.length_of_identifier;
+
+//	fseek(fp, pt.length_of_identifier - bytes_read, SEEK_CUR);
+	if (pt.length_of_identifier % 2 == 1) {
+		fseek(fp, 1, SEEK_CUR);
+	}
+	return pt;
 }
 
 int have_equal_extents(char *first_ext, char *second_ext) {
@@ -107,9 +147,124 @@ int is_valid_record(struct directory_record *dr) {
     return 1;
 }
 
+int look_up_directory_offset(const char *dir_name) {
+	FILE *fp = fopen(iso_file_name, "r");
+	if (!fp) {
+		printf("Failed to open file\n");
+		return -1;
+	}
+	fseek(fp, PVD_PATH_TABLE_SIZE_OFFSET, SEEK_SET);
+	char path_table_length[8];
+	fread(path_table_length, 1, 8, fp);
+	int path_table_size = hex_to_int(path_table_length + 4, 4);	// use MSB of path_table_length chars
+	fseek(fp, PVD_PATH_TABLE_OFFSET, SEEK_SET);
+	char path_table_loc[4];
+	fread(path_table_loc, 1, 4, fp);
+	fseek(fp, ISO_BLOCK * hex_to_int(path_table_loc, 4), SEEK_SET);
+
+	struct path_table_entry pt;
+	pt = get_path_table_entry(fp);
+	while (pt.length_of_identifier > 0) {
+		if (strcmp(dir_name, pt.dir_identifier) == 0) {
+			break;
+		}
+		else {
+			pt = get_path_table_entry(fp);
+		}
+	}
+	fclose(fp);
+	if (pt.length_of_identifier <= 0) {
+		printf("Directory not found.\n");
+		return -1;
+	}
+	else {
+		return hex_to_int(pt.loc_of_ext, 4);
+	}
+}
+
+int look_up_file_offset(int dir_offset, const char *fname){
+	FILE *fp = fopen(iso_file_name, "r");
+	if (!fp) {
+		printf("Failed to open file\n");
+		return -1;
+	}
+	fseek(fp, ISO_BLOCK * dir_offset, SEEK_SET);
+	struct directory_record dr;
+	dr = get_directory_record(fp);
+	char dr_name[2048];
+	while (is_valid_record(&dr)) {
+		if (strlen(dr.file_identifier) < 2) {
+			dr = get_directory_record(fp);
+			continue;
+		}
+		memset(dr_name, '\0', 2048);
+		memcpy(dr_name, dr.file_identifier, strlen(dr.file_identifier) - 2);
+		dr_name[strlen(dr.file_identifier) - 1] = '\0';
+		if (strcmp(fname, dr_name) == 0) {
+			break;
+		}
+		dr = get_directory_record(fp);
+	}
+	fclose(fp);
+	if (!is_valid_record(&dr)) {
+		printf("File not found.\n");
+		return -1;
+	}
+	else {
+;		return hex_to_int(dr.loc_of_ext + 4, 4);
+	}
+}
+
+int look_up_path_offset(const char *pname){
+	int i;
+	for(i = strlen(pname) - 1; i >= 0; i--) {
+		if(pname[i] == '/'){
+			break;
+		}
+	}
+	int j;
+	if (i == 0) {
+		j = 0;
+	}
+	else {
+		for (j = i-1; j >= 0; j--) {
+			if (pname[j] == '/') {
+				break;
+			}
+		}
+	}
+	char subdir[i - j], fname[strlen(pname) - i];
+	if (i == 0) {
+		strcpy(subdir, "/");
+	}
+	else {
+		memcpy(subdir, pname + j + 1, i - j - 1);
+		subdir[i - j] = '\0';
+	}
+	strcpy(fname, pname + i + 1);
+
+	int dir_offset = look_up_directory_offset(subdir);
+	if (dir_offset < 0) {
+		printf("File path does not exist.\n");
+		return -1;
+	}
+
+	int file_offset = look_up_file_offset(dir_offset, fname);
+	if (file_offset < 0) {
+		printf("File path does not exist.\n");
+		return -1;
+	}
+	return file_offset;
+}
+
 void print_dr_name(struct directory_record *dr) {
     if (dr->file_identifier[0] > 0x20) {
-        printf("File/Dir Identifier: %s\n", dr->file_identifier);
+    	char name[strlen(dr->file_identifier)];
+    	strcpy(name, dr->file_identifier);
+    	if (name[strlen(dr->file_identifier) - 1] == '1' && name[strlen(dr->file_identifier) - 2] == ';') {
+        	name[strlen(dr->file_identifier) - 2] = '\0';
+    	}
+        printf("File/Dir Identifier: %s\n", name);
     }
     else {
         printf("File/Dir Identifier: /\n");
@@ -117,7 +272,7 @@ void print_dr_name(struct directory_record *dr) {
 }
 
 void print_file_system(FILE *fp) {
-    fseek(fp, (16 * ISO_BLOCK) + PVD_OFFSET, SEEK_SET);
+    fseek(fp, ROOT_DR_OFFSET, SEEK_SET);
     struct directory_record dr;
     char loc_of_parent[8];
     dr = get_directory_record(fp);	// This is the dr for the PVD
@@ -171,18 +326,41 @@ void print_subdirectory(FILE *fp, char *loc_of_subdir, char *loc_of_parent, int 
 }
 
 int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        printf("Usage: %s iso-file-name\n", argv[0]);
-        return 1;
-    }
+	struct iso_file *iso_fp = iso_open("/USR/BIN/TOUCH.TXT");
+	char buff[256];
+	iso_read(buff, 1, 256, iso_fp);
+	buff[255] = '\0';
+	printf("%s\n", buff);
+	iso_close(iso_fp);
+}
 
-    char fblock[2048];
+struct iso_file *iso_open(const char *pname) {
+	struct iso_file *file = malloc(sizeof(struct iso_file));
+	memcpy(file->pname, pname, strlen(pname));
+	int file_offset = look_up_path_offset(pname);
+	if (file_offset < 0) {
+		printf("Failed to iso_open the file path.\n");
+		return NULL;
+	}
+	file->cur_offset = 0;
+	file->extent_offset = file_offset;
+	return file;
+}
 
-    FILE *fp;
-    fp = fopen(argv[1],"r");
-    if (!fp) {
-        printf("Failed to open file\n");
-        return -1;
-    }
-    print_file_system(fp);
+int iso_close(struct iso_file *file) {
+	free(file);
+	return 0;
+}
+
+int iso_read(char *dest, int elem_size, int num_elem, struct iso_file *file) {
+	FILE *fp = fopen(iso_file_name, "r");
+	if (!fp) {
+		printf("Failed to open file\n");
+		return -1;
+	}
+	fseek(fp, (ISO_BLOCK * file->extent_offset) + file->cur_offset, SEEK_SET);
+	int bytes_read = fread(dest, elem_size, num_elem, fp);
+	file->cur_offset += bytes_read;
+	fclose(fp);
+	return bytes_read;
 }
