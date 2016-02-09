@@ -162,7 +162,15 @@ static int ata_begin(int id, int command, int nblocks, int offset) {
     outb(flags, base + ATA_FDH);
 
     // wait again for the disk to indicate ready
-    if (!ata_wait(id, ATA_STATUS_BSY | ATA_STATUS_RDY, ATA_STATUS_RDY)) {
+    // special case: ATAPI identification does not raise RDY flag
+    int ready;
+    if (command == ATAPI_COMMAND_IDENTIFY) {
+        ready = ata_wait(id, ATA_STATUS_BSY, 0);
+    } else {
+        ready = ata_wait(id, ATA_STATUS_BSY | ATA_STATUS_RDY, ATA_STATUS_RDY);
+    }
+
+    if (!ready) {
         return 0;
     }
 
@@ -356,20 +364,19 @@ int ata_probe(int id, int *nblocks, int *blocksize, char *name) {
     uint16_t buffer[256];
     char *cbuffer = (char *)buffer;
 
-    /*
-       First attempt to modify a controller register.
-       If the change does not stick, there is not controller!
-     */
+    // Check for 0xff in the controller status, which indicates
+    // there is no device attached to the controller.
+    t = inb(ata_base[id]+ATA_STATUS);
+    if(t==0xff) return 0;
 
-    t = inb(ata_base[id] + ATA_CYL_LO);
-    outb(~t, ata_base[id] + ATA_CYL_LO);
-    if (inb(ata_base[id] + ATA_CYL_LO) == t) {
-        return 0;
-    }
-
-    memset(cbuffer, 0, 512);
-
+    // Reset the unit to be sure.
     ata_reset(id);
+
+    // It is now reasonably certain there is some kind of device attached.
+    // Attempt to identify it, first as an ATA device, then ATAPI.
+    // XXX Would be better to examine registers to determine which type
+    // of identify to perform first.
+    memset(cbuffer,0,512);
 
     if (ata_identify(id, ATA_COMMAND_IDENTIFY, cbuffer)) {
         *nblocks = buffer[1] * buffer[3] * buffer[6];
@@ -381,8 +388,7 @@ int ata_probe(int id, int *nblocks, int *blocksize, char *name) {
         return 0;
     }
 
-    /* Now byte-swap the data so as the generate byte-ordered strings */
-
+    // Now byte-swap the data so as the generate byte-ordered strings
     for (i = 0; i < 512; i += 2) {
         t = cbuffer[i];
         cbuffer[i] = cbuffer[i + 1];
@@ -390,8 +396,7 @@ int ata_probe(int id, int *nblocks, int *blocksize, char *name) {
     }
     cbuffer[256] = 0;
 
-    /* Vendor supplied name is at byte 54 */
-
+    // Vendor supplied name is at byte 54
     strcpy(name, &cbuffer[54]);
     name[40] = 0;
 
