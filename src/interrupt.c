@@ -10,6 +10,8 @@ See the file LICENSE for details.
 #include "process.h"
 #include "kernelcore.h"
 
+#include "pagefault.h"  // memory-related exception handlers
+
 static interrupt_handler_t interrupt_handler_table[48];
 static uint32_t interrupt_count[48];
 static uint8_t interrupt_spurious[48];
@@ -35,38 +37,9 @@ static const char *exception_names[] = {
 };
 
 static void unknown_exception(int i, int code) {
-    unsigned vaddr, paddr;
-
-    if (i == 14) {
-        asm("mov %%cr2, %0":"=r"(vaddr));
-        // When a page fault exception is thrown, test if the vaddr is mapped
-        if (pagetable_getmap(current->pagetable, vaddr, &paddr)) {
-            // If it's mapped, then it means we can't access the vaddr.
-            // Dump the process
-            console_printf("interrupt: illegal page access at vaddr %x\n",
-                           vaddr);
-            process_dump(current);
-            process_exit(0);
-        } else {
-            // Otherwise, we know we have a legit page fault, and need to invoke
-            // a handler
-            printf("interrupt: page fault at %x\n", vaddr);
-            printf("please write a fault handler in interrupt.c!\n");
-            printf("kernel halted.\n");
-            halt();
-        }
-    } else {
-        console_printf("interrupt: exception %d: %s (code %x)\n", i,
-                       exception_names[i], code);
-        process_dump(current);
-    }
-
-    if (current) {
-        process_exit(0);
-    } else {
-        console_printf("interrupt: exception in kernel code!\n");
-        halt();
-    }
+    console_printf("interrupt: exception %d: %s (code %x)\n", i,
+                   exception_names[i], code);
+    interrupt_dump_process();
 }
 
 static void unknown_hardware(int i, int code) {
@@ -106,6 +79,9 @@ void interrupt_init() {
         interrupt_count[i] = 0;
     }
 
+    // Wire vector index 14 to pagefault handler
+    interrupt_handler_table[14] = exception_handle_pagefault;
+
     interrupt_unblock();
 
     console_printf("interrupt: ready\n");
@@ -144,4 +120,14 @@ void interrupt_unblock() {
 void interrupt_wait() {
     asm("sti");
     asm("hlt");
+}
+
+void interrupt_dump_process() {
+    if (current) {
+        process_dump(current);
+        process_exit(0);
+    } else {
+        console_printf("interrupt: exception in kernel code!\n");
+        halt();
+    }
 }

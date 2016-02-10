@@ -17,6 +17,13 @@ void interrupt_block();
 void interrupt_unblock();
 void interrupt_wait();
 
+/**
+ * @brief   Dump a process after an interrupt
+ * @details Dump a process after an interrupt. If the exception happened in
+ *          kernel code, display a message and halt the machine.
+ */
+void interrupt_dump_process();
+
 /*
 PC Interrupts:
 IRQ Interrupt
