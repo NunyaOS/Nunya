@@ -5,7 +5,7 @@ See the file LICENSE for details.
 */
 
 #include "kerneltypes.h"    // uint32_t
-#include "pagetable.h"      // pagetable_getmap, pagetable_map
+#include "pagetable.h"      // pagetable_getmap, pagetable_map, PAGE_SIZE
 #include "kernelcore.h"     // halt
 #include "console.h"        // console_printf
 #include "process.h"        // current, process_dump, process_exit
@@ -31,12 +31,16 @@ void exception_handle_pagefault(int intr, int code) {
         process_exit(0);
     } else {
         // Otherwise, we know we have a legit page fault
-        printf("interrupt: page fault at %x\n", vaddr);
+        // printf("interrupt: page fault at %x\n", vaddr);
 
         // Currently we give it as much memory as we could
-        // TODO (SL): allocate another page of memory
+        pagetable_alloc(current->pagetable, vaddr, PAGE_SIZE,
+            // TODO(SL): figure out if these flags are correct
+            PAGE_FLAG_READWRITE | PAGE_FLAG_USER | PAGE_FLAG_ALLOC);
 
         // If we can't allocate additional memory, kill the process
-        interrupt_dump_process();
+        if (0) {
+            interrupt_dump_process();
+        }
     }
 }
