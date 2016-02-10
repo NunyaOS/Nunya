@@ -364,47 +364,31 @@ int ata_probe(int id, int *nblocks, int *blocksize, char *name) {
 
     // First check for 0xff in the controller register,
     // which would indicate that there is nothing attached.
-    uint8_t t = inb(ata_base[id]+ATA_STATUS);
+    uint8_t t = inb(ata_base[id] + ATA_STATUS);
     if (t == 0xff) {
         printf("ata unit %d: nothing attached\n", id);
         return 0;
     }
 
-    // Clear the buffer to receive the identify data.
-    memset(cbuffer,0,512);
-
     // Now reset the unit to check for register signatures.
     ata_reset(id);
 
-    // We expect to see certain values in the control registers.
-    uint8_t a = inb(ata_base[id]+ATA_COUNT);
-    uint8_t b = inb(ata_base[id]+ATA_SECTOR);
-    uint8_t c = inb(ata_base[id]+ATA_CYL_LO);
-    uint8_t d = inb(ata_base[id]+ATA_CYL_HI);
+    // Clear the buffer to receive the identify data.
+    memset(cbuffer,0,512);
 
-    if (a == 0x01 && b == 0x01 && c == 0x14 && d == 0xeb) {
-        // ATA device signature detected.
-        if (!ata_identify(id, ATA_COMMAND_IDENTIFY, cbuffer)) {
-            printf("ata unit %d: ata identify failed\n", id);
-            return 0;
-        }
+    if (ata_identify(id, ATA_COMMAND_IDENTIFY, cbuffer)) {
 
         *nblocks = buffer[1] * buffer[3] * buffer[6];
         *blocksize = 512;
 
-    } else if (a == 0x01 && b == 0x01 && c == 0x00 && d == 0x00) {
-        // ATAPI device signature detected.
-        if (!ata_identify(id, ATAPI_COMMAND_IDENTIFY, cbuffer)) {
-            printf("ata unit %d: atapi identify failed\n", id);
-            return 0;
-        }
+    } else if (ata_identify(id, ATAPI_COMMAND_IDENTIFY, cbuffer)) {
 
-        // XXX do a SCSI sense to get the medium size.
+        // XXX use SCSI sense to get media size
         *nblocks = 337920;
         *blocksize = 2048;
+
     } else {
-        console_printf("ata unit %d: invalid signature: %d %d %d %d\n",
-            id, a, b, c, d);
+        console_printf("ata unit %d: identify command failed\n",id);
         return 0;
     }
 
@@ -446,7 +430,7 @@ void ata_init() {
 
     console_printf("ata: probing devices\n");
 
-	for (i = 0; i < 4; i++) {
-		ata_probe(i, &nblocks, &blocksize, longname);
-	}
+    for (i = 0; i < 4; i++) {
+        ata_probe(i, &nblocks, &blocksize, longname);
+    }
 }
