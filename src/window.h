@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2015 The University of Notre Dame
+Copyright (C) 2016 The University of Notre Dame
 This software is distributed under the GNU General Public License.
 See the file LICENSE for details.
 */
@@ -35,9 +35,9 @@ struct window *window_create(int x, int y, int width, int height);
  * @details Draws a line at given position in the window
  * It will be clipped if it extends outside the window
  * All positions are realtive to the window
- * @param window The window to draw in
+ * @param w The window to draw in
  * @param x1 The x position of the first point in the line
- * @param y1 The position of the first point in the line
+ * @param y1 The y position of the first point in the line
  * @param x2 The x position of the second point in the line
  * @param y2 The y position of the second point in the line
  * @param color The color of the line
@@ -50,12 +50,12 @@ void window_draw_line(struct window *w, int x1, int y1, int x2, int y2, struct g
  * Curves existing outside the window bounds will be clipped. All points
  * relative to the window
  *
- * @param window The window to draw in
+ * @param w The window to draw in
  * @param x The x position of the center of the arc
  * @param y The y position of the center of the arc
  * @param r The radius of the arc
- * @param start_theta The starting angle of the arc
- * @param end_theta The ending angle of the arc
+ * @param start_theta The starting angle of the arc, between 0 and 2*PI. See sin/cos
+ * @param end_theta The ending angle of the arc, between 0 and 2*PI. See sin/cos
  * @param color The color to draw in
  */
 void window_draw_arc(struct window *w, int x, int y, double r, double start_theta, double end_theta, struct graphics_color c);
@@ -66,9 +66,9 @@ void window_draw_arc(struct window *w, int x, int y, double r, double start_thet
  * Curves outside the windows bounds will be clipped. All locations
  * relative to the window
  *
- * @param window The window to draw in
- * @param x The x position of the center of the window
- * @param y The y position of the center of the window
+ * @param w The window to draw in
+ * @param x The x position of the center of the circle, relative to the window
+ * @param y The y position of the center of the circle, relative to the window
  * @param r The radius of the circle
  * @param color The color to draw in
  */
@@ -79,7 +79,7 @@ void window_draw_circle(struct window *w, int x, int y, double r, struct graphic
  * @details Draws given character data in the window. Draws outside the bounds
  * of the window will be clipped. All locations relative to the window
  *
- * @param window The window to draw in
+ * @param w The window to draw in
  * @param x The x position of the top left corner of the char
  * @param y The y position of the top left corner of the char
  * @param ch The character to draw
@@ -92,10 +92,10 @@ void window_draw_char(struct window *w, int x, int y, char ch, struct graphics_c
 /**
  * @brief Draws data to window
  * @details Draws the given graphics data to the screen within the given window
- * Dawing outside the bounds of the window will result in clipping. All locations
+ * Drawing outside the bounds of the window will result in clipping. All locations
  * relative to the window
  *
- * @param window The window to draw in
+ * @param w The window to draw in
  * @param x The x position of the top left corner
  * @param y The y position of the top left corner
  * @param width The width of the data to draw
