@@ -5,7 +5,7 @@ See the file LICENSE for details.
 */
 
 #include "pagetable.h"
-#include "memory.h"
+#include "memory_raw.h"
 #include "string.h"
 #include "kernelcore.h"
 
@@ -33,7 +33,7 @@ struct pagetable {
 };
 
 struct pagetable *pagetable_create() {
-    return memory_alloc_page(1);
+    return (struct pagetable *)memory_alloc_page(1);
 }
 
 void pagetable_init(struct pagetable *p) {

@@ -6,6 +6,7 @@ See the file LICENSE for details.
 
 #include "console.h"
 #include "memory.h"
+#include "memory_raw.h"     // memory_init
 #include "process.h"
 #include "interrupt.h"
 #include "keyboard.h"
@@ -27,6 +28,7 @@ Now we initialize each subsystem in the proper order:
 */
 
 int kernel_main() {
+    graphics_init();
     console_init();
 
     console_printf("video: %d x %d\n", video_xres, video_yres, video_xbytes);

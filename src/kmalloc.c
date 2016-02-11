@@ -4,117 +4,31 @@ This software is distributed under the GNU General Public License.
 See the file LICENSE for details.
 */
 
+#include "kmalloc.h"
 #include "process.h"
 #include "console.h"
 #include "kerneltypes.h"
-#include "memory.h"
 #include "string.h"
 #include "memorylayout.h"
 #include "kernelcore.h"
 #include "pagetable.h"
 
-static uint32_t pages_free = 0;
-static uint32_t pages_total = 0;
+#define KMALLOC_SLOT_SIZE 8
 
-static uint32_t *freemap = 0;
-static uint32_t freemap_bits = 0;
-static uint32_t freemap_bytes = 0;
-static uint32_t freemap_cells = 0;
-static uint32_t freemap_pages = 0;
+//462 is the size of a struct kmalloc_page_info.
+//It comes from x = 8 + 454, as pointer and max_free_gap sum to 8 bytes, then 4094 = (8 * x) + (8 + x)
+//where the first term is the space for the slots and the second is the sizeof(struct kmalloc_page_info)
+#define KMALLOC_NUM_SLOTS (PAGE_SIZE - 462)/KMALLOC_SLOT_SIZE
 
-static void *alloc_memory_start = (void *)ALLOC_MEMORY_START;
+struct __attribute__((__packed__)) kmalloc_page_info {
+    struct kmalloc_page_info *next;  // next page pointer
+    int max_free_gap;   // number of slots in the largest continguous free gap
+    uint8_t free[KMALLOC_NUM_SLOTS]; // bit vector of free slots
+};
 
 // globals necessary for kmalloc
 struct kmalloc_page_info *kmalloc_head = 0;
 unsigned kmalloc_next_vaddr = ALLOC_MEMORY_START;
-
-#define CELL_BITS (8*sizeof(*freemap))
-
-void memory_init() {
-    int i;
-
-    pages_total = (total_memory * 1024) / (PAGE_SIZE / 1024);
-    pages_free = pages_total;
-    console_printf("memory: %d MB (%d KB) total\n",
-                   (pages_free * PAGE_SIZE) / MEGA,
-                   (pages_free * PAGE_SIZE) / KILO);
-
-    freemap = alloc_memory_start;
-    freemap_bits = pages_total;
-    freemap_bytes = 1 + freemap_bits / 8;
-    freemap_cells = 1 + freemap_bits / CELL_BITS;
-    freemap_pages = 1 + freemap_bytes / PAGE_SIZE;
-
-    console_printf("memory: %d bits %d bytes %d cells %d pages\n",
-                   freemap_bits, freemap_bytes, freemap_cells, freemap_pages);
-
-    memset(freemap, 0xff, freemap_bytes);
-    for (i = 0; i < freemap_pages; i++) {
-        memory_alloc_page(0);
-    }
-
-    // This is ahack that I don't understand yet.
-    // vmware doesn't like the use of a particular page
-    // close to 1MB, but what it is used for I don't know.
-
-    freemap[0] = 0x0;
-
-    console_printf("memory: %d MB (%d KB) available\n",
-                   (pages_free * PAGE_SIZE) / MEGA,
-                   (pages_free * PAGE_SIZE) / KILO);
-}
-
-uint32_t memory_pages_free() {
-    return pages_free;
-}
-
-uint32_t memory_pages_total() {
-    return pages_total;
-}
-
-void *memory_alloc_page(bool zeroit) {
-    uint32_t i, j;
-    uint32_t cellmask;
-    uint32_t pagenumber;
-    void *pageaddr;
-
-    if (!freemap) {
-        console_printf("memory: not initialized yet!\n");
-        return 0;
-    }
-
-    for (i = 0; i < freemap_cells; i++) {
-        if (freemap[i] != 0) {
-            for (j = 0; j < CELL_BITS; j++) {
-                cellmask = (1 << j);
-                if (freemap[i] & cellmask) {
-                    freemap[i] &= ~cellmask;
-                    pagenumber = i * CELL_BITS + j;
-                    pageaddr = (pagenumber << PAGE_BITS) + alloc_memory_start;
-                    if (zeroit) {
-                        memset(pageaddr, 0, PAGE_SIZE);
-                    }
-                    pages_free--;
-                    return pageaddr;
-                }
-            }
-        }
-    }
-
-    console_printf("memory: WARNING: everything allocated\n");
-    halt();
-
-    return 0;
-}
-
-void memory_free_page(void *pageaddr) {
-    uint32_t pagenumber = (pageaddr - alloc_memory_start) >> PAGE_BITS;
-    uint32_t cellnumber = pagenumber / CELL_BITS;
-    uint32_t celloffset = pagenumber % CELL_BITS;
-    uint32_t cellmask = (1 << celloffset);
-    freemap[cellnumber] |= cellmask;
-    pages_free++;
-}
 
 struct kmalloc_page_info *kmalloc_create_page_info(unsigned paddr) {
     struct kmalloc_page_info *n = (struct kmalloc_page_info *)paddr;
@@ -137,7 +51,7 @@ void kmalloc_get_page() {
         //TODO: figure out a system interrupt of some sort here
         return;
     }
- 
+
     if (pagetable_getmap(pt, kmalloc_next_vaddr, &phys_addr) != 1) {
         console_printf("kmalloc: Unable to get mapping to next vmem page\n");
         return;
@@ -178,7 +92,7 @@ int kmalloc_locate_sufficient_gap(struct kmalloc_page_info *page_info, int num_s
             gaps_first_slot = i + 1;
         }
     }
-    return -1; 
+    return -1;
 }
 
 /**
@@ -215,7 +129,7 @@ void *kmalloc(unsigned int size) {
     if (size % 8 != 0) {
         slots_needed++;
     }
-    
+
     //start at head, iterate through looking for a page with a large enough gap
     struct kmalloc_page_info *page_info = kmalloc_head;
     while (page_info && page_info->max_free_gap < slots_needed) {
@@ -230,7 +144,7 @@ void *kmalloc(unsigned int size) {
 
     //find some large enough gap
     int slots_start_index = kmalloc_locate_sufficient_gap(page_info, slots_needed);
-     
+
     //fill in the front of the first slot with number of slots info
     //phys addr is addr of page info plus size of page info plus slot offset * slot size
     //needs to fit a memory address of 4 bytes
@@ -244,7 +158,7 @@ void *kmalloc(unsigned int size) {
     for (i = 0; i < slots_needed; i++) {
         page_info->free[slots_start_index + i] = 0;
     }
-    
+
     //find largest remaining gap
     page_info->max_free_gap = kmalloc_get_largest_gap_size(page_info);
 
