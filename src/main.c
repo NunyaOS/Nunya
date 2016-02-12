@@ -9,7 +9,9 @@ See the file LICENSE for details.
 #include "memory_raw.h"     // memory_init
 #include "process.h"
 #include "interrupt.h"
+#include "ps2.h"
 #include "keyboard.h"
+#include "mouse.h"
 #include "clock.h"
 #include "ata.h"
 #include "string.h"
@@ -39,6 +41,7 @@ int kernel_main() {
     interrupt_init();
     rtc_init();
     clock_init();
+    ps2_init();
     keyboard_init();
 
     /*

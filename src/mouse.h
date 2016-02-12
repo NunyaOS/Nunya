@@ -6,6 +6,8 @@ See the file LICENSE for details.
 
 #ifndef MOUSE_H
 #define MOUSE_H
+// IRQ12: mouse
+// 44: interrupt number
 
 char keyboard_read();
 const char *keyboard_read_str();
