@@ -10,11 +10,12 @@ See the file LICENSE for details.
 struct iso_file {
 	int cur_offset;	// offset within file data
 	int extent_offset;	// offset to actual location on disk of start of file
+	int data_length;
 	char pname[256];
 };
 
-struct iso_file *iso_open(const char *pname);
-int iso_close(struct iso_file *file);
-int iso_read(char *dest, int elem_size, int num_elem, struct iso_file *file);
+struct iso_file *iso_fopen(const char *pname);
+int iso_fclose(struct iso_file *file);
+int iso_fread(char *dest, int elem_size, int num_elem, struct iso_file *file);
 
 #endif /* ISO_H_ */

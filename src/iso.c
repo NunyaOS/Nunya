@@ -10,10 +10,11 @@ See the file LICENSE for details.
 #include "kerneltypes.h"
 #include "ata.h"
 #include "console.h"
+#include "keyboard.h"
 
-#define ISO_BLOCK 2048
-#define ISO_UNIT 2  //Default to secondary master for testing, will update later when ata_probe leaves a map
-#define PVD_OFFSET 16 * ISO_BLOCK
+#define ISO_BLOCKSIZE 2048
+#define ISO_UNIT 3  //Default to secondary master for testing, will update later when ata_probe leaves a map
+#define PVD_OFFSET 16 * ISO_BLOCKSIZE
 #define ROOT_DR_OFFSET (PVD_OFFSET) + 156
 #define PVD_PATH_TABLE_SIZE_OFFSET (PVD_OFFSET) + 132
 #define PVD_PATH_TABLE_OFFSET (PVD_OFFSET) + 148
@@ -26,7 +27,7 @@ struct directory_record {
     uint8_t length_of_ext_record;
     char loc_of_ext[8];
     char data_length[8];
-    char rec_date_time[7];
+    uint8_t rec_date_time[7];
     char file_flags[1];
     char file_flags_interleaved[1];
     uint8_t interleave_gap_size;
@@ -46,6 +47,7 @@ struct path_table_entry {
 struct iso_point {
 	int cur_extent;
 	int cur_offset;
+	int data_length;
 };
 
 /**
@@ -124,41 +126,35 @@ int iso_media_read(void *dest, int elem_size, int num_elem, struct iso_point *st
 	return 0;
 }
 
-struct directory_record get_directory_record(struct iso_point *iso_p);
+void get_directory_record(struct iso_point *iso_p, struct directory_record *dr);
 struct path_table_entry get_path_table_entry(struct iso_point *iso_p);
 int have_equal_extents(char *first, char *second);
 int hex_to_int(char *src, int len);
 int is_dir(int flags);
 int is_valid_record(struct directory_record *dr);
-int look_up_directory_offset(const char *dir_name);
-int look_up_file_offset(int dir_offset, const char *fname);
-int look_up_path_offset(const char *pname);
 void print_dr_name(struct directory_record *dr);
-//void print_n_tabs(int n);
-//void print_subdirectory(FILE *fp, char *loc_of_subdir, char *loc_of_parent, int depth);
+void print_dr_date_time(struct directory_record *dr);
 
-struct directory_record get_directory_record(struct iso_point *iso_p) {
+void get_directory_record(struct iso_point *iso_p, struct directory_record *dr) {
     int bytes_read = 0;
 
-    struct directory_record dr;
-    iso_media_read(&(dr.length_of_record), sizeof(dr.length_of_record), 1, iso_p);   //1 for bytes read
-    iso_media_read(&(dr.length_of_ext_record), 1, sizeof(dr.length_of_ext_record), iso_p);   //1 for bytes read
-    iso_media_read(dr.loc_of_ext, 1, 8, iso_p);
-    iso_media_read(dr.data_length, 1, 8, iso_p);
-    iso_media_read(dr.rec_date_time, 1, 7, iso_p);
-    iso_media_read(dr.file_flags, 1, 1, iso_p);
-    iso_media_read(dr.file_flags_interleaved, 1, 1, iso_p);
-    iso_media_read(&(dr.interleave_gap_size), 1, sizeof(dr.interleave_gap_size), iso_p);
-    iso_media_read(dr.vol_seq_num, 1, 4, iso_p);
-    iso_media_read(&(dr.len_identifier), 1, sizeof(dr.len_identifier), iso_p);
+    iso_media_read(&(dr->length_of_record), sizeof(dr->length_of_record), 1, iso_p);   //1 for bytes read
+    iso_media_read(&(dr->length_of_ext_record), 1, sizeof(dr->length_of_ext_record), iso_p);   //1 for bytes read
+    iso_media_read(dr->loc_of_ext, 1, 8, iso_p);
+    iso_media_read(dr->data_length, 1, 8, iso_p);
+    iso_media_read(dr->rec_date_time, 1, 7, iso_p);
+    iso_media_read(dr->file_flags, 1, 1, iso_p);
+    iso_media_read(dr->file_flags_interleaved, 1, 1, iso_p);
+    iso_media_read(&(dr->interleave_gap_size), 1, sizeof(dr->interleave_gap_size), iso_p);
+    iso_media_read(dr->vol_seq_num, 1, 4, iso_p);
+    iso_media_read(&(dr->len_identifier), 1, sizeof(dr->len_identifier), iso_p);
     bytes_read += 33;
 
-    iso_media_read(dr.file_identifier, 1, dr.len_identifier, iso_p);
-    dr.file_identifier[dr.len_identifier] = '\0';
-    bytes_read += dr.len_identifier;
+    iso_media_read(dr->file_identifier, 1, dr->len_identifier, iso_p);
+    dr->file_identifier[dr->len_identifier] = '\0';
+    bytes_read += dr->len_identifier;
 
-    iso_media_seek(iso_p, dr.length_of_record - bytes_read, SEEK_CUR);
-    return dr;
+    iso_media_seek(iso_p, dr->length_of_record - bytes_read, SEEK_CUR);
 }
 
 struct path_table_entry get_path_table_entry(struct iso_point *iso_p){
@@ -175,10 +171,8 @@ struct path_table_entry get_path_table_entry(struct iso_point *iso_p){
 	pt.dir_identifier[pt.length_of_identifier] = '\0';
 	bytes_read += pt.length_of_identifier;
 
-//	fseek(fp, pt.length_of_identifier - bytes_read, SEEK_CUR);
 	iso_media_seek(iso_p, pt.length_of_identifier - bytes_read, SEEK_CUR);
 	if (pt.length_of_identifier % 2 == 1) {
-//		fseek(fp, 1, SEEK_CUR);
 		iso_media_seek(iso_p, 1, SEEK_CUR);
 	}
 	return pt;
@@ -202,6 +196,15 @@ int hex_to_int(char *src, int len) {
     return sum;
 }
 
+int dec_to_int(char *src, int len) {
+    int i, sum = 0;
+    for (i = 0; i < len; i++) {
+        sum *= 10;
+        sum += src[i];
+    }
+    return sum;
+}
+
 int is_dir(int flags) {
     if ((flags >> 1) & 1) {
         return 1;
@@ -209,6 +212,12 @@ int is_dir(int flags) {
     else {
         return 0;
     }
+}
+
+void print_dr_date_time(struct directory_record *dr) {
+	console_printf("%d:%d:%d %d/%d/%d\n", dr->rec_date_time[3], dr->rec_date_time[4],
+					                      dr->rec_date_time[5], dr->rec_date_time[1],
+										  dr->rec_date_time[2], dr->rec_date_time[0] + 1900);
 }
 
 int is_valid_record(struct directory_record *dr) {
@@ -233,110 +242,6 @@ int is_valid_record(struct directory_record *dr) {
     return 1;
 }
 
-int look_up_directory_offset(const char *dir_name) {
-	struct iso_point *iso_p = iso_media_open();
-	iso_media_seek(iso_p, PVD_PATH_TABLE_OFFSET, SEEK_SET);
-
-	char path_table_loc[4];
-	iso_media_read(path_table_loc, 1, 4, iso_p);
-
-	iso_media_seek(iso_p, ISO_BLOCK * hex_to_int(path_table_loc, 4), SEEK_SET);
-
-	struct path_table_entry pt;
-	pt = get_path_table_entry(iso_p);
-	while (pt.length_of_identifier > 0) {
-		if (strcmp(dir_name, pt.dir_identifier) == 0) {
-			break;
-		}
-		else {
-			pt = get_path_table_entry(iso_p);
-		}
-	}
-
-	iso_media_close(iso_p);
-	if (pt.length_of_identifier <= 0) {
-		printf("Directory not found.\n");
-		return -1;
-	}
-	else {
-		return hex_to_int(pt.loc_of_ext, 4);
-	}
-}
-
-int look_up_file_offset(int dir_offset, const char *fname){
-	struct iso_point *iso_p = iso_media_open();
-
-	iso_media_seek(iso_p, ISO_BLOCK * dir_offset, SEEK_SET);
-
-	struct directory_record dr;
-	dr = get_directory_record(iso_p);
-	char dr_name[2048];
-	while (is_valid_record(&dr)) {
-		if (strlen(dr.file_identifier) < 2) {
-			dr = get_directory_record(iso_p);
-			continue;
-		}
-		memset(dr_name, '\0', 2048);
-		memcpy(dr_name, dr.file_identifier, strlen(dr.file_identifier) - 2);
-		dr_name[strlen(dr.file_identifier) - 1] = '\0';
-		if (strcmp(fname, dr_name) == 0) {
-			break;
-		}
-		dr = get_directory_record(iso_p);
-	}
-
-	iso_media_close(iso_p);
-	if (!is_valid_record(&dr)) {
-		printf("File not found.\n");
-		return -1;
-	}
-	else {
-;		return hex_to_int(dr.loc_of_ext + 4, 4);
-	}
-}
-
-int look_up_path_offset(const char *pname){
-	int i;
-	for(i = strlen(pname) - 1; i >= 0; i--) {
-		if(pname[i] == '/'){
-			break;
-		}
-	}
-	int j;
-	if (i == 0) {
-		j = 0;
-	}
-	else {
-		for (j = i-1; j >= 0; j--) {
-			if (pname[j] == '/') {
-				break;
-			}
-		}
-	}
-	char subdir[i - j], fname[strlen(pname) - i];
-	if (i == 0) {
-		strcpy(subdir, "/");
-	}
-	else {
-		memcpy(subdir, pname + j + 1, i - j - 1);
-		subdir[i - j] = '\0';
-	}
-	strcpy(fname, pname + i + 1);
-
-	int dir_offset = look_up_directory_offset(subdir);
-	if (dir_offset < 0) {
-		printf("File path does not exist.\n");
-		return -1;
-	}
-
-	int file_offset = look_up_file_offset(dir_offset, fname);
-	if (file_offset < 0) {
-		printf("File path does not exist.\n");
-		return -1;
-	}
-	return file_offset;
-}
-
 void print_dr_name(struct directory_record *dr) {
     if (dr->file_identifier[0] > 0x20) {
     	char name[strlen(dr->file_identifier)];
@@ -351,31 +256,155 @@ void print_dr_name(struct directory_record *dr) {
     }
 }
 
-struct iso_file *iso_open(const char *pname) {
+/**
+ * @brief Lookup offset the dir/file requested
+ * @details Only call iso_lookup, which in turn calls iso_recursive_lookup.
+ * This recurses on the next directory in pathname
+ * by looking at the directory record given by the current
+ * disk offset, but does not handle the case of root.
+ *
+ * @param pathname The string name of file or directory to lookup (with no leading /)
+ * @param offset The extent number to search the
+ */
+long int iso_recursive_look_up (const char *pname, struct iso_point *iso_p, int *dl) {
+	int next_is_found = 0;
+
+	//Find the location of the next slash in pname
+	int next_slash_index = 0;
+	while(pname[next_slash_index] != '/' && next_slash_index < strlen(pname)) {
+		next_slash_index++;
+	}
+
+	char identifier_to_find[256];
+	memcpy(identifier_to_find, pname, next_slash_index);
+	identifier_to_find[next_slash_index] = 0;
+	char name[strlen(pname) + 1];
+	struct directory_record dr;
+	while (!next_is_found) {
+		get_directory_record(iso_p, &dr);
+		strcpy(name, dr.file_identifier);
+		if (name[strlen(dr.file_identifier) - 1] == '1' && name[strlen(dr.file_identifier) - 2] == ';') {
+			name[strlen(dr.file_identifier) - 2] = '\0';
+		}
+
+		int result = is_valid_record(&dr);
+		if (result != 0) {
+			if (strcmp(identifier_to_find, name) == 0) {
+				next_is_found = 1;
+			}
+		}
+		else {
+			console_printf("File or directory not found\n");
+			return -1;
+		}
+	}
+
+	int entity_location = hex_to_int(dr.loc_of_ext + 4, 4);
+	if (strcmp(identifier_to_find, pname) == 0) {
+		//If this is the last item we're searching for
+		//return it's location as an extent number, and say how long it is
+		*dl = hex_to_int(dr.data_length + 4, 4);
+		return entity_location;
+	}
+	else {
+		iso_media_seek(iso_p, entity_location * ISO_BLOCKSIZE, SEEK_SET);
+		return iso_recursive_look_up(pname + next_slash_index + 1, iso_p, dl);
+	}
+}
+
+/**
+ * @brief Lookup offset the dir/file requested
+ * @details Finds the offset of the file or directory named by
+ * the full pathname starting at the root of the iso filesystem
+ * (no relative paths allowed).
+ *
+ * @param pathname The string name of file or directory to lookup (with no leading /)
+ * @param offset The extent number to search the
+ * @return Offset (extent number) of the
+ */
+long int iso_look_up(const char *pathname, int *dl) {
+	int root_dr_loc;
+	struct iso_point *iso_p = iso_media_open();
+	//locate the root directory
+	iso_media_seek(iso_p, ROOT_DR_OFFSET, SEEK_SET);
+
+	struct directory_record dr;
+	char loc_of_parent[8];
+	get_directory_record(iso_p, &dr);
+
+	if (is_valid_record(&dr)) {
+		memcpy(&loc_of_parent, dr.loc_of_ext, 8);
+		root_dr_loc = hex_to_int(loc_of_parent + 4, 4);
+	}
+	else {
+		console_printf("Illegal dr for root\n");
+		return -1;
+	}
+
+	if(strcmp(pathname, "/") == 0) {
+		return root_dr_loc;
+	}
+	else {
+		iso_media_seek(iso_p, root_dr_loc * ISO_BLOCKSIZE, SEEK_SET);
+		//moving forward, get rid of the first slash and give the iso_p we already seek'd for
+		long int result = iso_recursive_look_up(&pathname[1], iso_p, dl);
+		iso_media_close(iso_p);
+		return result;
+	}
+}
+
+struct iso_file *iso_fopen(const char *pname) {
 	struct iso_file *file = kmalloc(sizeof(struct iso_file));
-	memcpy(file->pname, pname, strlen(pname));
-	int file_offset = look_up_path_offset(pname);
+	strcpy(file->pname, pname);
+	int dl;  //the data_length of the last item on the path
+	int file_offset = iso_look_up(pname, &dl);
 	if (file_offset < 0) {
-		printf("Failed to iso_open the file path.\n");
+		console_printf("Failed to iso_open the file path.\n");
 		return 0;
 	}
 	file->cur_offset = 0;
 	file->extent_offset = file_offset;
+	struct directory_record dr;
+	int dummy;
+	int directory_extent = iso_look_up(pname, &dummy);
+	struct iso_point *iso_p = iso_media_open();
+	iso_media_seek(iso_p, directory_extent * ISO_BLOCKSIZE, SEEK_SET);
+	get_directory_record(iso_p, &dr);
+	iso_media_close(iso_p);
+	file->data_length = dl;
 	return file;
 }
 
-int iso_close(struct iso_file *file) {
+int iso_fclose(struct iso_file *file) {
 	kfree(file);
 	return 0;
 }
 
-int iso_read(char *dest, int elem_size, int num_elem, struct iso_file *file) {
+int iso_fread(char *dest, int elem_size, int num_elem, struct iso_file *file) {
 	struct iso_point *iso_p = iso_media_open();
-	iso_media_seek(iso_p, ISO_BLOCK * file->extent_offset + file->cur_offset, SEEK_SET);
+	iso_media_seek(iso_p, ISO_BLOCKSIZE * file->extent_offset + file->cur_offset, SEEK_SET);
 
-	int bytes_read = iso_media_read(dest, elem_size, num_elem, iso_p);
-	file->cur_offset += bytes_read;
+	int should_EOT_terminate = 0;
+	int bytes_to_disk_read = elem_size * num_elem;
+	int bytes_to_file_read = bytes_to_disk_read;
+	if (bytes_to_file_read + file->cur_offset > file->data_length) {
+		bytes_to_file_read = file->data_length - file->cur_offset + 1;
+		bytes_to_disk_read = bytes_to_file_read - 1;
+		should_EOT_terminate = 1;
+	}
+
+	int bytes_read = iso_media_read(dest, 1, bytes_to_disk_read, iso_p);
+
+	if(bytes_read != bytes_to_disk_read) {
+		console_printf("file reading error\n");
+		iso_media_close(iso_p);
+		return bytes_read;
+	}
+	if (should_EOT_terminate) {
+		dest[bytes_to_file_read - 1] = 4;  //End of Transmission???
+	}
 
 	iso_media_close(iso_p);
+	file->cur_offset += bytes_to_file_read;
 	return bytes_read;
 }
