@@ -113,26 +113,6 @@ int is_valid_record(struct directory_record *dr) {
     return 1;
 }
 
-/**
- * @brief Lookup offset the dir/file requested
- * @details Only call iso_lookup, which in turn calls iso_recursive_lookup.
- * This recurses on the next directory in pathname
- * by looking at the directory record given by the current
- * disk offset, but does not handle the case of root.
- *
- * @param pathname The string name of file or directory to lookup (with no leading /)
- * @param offset The extent number to search the
- */
-/**
- * @brief Lookup offset the dir/file requested
- * @details Finds the offset of the file or directory named by
- * the full pathname starting at the root of the iso filesystem
- * (no relative paths allowed).
- *
- * @param pathname The string name of file or directory to lookup (with no leading /)
- * @param offset The extent number to search the
- * @return Offset (extent number) of the
- */
 int iso_fclose(struct iso_file *file) {
 	kfree(file);
 	return 0;
@@ -241,6 +221,7 @@ int iso_media_read(void *dest, int elem_size, int num_elem, struct iso_point *st
 	}
 	return 0;
 }
+
 void iso_media_seek(struct iso_point *iso_p, long offset, int whence) {
 	switch(whence) {
 		case SEEK_SET:
@@ -265,6 +246,16 @@ void iso_media_seek(struct iso_point *iso_p, long offset, int whence) {
 	}
 }
 
+/**
+ * @brief Lookup offset the dir/file requested
+ * @details Finds the offset of the file or directory named by
+ * the full pathname starting at the root of the iso filesystem
+ * (no relative paths allowed).
+ *
+ * @param pathname The string name of file or directory to lookup (with no leading /)
+ * @param offset The extent number to search the
+ * @return Offset (extent number) of the
+ */
 long int iso_look_up(const char *pathname, int *dl) {
 	int root_dr_loc;
 	struct iso_point *iso_p = iso_media_open();
@@ -296,6 +287,16 @@ long int iso_look_up(const char *pathname, int *dl) {
 	}
 }
 
+/**
+ * @brief Lookup offset the dir/file requested
+ * @details Only call iso_lookup, which in turn calls iso_recursive_lookup.
+ * This recurses on the next directory in pathname
+ * by looking at the directory record given by the current
+ * disk offset, but does not handle the case of root.
+ *
+ * @param pathname The string name of file or directory to lookup (with no leading /)
+ * @param offset The extent number to search the
+ */
 long int iso_recursive_look_up (const char *pname, struct iso_point *iso_p, int *dl) {
 	int next_is_found = 0;
 
