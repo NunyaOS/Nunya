@@ -27,8 +27,8 @@ struct iso_dir {
 struct directory_record {
     uint8_t length_of_record;
     uint8_t length_of_ext_record;
-    char loc_of_ext[8];
-    char data_length[8];
+    char loc_of_ext[8];   //Characters of hex for location of extent, first 4 are little endian, second 4 are big endian
+    char data_length[8];  //Characters of hex for the length of the directory record, first 4 are little endian, second 4 are big endian
     uint8_t rec_date_time[7];
     char file_flags[1];
     char file_flags_interleaved[1];
@@ -38,12 +38,65 @@ struct directory_record {
     char file_identifier[31];  //max file id with extent is 30, +1 for null
 };
 
+/**
+ * @brief Opens the file specified
+ * @details Attempts to find and open the file specified by the pname on the given ata_unit,
+ * calls kmalloc to create return value
+ *
+ * @param pname The absolute path name to search for the file at
+ * @param ata_unit The ata unit to search for the file on
+ * @return Pointer to freshly allocated iso_file at byte 0, null if not found or on error
+ */
 struct iso_file *iso_fopen(const char *pname, int ata_unit);
+
+/**
+ * @brief Closes the file
+ * @details Calls free on the file if not null.
+ *
+ * @param file Pointer to the file to be closed
+ * @return 0 if successfully closed, -1 if not.
+ */
 int iso_fclose(struct iso_file *file);
+
+/**
+ * @brief Reads specified number of bytes from a file into dest
+ * @details Reads num_elem number of objects of size elem_size into
+ * the buffer dest from file.
+ *
+ * @param dest Buffer into which data is copied
+ * @param elem_size Size of each element to be copied
+ * @param num_elem Number of elements from file to be copied
+ * @param file File from which data is copied
+ * @return Number of elements successfully read, -1 on error
+ */
 int iso_fread(void *dest, int elem_size, int num_elem, struct iso_file *file);
 
+/**
+ * @brief Opens the directory specified
+ * @details Attempts to find and open the directory specified by the pname on the given ata_unit,
+ * calls kmalloc to create return value
+ *
+ * @param pname The absolute path name to search for the directory at
+ * @param ata_unit The ata unit to search for the directory on
+ * @return Pointer to freshly allocated iso_dir at first directory record, null if not found or on error
+ */
 struct iso_dir *iso_dopen(const char *pname, int ata_unit);
-void iso_dread(struct directory_record **dest_ptr, struct iso_dir *dir);
+
+/**
+ * @brief Closes the directory
+ * @details Calls free on the directory if not null.
+ *
+ * @param dir Pointer to the directory to be closed
+ * @return 0 if successfully closed, -1 if not.
+ */
 int iso_dclose(struct iso_dir *dir);
 
+/**
+ * @brief Fetches the next directory record pointed to by dir
+ *
+ * @param dir Stream of directory records inside of a directory extent
+ * @return The next directory record in the stream, null on error or
+ * on end of stream
+ */
+struct directory_record *iso_dread(struct iso_dir *dir);
 #endif /* ISO_H_ */
