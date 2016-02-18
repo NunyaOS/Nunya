@@ -13,7 +13,6 @@ See the file LICENSE for details.
 #include "keyboard.h"
 
 #define ISO_BLOCKSIZE 2048
-#define ISO_UNIT 3  //Default to secondary master for testing, will update later when ata_probe leaves a map
 #define PVD_OFFSET 16 * ISO_BLOCKSIZE
 #define ROOT_DR_OFFSET (PVD_OFFSET) + 156
 
@@ -26,20 +25,6 @@ char global_atapi_block[2048];
 int global_atapi_unit = -1;
 int global_atapi_extent = -1;
 
-struct directory_record {
-    uint8_t length_of_record;
-    uint8_t length_of_ext_record;
-    char loc_of_ext[8];
-    char data_length[8];
-    uint8_t rec_date_time[7];
-    char file_flags[1];
-    char file_flags_interleaved[1];
-    uint8_t interleave_gap_size;
-    char vol_seq_num[4];
-    uint8_t len_identifier;
-    char file_identifier[2048];
-};
-
 struct iso_point {
     int ata_unit;
     int cur_extent;
@@ -49,7 +34,6 @@ struct iso_point {
 void get_directory_record(struct iso_point *iso_p, struct directory_record *dr);
 int hex_to_int(char *src, int len);
 int is_dir(int flags);
-int is_valid_record(struct directory_record *dr);
 long int iso_look_up(const char *pname, int *dl, int ata_unit);
 long int iso_recursive_look_up (const char *pname, struct iso_point *iso_p, int *dl);
 void iso_media_close(struct iso_point *iso_p);
@@ -99,31 +83,12 @@ int is_dir(int flags) {
     }
 }
 
-int is_valid_record(struct directory_record *dr) {
-    if(dr->rec_date_time[3] < 0 || dr->rec_date_time[3] >= 24) {    // validate hours
-        return 0;
-    }
-    if(dr->rec_date_time[4] < 0 || dr->rec_date_time[4] >= 60) {    // validate minutes
-        return 0;
-    }
-    if(dr->rec_date_time[5] < 0 || dr->rec_date_time[5] >= 60) {    // validate seconds
-        return 0;
-    }
-    if(dr->rec_date_time[1] <= 0 || dr->rec_date_time[1] > 12) {    // validate month
-        return 0;
-    }
-    if(dr->rec_date_time[2] <= 0 || dr->rec_date_time[2] > 31) {    // validate day
-        return 0;
-    }
-    if(dr->rec_date_time[0] < 0) {    // validate year
-        return 0;
-    }
-    return 1;
-}
-
 int iso_fclose(struct iso_file *file) {
-    kfree(file);
-    return 0;
+    if(file) {
+        kfree(file);
+        return 0;
+    }
+    return -1;
 }
 
 struct iso_file *iso_fopen(const char *pname, int ata_unit) {
@@ -138,9 +103,6 @@ struct iso_file *iso_fopen(const char *pname, int ata_unit) {
     file->cur_offset = 0;
     file->extent_offset = file_offset;
     file->ata_unit = ata_unit;
-//    struct iso_point *iso_p = iso_media_open(ata_unit);
-//    iso_media_seek(iso_p, file_offset * ISO_BLOCKSIZE, SEEK_SET);
-//    iso_media_close(iso_p);
     file->data_length = dl;
 
     return file;
@@ -293,14 +255,8 @@ long int iso_look_up(const char *pathname, int *dl, int ata_unit) {
     char loc_of_parent[8];
     get_directory_record(iso_p, &dr);
 
-    if (is_valid_record(&dr)) {
-        memcpy(&loc_of_parent, dr.loc_of_ext, 8);
-        root_dr_loc = hex_to_int(loc_of_parent + 4, 4);
-    }
-    else {
-        console_printf("Illegal dr for root\n");
-        return -1;
-    }
+    memcpy(&loc_of_parent, dr.loc_of_ext, 8);
+    root_dr_loc = hex_to_int(loc_of_parent + 4, 4);
 
     if(strcmp(pathname, "/") == 0) {
         return root_dr_loc;
@@ -333,28 +289,31 @@ long int iso_recursive_look_up (const char *pname, struct iso_point *iso_p, int 
         next_slash_index++;
     }
 
+    struct directory_record self_dr;
+    get_directory_record(iso_p, &self_dr);
+    int extent_dl = hex_to_int(self_dr.data_length + 4, 4);
+    struct directory_record parent_dr;
+    get_directory_record(iso_p, &parent_dr);
+
     char identifier_to_find[256];
     memcpy(identifier_to_find, pname, next_slash_index);
     identifier_to_find[next_slash_index] = 0;
     char name[strlen(pname) + 1];
     struct directory_record dr;
-    while (!next_is_found) {
+    while (!next_is_found && (iso_p->cur_offset + 1) < extent_dl) {
         get_directory_record(iso_p, &dr);
         strcpy(name, dr.file_identifier);
         if (name[strlen(dr.file_identifier) - 1] == '1' && name[strlen(dr.file_identifier) - 2] == ';') {
             name[strlen(dr.file_identifier) - 2] = '\0';
         }
 
-        int result = is_valid_record(&dr);
-        if (result != 0) {
-            if (strcmp(identifier_to_find, name) == 0) {
-                next_is_found = 1;
-            }
+        if (strcmp(identifier_to_find, name) == 0) {
+            next_is_found = 1;
         }
-        else {
-            console_printf("File or directory (%s) not found\n", identifier_to_find);
-            return -1;
-        }
+    }
+
+    if(!next_is_found) {
+        return -1;
     }
 
     int entity_location = hex_to_int(dr.loc_of_ext + 4, 4);
@@ -368,4 +327,46 @@ long int iso_recursive_look_up (const char *pname, struct iso_point *iso_p, int 
         iso_media_seek(iso_p, entity_location * ISO_BLOCKSIZE, SEEK_SET);
         return iso_recursive_look_up(pname + next_slash_index + 1, iso_p, dl);
     }
+}
+
+struct iso_dir *iso_dopen(const char *pname, int ata_unit) {
+    int dl;  //data length, needed in iso_look_up
+    int extent_num = iso_look_up(pname, &dl, ata_unit);
+    if(extent_num < 0) {
+        return 0;
+    }
+    struct iso_dir *to_return = kmalloc(sizeof(*to_return));
+    struct iso_point *iso_p = iso_media_open(ata_unit);
+    iso_media_seek(iso_p, ATAPI_BLOCKSIZE * extent_num, SEEK_SET);
+    to_return->cur_offset = 0;
+    to_return->extent_offset = extent_num;
+    to_return->ata_unit = ata_unit;
+    to_return->data_length = dl;
+
+    return to_return;
+}
+
+void iso_dread(struct directory_record **dest_ptr, struct iso_dir *read_from) {
+    if(read_from->cur_offset + 1 == read_from->data_length) {
+        //"return null" if at end of directory record
+        *dest_ptr = 0;
+        return;
+    }
+
+    struct iso_point *iso_p = iso_media_open(read_from->ata_unit);
+    iso_media_seek(iso_p, read_from->extent_offset * ATAPI_BLOCKSIZE + read_from->cur_offset, SEEK_SET);
+
+    //if not the end of the directory record, fill the dest by derefing dest_ptr
+    get_directory_record(iso_p, *dest_ptr);
+    read_from->cur_offset = iso_p->cur_offset;
+    //no need to reset extent, that shouldn't be an issue
+
+}
+
+int iso_dclose(struct iso_dir *dir) {
+    if(dir) {
+        kfree(dir);
+        return 0;
+    }
+    return -1;
 }
