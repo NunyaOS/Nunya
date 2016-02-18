@@ -4,6 +4,15 @@ This software is distributed under the GNU General Public License.
 See the file LICENSE for details.
 */
 
+/*
+ * This file has external facing iso_f and iso_d commands, but also
+ * contains iso_media_ commands for open, read, and write. The idea is
+ * that iso_f and iso_d are in regards to files and directories, while
+ * iso_media_ treats the entire iso storage device as a single, long file
+ * without an EOF which we can open, close, and seek around. rather than
+ * doing absurd byte counting in each of the iso_f and iso_d commands.
+ */
+
 #include "iso.h"
 #include "memory.h"
 #include "string.h"
@@ -65,6 +74,13 @@ void get_directory_record(struct iso_point *iso_p, struct directory_record *dr) 
     iso_media_seek(iso_p, bytes_read - 64, SEEK_CUR);
 }
 
+/**
+ * @brief Converts a character hex number into a base 10 integer
+ *
+ * @param src Array of hex characters in big endian format
+ * @param len Number of bytes in the src to convert
+ * @return The integer value of the first len bytes of hex characters in src
+ */
 int hex_to_int(char *src, int len) {
     int i, sum = 0;
     for (i = 0; i < len; i++) {
@@ -81,6 +97,48 @@ int is_dir(int flags) {
     else {
         return 0;
     }
+}
+
+int iso_dclose(struct iso_dir *dir) {
+    if(dir) {
+        kfree(dir);
+        return 0;
+    }
+    return -1;
+}
+
+struct iso_dir *iso_dopen(const char *pname, int ata_unit) {
+    int dl;  //data length, needed in iso_look_up
+    int extent_num = iso_look_up(pname, &dl, ata_unit);
+    if(extent_num < 0) {
+        return 0;
+    }
+    struct iso_dir *to_return = kmalloc(sizeof(*to_return));
+    struct iso_point *iso_p = iso_media_open(ata_unit);
+    iso_media_seek(iso_p, ATAPI_BLOCKSIZE * extent_num, SEEK_SET);
+    to_return->cur_offset = 0;
+    to_return->extent_offset = extent_num;
+    to_return->ata_unit = ata_unit;
+    to_return->data_length = dl;
+
+    return to_return;
+}
+
+void iso_dread(struct directory_record **dest_ptr, struct iso_dir *read_from) {
+    if(read_from->cur_offset + 1 == read_from->data_length) {
+        //"return null" if at end of directory record
+        *dest_ptr = 0;
+        return;
+    }
+
+    struct iso_point *iso_p = iso_media_open(read_from->ata_unit);
+    iso_media_seek(iso_p, read_from->extent_offset * ATAPI_BLOCKSIZE + read_from->cur_offset, SEEK_SET);
+
+    //if not the end of the directory record, fill the dest by derefing dest_ptr
+    get_directory_record(iso_p, *dest_ptr);
+    read_from->cur_offset = iso_p->cur_offset;
+    //no need to reset extent, that shouldn't be an issue
+
 }
 
 int iso_fclose(struct iso_file *file) {
@@ -134,7 +192,6 @@ int iso_fread(void *dest, int elem_size, int num_elem, struct iso_file *file) {
     file->cur_offset += bytes_to_file_read;
     return bytes_read;
 }
-
 
 /**
  * @brief Acts as an fopen() for iso disk
@@ -327,46 +384,4 @@ long int iso_recursive_look_up (const char *pname, struct iso_point *iso_p, int 
         iso_media_seek(iso_p, entity_location * ISO_BLOCKSIZE, SEEK_SET);
         return iso_recursive_look_up(pname + next_slash_index + 1, iso_p, dl);
     }
-}
-
-struct iso_dir *iso_dopen(const char *pname, int ata_unit) {
-    int dl;  //data length, needed in iso_look_up
-    int extent_num = iso_look_up(pname, &dl, ata_unit);
-    if(extent_num < 0) {
-        return 0;
-    }
-    struct iso_dir *to_return = kmalloc(sizeof(*to_return));
-    struct iso_point *iso_p = iso_media_open(ata_unit);
-    iso_media_seek(iso_p, ATAPI_BLOCKSIZE * extent_num, SEEK_SET);
-    to_return->cur_offset = 0;
-    to_return->extent_offset = extent_num;
-    to_return->ata_unit = ata_unit;
-    to_return->data_length = dl;
-
-    return to_return;
-}
-
-void iso_dread(struct directory_record **dest_ptr, struct iso_dir *read_from) {
-    if(read_from->cur_offset + 1 == read_from->data_length) {
-        //"return null" if at end of directory record
-        *dest_ptr = 0;
-        return;
-    }
-
-    struct iso_point *iso_p = iso_media_open(read_from->ata_unit);
-    iso_media_seek(iso_p, read_from->extent_offset * ATAPI_BLOCKSIZE + read_from->cur_offset, SEEK_SET);
-
-    //if not the end of the directory record, fill the dest by derefing dest_ptr
-    get_directory_record(iso_p, *dest_ptr);
-    read_from->cur_offset = iso_p->cur_offset;
-    //no need to reset extent, that shouldn't be an issue
-
-}
-
-int iso_dclose(struct iso_dir *dir) {
-    if(dir) {
-        kfree(dir);
-        return 0;
-    }
-    return -1;
 }
