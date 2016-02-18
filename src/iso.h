@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2015 The University of Notre Dame
+Copyright (C) 2016 The University of Notre Dame
 This software is distributed under the GNU General Public License.
 See the file LICENSE for details.
 */
@@ -16,6 +16,6 @@ struct iso_file {
 
 struct iso_file *iso_fopen(const char *pname);
 int iso_fclose(struct iso_file *file);
-int iso_fread(char *dest, int elem_size, int num_elem, struct iso_file *file);
+int iso_fread(void *dest, int elem_size, int num_elem, struct iso_file *file);
 
 #endif /* ISO_H_ */
