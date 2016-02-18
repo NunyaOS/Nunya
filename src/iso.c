@@ -20,6 +20,12 @@ See the file LICENSE for details.
 #define SEEK_CUR 0
 #define SEEK_SET 1
 
+// Use these to prevent multiple fetches of the same
+// ATAPI block for consecutive, single character reads
+char global_atapi_block[2048];
+int global_atapi_unit = -1;
+int global_atapi_extent = -1;
+
 struct directory_record {
     uint8_t length_of_record;
     uint8_t length_of_ext_record;
@@ -35,19 +41,19 @@ struct directory_record {
 };
 
 struct iso_point {
+    int ata_unit;
     int cur_extent;
     int cur_offset;
-    int data_length;
 };
 
 void get_directory_record(struct iso_point *iso_p, struct directory_record *dr);
 int hex_to_int(char *src, int len);
 int is_dir(int flags);
 int is_valid_record(struct directory_record *dr);
-long int iso_look_up(const char *pname, int *dl);
+long int iso_look_up(const char *pname, int *dl, int ata_unit);
 long int iso_recursive_look_up (const char *pname, struct iso_point *iso_p, int *dl);
 void iso_media_close(struct iso_point *iso_p);
-struct iso_point *iso_media_open();
+struct iso_point *iso_media_open(int ata_unit);
 int iso_media_read(void *dest, int elem_size, int num_elem, struct iso_point *stream);
 void iso_media_seek(struct iso_point *iso_p, long offset, int whence);
 
@@ -120,27 +126,28 @@ int iso_fclose(struct iso_file *file) {
     return 0;
 }
 
-struct iso_file *iso_fopen(const char *pname) {
+struct iso_file *iso_fopen(const char *pname, int ata_unit) {
     struct iso_file *file = kmalloc(sizeof(struct iso_file));
     strcpy(file->pname, pname);
     int dl;  //the data_length of the last item on the path
-    int file_offset = iso_look_up(pname, &dl);
+    int file_offset = iso_look_up(pname, &dl, ata_unit);
     if (file_offset < 0) {
         console_printf("Failed to iso_open the file path.\n");
         return 0;
     }
     file->cur_offset = 0;
     file->extent_offset = file_offset;
-    struct iso_point *iso_p = iso_media_open();
-    iso_media_seek(iso_p, file_offset * ISO_BLOCKSIZE, SEEK_SET);
-    iso_media_close(iso_p);
+    file->ata_unit = ata_unit;
+//    struct iso_point *iso_p = iso_media_open(ata_unit);
+//    iso_media_seek(iso_p, file_offset * ISO_BLOCKSIZE, SEEK_SET);
+//    iso_media_close(iso_p);
     file->data_length = dl;
 
     return file;
 }
 
 int iso_fread(void *dest, int elem_size, int num_elem, struct iso_file *file) {
-    struct iso_point *iso_p = iso_media_open();
+    struct iso_point *iso_p = iso_media_open(file->ata_unit);
     iso_media_seek(iso_p, ISO_BLOCKSIZE * file->extent_offset + file->cur_offset, SEEK_SET);
 
     int should_EOT_terminate = 0;
@@ -179,10 +186,11 @@ void iso_media_close(struct iso_point *iso_p) {
     return;
 }
 
-struct iso_point *iso_media_open() {
+struct iso_point *iso_media_open(int ata_unit) {
     struct iso_point *to_return = kmalloc(sizeof(struct iso_point));
     to_return->cur_extent = 0;
     to_return->cur_offset = 0;
+    to_return->ata_unit = ata_unit;
     return to_return;
 }
 
@@ -202,12 +210,36 @@ int iso_media_read(void *dest, int elem_size, int num_elem, struct iso_point *st
         atapi_blocks_to_read++;
     }
 
-    char buffer[atapi_blocks_to_read * ATAPI_BLOCKSIZE];
+    //ensure that we need to perform the read before we do
+    if (atapi_blocks_to_read > 1 ||
+        global_atapi_extent != stream->cur_extent ||
+        global_atapi_unit != stream->ata_unit) {
+        char buffer[atapi_blocks_to_read * ATAPI_BLOCKSIZE];
+        if (!atapi_read(stream->ata_unit, buffer, atapi_blocks_to_read, stream->cur_extent)) {
+            console_printf("atapi_read is 0 in iso_media_read()\n");
+            return 0;
+        }
+        else {
+            //Do not start at the start of the buffer, because that is the start of
+            //the current extent, not where the cur_extent + cur_offset is
+            memcpy(dest, buffer + stream->cur_offset, elem_size * num_elem);
 
-    if(atapi_read(ISO_UNIT, buffer, atapi_blocks_to_read, stream->cur_extent)) {
+            //copy the last block read in into the global "cache"
+            memcpy(global_atapi_block, buffer + (ATAPI_BLOCKSIZE * (atapi_blocks_to_read - 1)), ATAPI_BLOCKSIZE);
+
+            //update stream, as iso_seek is a mock call to keep track of
+            //"where we are" on the ISO image and does not actually move
+            //the the CD-reading head to read the ISO image, atapi_read does that
+            iso_media_seek(stream, bytes_needed, SEEK_CUR);
+            global_atapi_unit = stream->ata_unit;
+            global_atapi_extent = stream->cur_extent;
+            return num_elem;
+        }
+    }
+    else {
         //Do not start at the start of the buffer, because that is the start of
         //the current extent, not where the cur_extent + cur_offset is
-        memcpy(dest, buffer + stream->cur_offset, elem_size * num_elem);
+        memcpy(dest, global_atapi_block + stream->cur_offset, elem_size * num_elem);
 
         //update stream, as iso_seek is a mock call to keep track of
         //"where we are" on the ISO image and does not actually move
@@ -215,10 +247,6 @@ int iso_media_read(void *dest, int elem_size, int num_elem, struct iso_point *st
         iso_media_seek(stream, bytes_needed, SEEK_CUR);
         return num_elem;
     }
-    else {
-        console_printf("atapi_read is 0 in iso_media_read()\n");
-    }
-    return 0;
 }
 
 void iso_media_seek(struct iso_point *iso_p, long offset, int whence) {
@@ -255,9 +283,9 @@ void iso_media_seek(struct iso_point *iso_p, long offset, int whence) {
  * @param offset The extent number to search the
  * @return Offset (extent number) of the
  */
-long int iso_look_up(const char *pathname, int *dl) {
+long int iso_look_up(const char *pathname, int *dl, int ata_unit) {
     int root_dr_loc;
-    struct iso_point *iso_p = iso_media_open();
+    struct iso_point *iso_p = iso_media_open(ata_unit);
     //locate the root directory
     iso_media_seek(iso_p, ROOT_DR_OFFSET, SEEK_SET);
 
