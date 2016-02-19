@@ -7,13 +7,15 @@ See the file LICENSE for details.
 #ifndef ATA_H
 #define ATA_H
 
+#define ATA_BLOCKSIZE 512
+
 void ata_init();
 
-void ata_reset( int unit );
-int ata_probe( int unit, int *nblocks, int *blocksize, char *name );
+void ata_reset(int unit);
+int ata_probe(int unit, int *nblocks, int *blocksize, char *name);
 
-int ata_read( int unit, void *buffer, int nblocks, int offset );
-int ata_write( int unit, void *buffer, int nblocks, int offset );
-int atapi_read( int unit, void *buffer, int nblocks, int offset );
+int ata_read(int unit, void *buffer, int nblocks, int offset);
+int ata_write(int unit, void *buffer, int nblocks, int offset);
+int atapi_read(int unit, void *buffer, int nblocks, int offset);
 
 #endif

@@ -1,0 +1,24 @@
+language: c
+before_install: sudo apt-get update -qq && sudo apt-get install genisoimage
+    #&& sudo apt-get upgrade -y && sudo apt-get dist-upgrade -y && sudo apt-get install genisoimage
+script: cd src && make && cd ..
+compiler:
+    - gcc
+
+branches:
+    only:
+        - master
+
+notifications:
+    email: false
+
+deploy:
+    provider: script
+    script: bash ./deploy.sh
+    on:
+        branch: master
+
+env:
+    global:
+        - GH_REF: github.com/NunyaOS/Nunya.git
+        - secure: "rF1jUY9BzdCICVJBNeABW88nkVpGFBIW7QHTVU+1plXVkABhDgJ+XfWNw2EICcLIl1xFfAUDRmE3WQUKjzHGZMVUGi+v0CUTDSibjer9CeDQz1tlS068mp0aTvmVL8XwlcnLFWZQVr6xAMMbzYeq6k6LMP8ffEjWuCxE09j1kopTcgD5EyxkfgFkmpWf4q9vpwHYRV4BF95nT4LHz0LUbz1U0D/QTUpORbT2z2ZaN9OomIhWB++VMce7xeWewYEpl8nfYrsREB7K03zdeiEIXoU3QWA2vKjPipNGack0n6O14lJvt8wsEbB+aIQ19ffyiqk6eAhx7EoggKcd6TgRIDWWzcTIx6+c58b7Ena3mTV/Pa+C9Mu7FMwzy4wQ1VvBdDRDkWX9Pzyc5ZNDCaVayDrQ/tWhlH+1YcGg+eop/znF9PBzq8it64wxJsXRQ1mIrAruvXYMDBn6dRuhHBaEHxHubhp5BfkfKYI5yBnt/R40bxsJuboPjj86ecKOXvAgz+RQcW+YcCANeqI81YRzLEt2mNpTT3cYg+ZLdcLjW28uYo/jurOmyveT4e0tQ4sbWBz5Du5H/G3qbn550GGkzCpDmmAEfBwTqtD0ZzG3uh6dQxmz6CG50yby5yedF2futcTVR7i0uyoY8S0jYsW30pjLPErcRHgHMF9YZtaVO4c="
