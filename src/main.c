@@ -41,8 +41,11 @@ int kernel_main() {
     interrupt_init();
     rtc_init();
     clock_init();
+    // doesn't fucking work
+    /*clock_wait(1000);*/
     ps2_init();
     keyboard_init();
+    mouse_init();
 
     /*
     process_init() is a big step.  This initializes the process table, but also gives us our own process structure, private stack, and enables paging.  Now we can do complex things like wait upon events.

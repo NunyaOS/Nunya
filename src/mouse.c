@@ -17,12 +17,13 @@ static struct list queue = { 0, 0 };
 static int mouse_scan() {
     int code;
     int data;
-    code = inb(MOUSE_DATA_PORT);
+    data = inb(PS2_DATA_PORT);
     iowait();
-    data = inb(MOUSE_CHECK_PORT);
+    code = inb(PS2_COMMAND_REGISTER);
     iowait();
 
     // see if data to be read on MOUSE_DATA_PORT
+    ps2_controller_read_ready();
     if (((code >> 1) & 0x01) == 0) {
         return -1;
     }
@@ -35,18 +36,19 @@ static int mouse_scan() {
 }
 
 int mouse_map() {
-    
+    return 0;
 }
 
 void mouse_interrupt() {
-    int data = inb(MOUSE_DATA_PORT);
+    /*int data = inb(MOUSE_DATA_PORT);*/
     int command;
-    command = mouse_map(mouse_scan());
+    /*command = mouse_map(mouse_scan());*/
 
     if (!command) {
 
     }
-    process_wakeup(&queue);
+    /*process_wakeup(&queue);*/
+    console_printf("mouse read\n");
 }
 
 void mouse_init() {

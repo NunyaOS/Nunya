@@ -14,6 +14,8 @@ See the file LICENSE for details.
 
 void ps2_init();
 int ps2_second_channel_enabled();
+int ps2_controller_read_ready();
+int ps2_controller_write_ready();
 
 #endif
 
