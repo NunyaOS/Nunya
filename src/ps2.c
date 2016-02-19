@@ -76,8 +76,8 @@ void ps2_init() {
     // if ACPI implemented need to determine if PS/2 controller exists
 
     // disable devices so that any PS/2 devices can't send data at the wrong time and mess up initialization
-    outb(0xAD, PS2_COMMAND_REGISTER);
-    outb(0xA7, PS2_COMMAND_REGISTER);
+    /*outb(0xAD, PS2_COMMAND_REGISTER);*/
+    /*outb(0xA7, PS2_COMMAND_REGISTER);*/
 
     // flush the output buffer of ps2 data port
     inb(PS2_DATA_PORT);
@@ -118,6 +118,8 @@ void ps2_init() {
     }
 
     console_printf("free?: %d\n", memory_freemap_walk());
+    */
+    int test;
     // determine if there are 2 channels
     if (second_channel_enabled == 1) {
         // enable second PS/2 port
@@ -132,8 +134,6 @@ void ps2_init() {
             outb(0xA7, PS2_COMMAND_REGISTER);
         }
     }
-*/
-        int test; console_printf("ps/2: first ps/2 port test successful\n");
     // test PS/2 ports
     outb(0xAB, PS2_COMMAND_REGISTER);
     test = inb(PS2_DATA_PORT);

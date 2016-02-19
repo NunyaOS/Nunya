@@ -41,10 +41,10 @@ int kernel_main() {
     interrupt_init();
     rtc_init();
     clock_init();
-    // doesn't fucking work
+    // doesn't work
     /*clock_wait(1000);*/
-    ps2_init();
     keyboard_init();
+    /*ps2_init();*/
     mouse_init();
 
     /*

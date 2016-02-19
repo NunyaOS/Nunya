@@ -9,6 +9,7 @@ See the file LICENSE for details.
 
 // used to check if data on port 0x60 is for the mouse or the keyboard
 void mouse_init();
+int mouse_scan();
 
 #endif
 
