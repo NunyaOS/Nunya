@@ -96,6 +96,7 @@ memtest_e820_no_acpi:
     add     $24, %edi               # increment pointer
 
 memtest_e820_test_end:
+    # TODO (SL): when the buffer is filled, quit
     test    %ebx, %ebx
     jne     memtest_e820_loop
 
