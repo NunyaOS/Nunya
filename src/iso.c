@@ -171,7 +171,7 @@ struct iso_dir *iso_dopen(const char *pname, int ata_unit) {
     to_return->ata_unit = ata_unit;
     to_return->data_length = dl;
 
-    console_printf("Successfully opened dir %s\n", pname);
+    iso_media_close(iso_p);
     return to_return;
 }
 
@@ -189,12 +189,13 @@ struct directory_record *iso_dread(struct iso_dir *read_from) {
     //if not the end of the directory record, fill the dest by dereferencing dest_ptr
     int success = get_directory_record(iso_p, next_dr);
     if (!success) {
+        iso_media_close(iso_p);
         return 0;
     }
 
     read_from->cur_offset = iso_p->cur_offset;
     //no need to reset extent, that shouldn't be an issue
-
+    iso_media_close(iso_p);
     return next_dr;
 }
 
