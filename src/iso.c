@@ -230,22 +230,22 @@ int iso_fread(void *dest, int elem_size, int num_elem, struct iso_file *file) {
     struct iso_point *iso_p = iso_media_open(file->ata_unit);
     iso_media_seek(iso_p, ISO_BLOCKSIZE * file->extent_offset + file->cur_offset, SEEK_SET);
 
-    int should_EOT_terminate = 0;
+    int at_EOF = 0;
     int bytes_to_disk_read = elem_size * num_elem;
     int bytes_to_file_read = bytes_to_disk_read;
-    if (bytes_to_file_read + file->cur_offset > file->data_length) {
-        bytes_to_file_read = file->data_length - file->cur_offset + 1;
+    if ((bytes_to_file_read + file->cur_offset) > file->data_length) {
+        bytes_to_file_read = file->data_length - file->cur_offset + 1;  // Don't actually want to read off the end of the file
         bytes_to_disk_read = bytes_to_file_read - 1;
-        should_EOT_terminate = 1;
+        at_EOF = 1;
     }
     int bytes_read = iso_media_read(dest, 1, bytes_to_disk_read, iso_p);
     if(bytes_read != bytes_to_disk_read) {
         console_printf("file reading error\n");
         iso_media_close(iso_p);
-        return bytes_read;
+        return -2;
     }
-    if (should_EOT_terminate) {
-        ((char *)dest)[bytes_to_file_read - 1] = 4;  //4 is ASCII for End of Transmission???
+    if (at_EOF) {
+        return -1;  // Treat -1 return value as EOF
     }
 
     iso_media_close(iso_p);
