@@ -4,19 +4,16 @@ This software is distributed under the GNU General Public License.
 See the file LICENSE for details.
 */
 
-
-
-#define MOUSE_DATA_PORT 0x60
-// used to check if data on port 0x60 is for the mouse or the keyboard
-#define MOUSE_CHECK_PORT 0x64
+#include "mouse.h"
+#include "interrupt.h"
+#include "console.h"
+#include "ps2.h"
+#include "ioports.h"
+#include "process.h"
+#include "graphics.h"
 
 static struct list queue = { 0, 0 };
-// send 0xA8 to enable PS2/port; 0xA7 to disable
-// 0xA9 to test second (0x00 if test passed)
-// 0x20 to read byte 0 (controller config byte) from internal RAM of PS/2 controller
-// 0x60 to write byte to byte 0 (controller config byte) of internal RAM of PS2 Controller
-// bit 1: second PS/2 port interrupt (1 enabled)
-// bit 7 must be zero
+
 static int mouse_scan() {
     int code;
     int data;
@@ -37,9 +34,18 @@ static int mouse_scan() {
     return code;
 }
 
+int mouse_map() {
+    
+}
+
 void mouse_interrupt() {
+    int data = inb(MOUSE_DATA_PORT);
     int command;
     command = mouse_map(mouse_scan());
+
+    if (!command) {
+
+    }
     process_wakeup(&queue);
 }
 
@@ -47,7 +53,6 @@ void mouse_init() {
     interrupt_register(44, mouse_interrupt);
     mouse_scan();
     interrupt_enable(44);
-    console_printf("mouse: read\n");
+    console_printf("mouse: ready\n");
 }
-
 

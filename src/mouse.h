@@ -6,8 +6,10 @@ See the file LICENSE for details.
 
 #ifndef MOUSE_H
 #define MOUSE_H
-// IRQ12: mouse
-// 44: interrupt number
+
+#define MOUSE_DATA_PORT 0x60
+// used to check if data on port 0x60 is for the mouse or the keyboard
+#define MOUSE_CHECK_PORT 0x64
 
 char keyboard_read();
 const char *keyboard_read_str();

@@ -11,6 +11,9 @@ See the file LICENSE for details.
 #include "console.h"
 #include "string.h"
 
+#include "memory_raw.h"
+#include "kernelcore.h"
+
 static int second_channel_enabled = 0;
 
 int ps2_second_channel_enabled() {
@@ -22,6 +25,7 @@ int ps2_controller_read_ready() {
     clock_t start;
     clock_t elapsed = {0, 0};
     start = clock_read();
+
     // wait until bit 0 of status register is 1 (data port full)
     while ((inb(PS2_STATUS_REGISTER) & 0x1) != 1 && elapsed.seconds < PS2_TIMEOUT) {
         elapsed = clock_diff(start, clock_read());
@@ -83,6 +87,7 @@ void ps2_init() {
 
     uint8_t cont_config_byte = ps2_read_controller_config_byte();
 
+
     // disable IRQs and port translation (bits 0, 1, 6)
     cont_config_byte &= ~((1) | (1 << 1) | (1 << 6));
     // if clear, not dual channel PS/2 controller (b/c second PS/2 port disabled)
@@ -91,12 +96,17 @@ void ps2_init() {
     }
 
     ps2_command_write(0x60, cont_config_byte);
-ps2_write_controller_config_byte(cont_config_byte);
+    ps2_write_controller_config_byte(cont_config_byte);
 
+    console_printf("free?: %d\n", memory_freemap_walk());
+    /*
     // test PS/2 controller
     outb(0xAA, PS2_COMMAND_REGISTER);
+    console_printf("free?: %d\n", memory_freemap_walk());
     ps2_controller_read_ready();
+    console_printf("free?: %d\n", memory_freemap_walk());
     int test = inb(PS2_DATA_PORT);
+    console_printf("free?: %d\n", memory_freemap_walk());
     if (test == 0x55) {
         console_printf("ps/2: controller test successful\n");
     }
@@ -107,6 +117,7 @@ ps2_write_controller_config_byte(cont_config_byte);
         console_printf("ps/2: controller test failed with unknown error: %x\n", test);
     }
 
+    console_printf("free?: %d\n", memory_freemap_walk());
     // determine if there are 2 channels
     if (second_channel_enabled == 1) {
         // enable second PS/2 port
@@ -121,7 +132,8 @@ ps2_write_controller_config_byte(cont_config_byte);
             outb(0xA7, PS2_COMMAND_REGISTER);
         }
     }
-
+*/
+        int test; console_printf("ps/2: first ps/2 port test successful\n");
     // test PS/2 ports
     outb(0xAB, PS2_COMMAND_REGISTER);
     test = inb(PS2_DATA_PORT);
