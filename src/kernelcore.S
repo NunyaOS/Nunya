@@ -49,11 +49,67 @@ realstart:
 # Get the amount of memory above 1MB and save it for later.
 # There are two ways to do this:
 
+# BIOS call 0xe820 measures memory as follows:
+# %eax is the SMAP signature
+# %ebx is the continuation value
+# %ecx is the number of bytes returned by BIOS
+memtest_e820:
+    clc
+    xor     %ebx, %ebx          # continuation value; must be zero to start
+    xor     %ebp, %ebp          # entry count
+    mov     $0x534d4150, %edx   # SMAP signature
+    mov     $0xe820, %eax       # interrupt e820
+    mov     $mem_descriptor, %edi   # destination address
+    mov     $24, %ecx           # request 24 bytes for each descriptor
+    int     $0x15               # issue interrupt
+
+    jc      memtest1            # if carry bit is set, fail
+    mov     $0x534d4150, %edx
+    cmp     %eax, %edx
+    jne     memtest1            # if %eax is not set to SMAP, fail
+    test    %ebx, %ebx
+    je      memtest1            # if %ebx is 0, the list has only 1 entry, fail
+    jmp     memtest_e820_first_jump # jump to test the entry
+
+memtest_e820_loop:
+    mov     $0xe820, %eax
+    mov     $24, %ecx
+    int     $0x15
+    jc      memtest_e820_end        # if carry bit is set, measuring is done
+    mov     $0x534d4150, %edx
+
+memtest_e820_first_jump:
+    jcxz    memtest_e820_test_end   # if the length is 0, test for end
+
+    cmp     $20, %cl
+    jbe     memtest_e820_no_acpi    # if the entry has an acpi bit,
+    cmpl    $1, 20(%edi)            # then test if we're instructed to ignore
+    je      memtest_e820_test_end
+
+memtest_e820_no_acpi:
+    # TODO (SL): this following line halts, need investigation
+    # mov     8(%edi), %ecx           # lower 32 bits of length
+    # or      12(%edi), %ecx          # lower 32 bits OR higher 32 bits of length
+    # jz      memtest_e820_test_end   # if length is 0, skip it
+
+    inc     %ebp                    # entry is good; increment count
+    add     $24, %edi               # increment pointer
+
+memtest_e820_test_end:
+    test    %ebx, %ebx
+    jne     memtest_e820_loop
+
+memtest_e820_end:
+    # mov    %ebp, (mem_descriptor_arr_length)    # store array length
+    clc                         # clear carry bit
+    jmp     memdone
+
+
+# If 0xe820 doesn't work, fallback to int 0x15, ax = 0xe801
+
 # BIOS call 0xe801 measures memory as follows:
 # %ax returns memory above 1MB in 1KB increments, maximum of 16MB.
 # %bx returns memory above 64MB in 64KB increments, maximum of 4GB.
-# However, this call is relatively new, so if it
-# fails, we fall back on memtest2 below.
 
 memtest1:
     clc
@@ -67,6 +123,8 @@ memtest1:
     add     %ax, %bx
     mov     %bx, total_memory - _start
     jmp     memdone
+
+# If 0xe801 doesn't work, fallback to int 0x15, ah = 0x88
 
 # BIOS call 0x0088 measures memory as follows:
 # %ax returns memory above 1MB in 1KB increments, maxiumum of 64MB.
@@ -326,6 +384,43 @@ interrupt_stack_pointer:
 .global total_memory
 total_memory:
     .word   32
+
+# This is an address range descriptor structure for measuring memory
+.global mem_descriptor_arr_max_length
+mem_descriptor_arr_max_length:
+    .word   20
+
+# .global mem_descriptor_arr_length
+# mem_descriptor_arr_length:
+#     .word   0
+
+.global mem_descriptor
+mem_descriptor:
+    .long   0   # lower 32 bits of base address
+    .long   0   # higher 32 bits of base address
+    .long   0   # lower 32 bits of length (in bytes)
+    .long   0   # higher 32 bits of length (in bytes)
+    .long   0   # address type
+    .long   0   # ACPI extended attribute
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
 
 # First, the internal interrupts.
 # Note that some already push their own detail
