@@ -55,6 +55,10 @@ void memory_init() {
 
     freemap[0] = 0x0;
 
+    // VirtualBox doesn't like memory address 0x1A0000 through 0x1C0000
+    // so block it off
+    freemap[5] = 0x0;
+
     console_printf("memory: %d MB (%d KB) available\n",
                    (pages_free * PAGE_SIZE) / MEGA,
                    (pages_free * PAGE_SIZE) / KILO);
