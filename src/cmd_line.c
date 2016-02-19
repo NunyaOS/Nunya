@@ -8,6 +8,7 @@ See the file LICENSE for details.
 #include "console.h"
 #include "string.h"
 
+#define KEYBOARD_BUFFER_SIZE 256
 //Privates
 void cmd_line_run_echo(const char * arg_line)
 {
@@ -24,15 +25,15 @@ void cmd_line_run_date(const char * arg_line)
 //Exposed
 void cmd_line_attempt(const char * line)
 {
-    char line_copy[LINE_SIZE];
+    char line_copy[KEYBOARD_BUFFER_SIZE];
     strcpy(line_copy, line);
     char *first_word = strtok(line_copy, " ");
-    char *the_rest = line + (strlen(first_word) + 1);
+    const char *the_rest = line + (strlen(first_word) + 1);
 
     //Ugly case statement alternative
     if(!strcmp("echo", first_word))
         cmd_line_run_echo(the_rest);
-    if(!strcmp("date", first_word))
+    else if(!strcmp("date", first_word))
         cmd_line_run_date(the_rest);
     else
         console_printf("%s: command not found\n", first_word);

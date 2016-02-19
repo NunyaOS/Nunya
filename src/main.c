@@ -17,6 +17,7 @@ See the file LICENSE for details.
 #include "syscall.h"
 #include "rtc.h"
 #include "kernelcore.h"
+#include "cmd_line.h"
 
 /*
 This is the C initialization point of the kernel.
@@ -51,7 +52,7 @@ process_init() is a big step.  This initializes the process table, but also give
     console_set_fgcolor(255,255,255);
 
 	while(1) {
-		keyboard_read_str();
+		cmd_line_attempt(keyboard_read_str());
 	}
 
 	return 0;
