@@ -100,7 +100,7 @@ void ps2_init() {
 
     console_printf("free?: %d\n", memory_freemap_walk());
     /*
-    // test PS/2 controller
+    // test PS/2 controller (causes memory issues)
     outb(0xAA, PS2_COMMAND_REGISTER);
     console_printf("free?: %d\n", memory_freemap_walk());
     ps2_controller_read_ready();

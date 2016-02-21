@@ -55,8 +55,12 @@ void mouse_init() {
     outb(0xA8, PS2_COMMAND_REGISTER);
     uint8_t cont_config_byte = ps2_read_controller_config_byte();
     // set bit 1 and clear bit 5
+    console_printf("CONT_CONFIG_BYTE: %d\n", cont_config_byte);
     cont_config_byte |= (1 << 1);
-    /*cont_config_byte &= ~(1 << 5);*/
+    console_printf("CONT_CONFIG_BYTE: %d\n", cont_config_byte);
+    // set dat
+    cont_config_byte &= ~(1 << 3);
+    console_printf("CONT_CONFIG_BYTE: %d\n", cont_config_byte);
     ps2_write_controller_config_byte(cont_config_byte);
     ps2_command_write(0xD4, 0xF6);
     ps2_controller_read_ready();

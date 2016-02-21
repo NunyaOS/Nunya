@@ -41,8 +41,6 @@ int kernel_main() {
     interrupt_init();
     rtc_init();
     clock_init();
-    // doesn't work
-    /*clock_wait(1000);*/
     keyboard_init();
     /*ps2_init();*/
     mouse_init();
