@@ -54,7 +54,7 @@ void pagetable_init(struct pagetable *p) {
 
     // SL: in VirtualBox, vram is separate from ram, and no matter how much
     // physical memory it has, video_buffer is always 0xe0000000.
-    // TODO (SL): Ensure video buffer is mapped into superviser mode even
+    // TODO (SL): [NUN-15] Ensure video buffer is mapped into superviser mode
     // without vram present
     stop = (uint32_t)video_buffer + video_xres * video_yres * 3;
     for (i = (uint32_t)video_buffer; i <= stop; i += PAGE_SIZE) {
