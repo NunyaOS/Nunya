@@ -12,6 +12,8 @@ See the file LICENSE for details.
 
 #define ARC_DT 0.01
 
+static int bounds_x_1, bounds_x_2, bounds_y_1, bounds_y_2;
+
 int graphics_width() {
     return video_xres;
 }
@@ -20,7 +22,31 @@ int graphics_height() {
     return video_yres;
 }
 
+void graphics_init() {
+    graphics_clear_bounds();
+}
+
+void graphics_set_bounds(int x, int y, int w, int h) {
+    bounds_x_1 = x < 0 ? 0 : x;
+    bounds_x_2 = x + w >= video_xres ? video_xres - 1 : x + w;
+    bounds_y_1 = y < 0 ? 0 : y;
+    bounds_y_2 = y + h >= video_yres ? video_yres - 1 : y + h;
+}
+
+void graphics_clear_bounds() {
+    // Clearing bounds actually just sets the bounds to be the edges of
+    // the screen. This allows us to ensure we don't draw outside of screen memory
+    bounds_x_1 = 0;
+    bounds_x_2 = video_xres - 1;
+    bounds_y_1 = 0;
+    bounds_y_2 = video_yres - 1;
+}
+
 static inline void plot_pixel(int x, int y, struct graphics_color c) {
+    // Check to make sure that we are not drawing out of bounds
+    if (x < bounds_x_1 || x > bounds_x_2 || y < bounds_y_1 || y > bounds_y_2) {
+        return;
+    }
     uint8_t *v = video_buffer + video_xbytes * y + x * 3;
     v[2] = c.r;
     v[1] = c.g;

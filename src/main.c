@@ -18,6 +18,7 @@ See the file LICENSE for details.
 #include "syscall.h"
 #include "rtc.h"
 #include "kernelcore.h"
+#include "cmd_line.h"
 #include "disk.h"
 
 /*
@@ -28,6 +29,7 @@ Now we initialize each subsystem in the proper order:
 */
 
 int kernel_main() {
+    graphics_init();
     console_init();
 
     console_printf("video: %d x %d\n", video_xres, video_yres, video_xbytes);
@@ -51,8 +53,8 @@ int kernel_main() {
     //change text color to white after bootup
     console_set_fgcolor(255, 255, 255);
 
-    while (1) {
-        keyboard_read_str();
+    while(1) {
+        cmd_line_attempt(keyboard_read_str());
     }
 
     return 0;

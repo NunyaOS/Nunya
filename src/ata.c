@@ -162,7 +162,15 @@ static int ata_begin(int id, int command, int nblocks, int offset) {
     outb(flags, base + ATA_FDH);
 
     // wait again for the disk to indicate ready
-    if (!ata_wait(id, ATA_STATUS_BSY | ATA_STATUS_RDY, ATA_STATUS_RDY)) {
+    // special case: ATAPI identification does not raise RDY flag
+    int ready;
+    if (command == ATAPI_COMMAND_IDENTIFY) {
+        ready = ata_wait(id, ATA_STATUS_BSY, 0);
+    } else {
+        ready = ata_wait(id, ATA_STATUS_BSY | ATA_STATUS_RDY, ATA_STATUS_RDY);
+    }
+
+    if (!ready) {
         return 0;
     }
 
@@ -231,7 +239,7 @@ static int atapi_begin(int id, void *data, int length) {
     outb(flags, base + ATA_FDH);
 
     // wait again for the disk to indicate ready
-    if (!ata_wait(id, ATA_STATUS_BSY | ATA_STATUS_RDY, ATA_STATUS_RDY)) {
+    if (!ata_wait(id, ATA_STATUS_BSY, 0)) {
         return 0;
     }
 
@@ -351,38 +359,41 @@ static int ata_identify(int id, int command, void *buffer) {
 }
 
 int ata_probe(int id, int *nblocks, int *blocksize, char *name) {
-    uint8_t t;
-    uint32_t i;
     uint16_t buffer[256];
     char *cbuffer = (char *)buffer;
 
-    /*
-       First attempt to modify a controller register.
-       If the change does not stick, there is not controller!
-     */
-
-    t = inb(ata_base[id] + ATA_CYL_LO);
-    outb(~t, ata_base[id] + ATA_CYL_LO);
-    if (inb(ata_base[id] + ATA_CYL_LO) == t) {
+    // First check for 0xff in the controller register,
+    // which would indicate that there is nothing attached.
+    uint8_t t = inb(ata_base[id] + ATA_STATUS);
+    if (t == 0xff) {
+        printf("ata unit %d: nothing attached\n", id);
         return 0;
     }
 
-    memset(cbuffer, 0, 512);
-
+    // Now reset the unit to check for register signatures.
     ata_reset(id);
 
+    // Clear the buffer to receive the identify data.
+    memset(cbuffer,0,512);
+
     if (ata_identify(id, ATA_COMMAND_IDENTIFY, cbuffer)) {
+
         *nblocks = buffer[1] * buffer[3] * buffer[6];
         *blocksize = 512;
+
     } else if (ata_identify(id, ATAPI_COMMAND_IDENTIFY, cbuffer)) {
+
+        // XXX use SCSI sense to get media size
         *nblocks = 337920;
         *blocksize = 2048;
+
     } else {
+        console_printf("ata unit %d: identify command failed\n",id);
         return 0;
     }
 
-    /* Now byte-swap the data so as the generate byte-ordered strings */
-
+    // Now byte-swap the data so as the generate byte-ordered strings
+    uint32_t i;
     for (i = 0; i < 512; i += 2) {
         t = cbuffer[i];
         cbuffer[i] = cbuffer[i + 1];
@@ -390,10 +401,15 @@ int ata_probe(int id, int *nblocks, int *blocksize, char *name) {
     }
     cbuffer[256] = 0;
 
-    /* Vendor supplied name is at byte 54 */
-
+    // Vendor supplied name is at byte 54
     strcpy(name, &cbuffer[54]);
     name[40] = 0;
+
+    console_printf("ata unit %d: %s %d MB %s\n",
+        id,
+        (*blocksize) == 512 ? "ata disk" : "atapi cdrom",
+        (*nblocks) * (*blocksize) / 1024 / 1024,
+        name);
 
     return 1;
 }
@@ -415,13 +431,6 @@ void ata_init() {
     console_printf("ata: probing devices\n");
 
     for (i = 0; i < 4; i++) {
-        if (ata_probe(i, &nblocks, &blocksize, longname)) {
-
-            console_printf("ata unit %d: %s %d MB %s\n", i,
-                           blocksize == 512 ? "ata disk" : "atapi cdrom",
-                           nblocks * blocksize / 1024 / 1024, longname);
-        } else {
-            console_printf("ata unit %d: not present\n", i);
-        }
+        ata_probe(i, &nblocks, &blocksize, longname);
     }
 }
