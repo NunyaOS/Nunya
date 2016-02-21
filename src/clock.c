@@ -76,19 +76,19 @@ void clock_init() {
 }
 
 int clock_compare(clock_t a, clock_t b) {
-    if(a.seconds > b.seconds) {
-        return -1;
+    if (a.seconds > b.seconds) {
+        return 1;
     }
-    if(a.seconds == b.seconds) {
-        if(a.millis > b.millis) {
-            return -1;
+    if (a.seconds == b.seconds) {
+        if (a.millis > b.millis) {
+            return 1;
         }
-        if(a.millis == b.millis) {
+        if (a.millis == b.millis) {
             return 0;
         }
 
-        return 1;
+        return -1;
     }
 
-    return 1;
+    return -1;
 }

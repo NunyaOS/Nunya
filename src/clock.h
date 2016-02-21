@@ -26,7 +26,7 @@ void clock_wait(uint32_t millis);
  * @param a The first time
  * @param b The second time
  * 
- * @return Returns -1 if a is bigger, 0 if they are the same, and 1 if b is bigger
+ * @return Returns -1 if a is smaller, 0 if they are the same, and 1 if a is bigger
  */
 int clock_compare(clock_t a, clock_t b);
 

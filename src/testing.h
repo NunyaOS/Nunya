@@ -16,17 +16,17 @@ See the file LICENSE for details.
  * cases of that feature.
  * @return A value indicating whether the test was successful or failed
  */
-typedef int (*tester)(void);
+typedef int (*test_func_t)(void);
 
-struct test_runner {
-	const char *title;
-	tester test;
-	clock_t runtime_bound;
-	// TODO: Add type or grouping so we can run specific groups of tests
+struct test_unit {
+    const char *title;
+    test_func_t test;
+    clock_t runtime_bound;
+    // TODO: NUN-14 Add type or grouping so we can run specific groups of tests
 };
 
 // The list of all tests to be run when the graphics test suite is called upon
-static struct test_runner tests[] = {
+static struct test_unit tests[] = {
 };
 
 /**
