@@ -13,7 +13,8 @@ struct iso_file {
     int ata_unit;
     int cur_offset;    // offset within file data
     int extent_offset;    // offset to actual location on disk of start of file
-    int data_length;
+    uint32_t data_length;
+    int at_EOF;
     char pname[256];
 };
 
@@ -21,15 +22,15 @@ struct iso_dir {
     int ata_unit;    // On which ATA unit this directory record exists
     int extent_offset;  //location of the directory's extent
     int cur_offset;  //offset to the front of the next directory record to read
-    int data_length;    // Length of data in directory record
+    uint32_t data_length;    // Length of data in directory record
 };
 
 
 struct directory_record {
     uint8_t length_of_record;
     uint8_t length_of_ext_record;
-    char loc_of_ext[8];   //Characters of hex for location of extent, first 4 are little endian, second 4 are big endian
-    char data_length[8];  //Characters of hex for the length of the directory record, first 4 are little endian, second 4 are big endian
+    unsigned char loc_of_ext[8];   //Characters of hex for location of extent, first 4 are little endian, second 4 are big endian
+    unsigned char data_length[8];  //Characters of hex for the length of the directory record, first 4 are little endian, second 4 are big endian
     uint8_t rec_date_time[7];   // timestamp of last modification
     char file_flags[1];
     char file_flags_interleaved[1];

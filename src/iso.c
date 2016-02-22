@@ -41,11 +41,11 @@ struct iso_point {
 };
 
 int get_directory_record(struct iso_point *iso_p, struct directory_record *dr);
-int hex_to_int(char *src, int len);
+uint32_t hex_to_int(unsigned char *src, int len);
 int is_dir(int flags);
 int is_valid_record(struct directory_record *dr);
-long int iso_look_up(const char *pname, int *dl, int ata_unit);
-long int iso_recursive_look_up (const char *pname, struct iso_point *iso_p, int *dl);
+long int iso_look_up(const char *pname, uint32_t *dl, int ata_unit);
+long int iso_recursive_look_up (const char *pname, struct iso_point *iso_p, uint32_t *dl);
 void iso_media_close(struct iso_point *iso_p);
 struct iso_point *iso_media_open(int ata_unit);
 int iso_media_read(void *dest, int elem_size, int num_elem, struct iso_point *stream);
@@ -100,10 +100,10 @@ int get_directory_record(struct iso_point *iso_p, struct directory_record *dr) {
  * @param len Number of bytes in the src to convert
  * @return The integer value of the first len bytes of hex characters in src
  */
-int hex_to_int(char *src, int len) {
-    int i, sum = 0;
+uint32_t hex_to_int(unsigned char *src, int len) {
+    uint32_t i, sum = 0;
     for (i = 0; i < len; i++) {
-        sum *= 16;
+        sum *= 256;
         sum += src[i];
     }
     return sum;
@@ -158,7 +158,7 @@ int iso_dclose(struct iso_dir *dir) {
 
 //Documentation in header
 struct iso_dir *iso_dopen(const char *pname, int ata_unit) {
-    int dl;  //data length, needed in iso_look_up
+    uint32_t dl;  //data length, needed in iso_look_up
     int extent_num = iso_look_up(pname, &dl, ata_unit);
     if(extent_num < 0) {
         return 0;
@@ -212,7 +212,7 @@ int iso_fclose(struct iso_file *file) {
 struct iso_file *iso_fopen(const char *pname, int ata_unit) {
     struct iso_file *file = kmalloc(sizeof(struct iso_file));
     strcpy(file->pname, pname);
-    int dl;  //the data_length of the last item on the path
+    uint32_t dl;  //the data_length of the last item on the path
     int file_offset = iso_look_up(pname, &dl, ata_unit);
     if (file_offset < 0) {
         console_printf("Failed to iso_open the file path \"%s\".\n", pname);
@@ -221,6 +221,7 @@ struct iso_file *iso_fopen(const char *pname, int ata_unit) {
     file->cur_offset = 0;
     file->extent_offset = file_offset;
     file->ata_unit = ata_unit;
+    file->at_EOF = 0;
     file->data_length = dl;
 
     return file;
@@ -231,22 +232,18 @@ int iso_fread(void *dest, int elem_size, int num_elem, struct iso_file *file) {
     struct iso_point *iso_p = iso_media_open(file->ata_unit);
     iso_media_seek(iso_p, ISO_BLOCKSIZE * file->extent_offset + file->cur_offset, SEEK_SET);
 
-    int at_EOF = 0;
     int bytes_to_disk_read = elem_size * num_elem;
     int bytes_to_file_read = bytes_to_disk_read;
     if ((bytes_to_file_read + file->cur_offset) > file->data_length) {
         bytes_to_file_read = file->data_length - file->cur_offset + 1;  // Don't actually want to read off the end of the file
         bytes_to_disk_read = bytes_to_file_read - 1;
-        at_EOF = 1;
+        file->at_EOF = 1;
     }
     int bytes_read = iso_media_read(dest, 1, bytes_to_disk_read, iso_p);
     if(bytes_read != bytes_to_disk_read) {
         console_printf("file reading error\n");
         iso_media_close(iso_p);
-        return -2;
-    }
-    if (at_EOF) {
-        return -1;  // Treat -1 return value as EOF
+        return -1;
     }
 
     iso_media_close(iso_p);
@@ -390,14 +387,14 @@ void iso_media_seek(struct iso_point *iso_p, long offset, int whence) {
  * @param offset The extent number to search the
  * @return Offset (extent number) of the pathname, or -1 if not found or error
  */
-long int iso_look_up(const char *pname, int *dl, int ata_unit) {
+long int iso_look_up(const char *pname, uint32_t *dl, int ata_unit) {
     int root_dr_loc;
     struct iso_point *iso_p = iso_media_open(ata_unit);
     //locate the root directory
     iso_media_seek(iso_p, ROOT_DR_OFFSET, SEEK_SET);
 
     struct directory_record dr;
-    char loc_of_parent[8];
+    unsigned char loc_of_parent[8];
     int success = get_directory_record(iso_p, &dr);
     if(!success) {
         return -1;
@@ -429,7 +426,7 @@ long int iso_look_up(const char *pname, int *dl, int ata_unit) {
  * @param offset The extent number to search the
  * @return The extent offset for the pname, or -1 if not found or on error
  */
-long int iso_recursive_look_up (const char *pname, struct iso_point *iso_p, int *dl) {
+long int iso_recursive_look_up (const char *pname, struct iso_point *iso_p, uint32_t *dl) {
     int next_is_found = 0;
 
     //Find the location of the next slash in pname
@@ -465,7 +462,6 @@ long int iso_recursive_look_up (const char *pname, struct iso_point *iso_p, int 
         if (name[strlen(dr.file_identifier) - 1] == '1' && name[strlen(dr.file_identifier) - 2] == ';') {
             name[strlen(dr.file_identifier) - 2] = '\0';
         }
-
         if (strcmp(identifier_to_find, name) == 0) {
             next_is_found = 1;
         }
