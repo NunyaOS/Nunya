@@ -4,8 +4,8 @@ This software is distributed under the GNU General Public License.
 See the file LICENSE for details.
 */
 
-#ifndef ISO_H_
-#define ISO_H_
+#ifndef ISO_H
+#define ISO_H
 
 #include "kerneltypes.h"
 
@@ -101,4 +101,4 @@ int iso_dclose(struct iso_dir *dir);
  * on end of stream
  */
 struct directory_record *iso_dread(struct iso_dir *dir);
-#endif /* ISO_H_ */
+#endif /* ISO_H */

@@ -25,6 +25,8 @@ See the file LICENSE for details.
 #define PVD_OFFSET 16 * ISO_BLOCKSIZE
 #define ROOT_DR_OFFSET (PVD_OFFSET) + 156
 
+#define MAX_DR_SIZE 64
+
 #define SEEK_CUR 0
 #define SEEK_SET 1
 
@@ -40,16 +42,16 @@ struct iso_point {
     int cur_offset;
 };
 
-int get_directory_record(struct iso_point *iso_p, struct directory_record *dr);
-uint32_t hex_to_int(unsigned char *src, int len);
-int is_dir(int flags);
-int is_valid_record(struct directory_record *dr);
-long int iso_look_up(const char *pname, uint32_t *dl, int ata_unit);
-long int iso_recursive_look_up (const char *pname, struct iso_point *iso_p, uint32_t *dl);
-void iso_media_close(struct iso_point *iso_p);
-struct iso_point *iso_media_open(int ata_unit);
-int iso_media_read(void *dest, int elem_size, int num_elem, struct iso_point *stream);
-void iso_media_seek(struct iso_point *iso_p, long offset, int whence);
+static int get_directory_record(struct iso_point *iso_p, struct directory_record *dr);
+static uint32_t hex_to_int(unsigned char *src, int len);
+static bool is_dir(int flags);
+static bool is_valid_record(struct directory_record *dr);
+static long int iso_look_up(const char *pname, uint32_t *dl, int ata_unit);
+static long int iso_recursive_look_up (const char *pname, struct iso_point *iso_p, uint32_t *dl);
+static void iso_media_close(struct iso_point *iso_p);
+static struct iso_point *iso_media_open(int ata_unit);
+static int iso_media_read(void *dest, int elem_size, int num_elem, struct iso_point *stream);
+static void iso_media_seek(struct iso_point *iso_p, long offset, int whence);
 
 /**
  * @brief Reads the next directory record in the extent
@@ -60,16 +62,19 @@ void iso_media_seek(struct iso_point *iso_p, long offset, int whence);
  * @param dr A pointer to a directory record to be filled with the information
  * @return 1 on success, 0 on failure
  */
-int get_directory_record(struct iso_point *iso_p, struct directory_record *dr) {
+static int get_directory_record(struct iso_point *iso_p, struct directory_record *dr) {
     int bytes_read = 0;
-    int max_dr_size = 64;
-    char dr_dest[max_dr_size];
-    int result = iso_media_read(dr_dest, 1, max_dr_size, iso_p);
-    if(result != max_dr_size) {
+    char dr_dest[MAX_DR_SIZE];
+    int result = iso_media_read(dr_dest, 1, MAX_DR_SIZE, iso_p);
+    if (result != MAX_DR_SIZE) {
         console_printf("get directory record fails\n");
         return 0;
     }
 
+    /*
+     * All offset and length values are specific to the ISO 9660 format.
+     * For more information on each offset value, go to http://wiki.osdev.org/ISO_9660#Directories
+     */
     memcpy(&(dr->length_of_record), dr_dest + 0, sizeof(dr->length_of_record));   //1 for bytes read
     memcpy(&(dr->length_of_ext_record), dr_dest + 1, sizeof(dr->length_of_ext_record));
     memcpy(dr->loc_of_ext, dr_dest + 2, sizeof(dr->loc_of_ext));
@@ -100,7 +105,7 @@ int get_directory_record(struct iso_point *iso_p, struct directory_record *dr) {
  * @param len Number of bytes in the src to convert
  * @return The integer value of the first len bytes of hex characters in src
  */
-uint32_t hex_to_int(unsigned char *src, int len) {
+static uint32_t hex_to_int(unsigned char *src, int len) {
     uint32_t i, sum = 0;
     for (i = 0; i < len; i++) {
         sum *= 256;
@@ -116,32 +121,31 @@ uint32_t hex_to_int(unsigned char *src, int len) {
  * @param flags The file flags from a directory record
  * @return 1 if dir bit is high, 0 otherwise
  */
-int is_dir(int flags) {
+static bool is_dir(int flags) {
     if ((flags >> 1) & 1) {
         return 1;
-    }
-    else {
+    } else {
         return 0;
     }
 }
 
-int is_valid_record(struct directory_record *dr) {
-     if(dr->rec_date_time[3] < 0 || dr->rec_date_time[3] >= 24) {  // validate hours
+static bool is_valid_record(struct directory_record *dr) {
+     if (dr->rec_date_time[3] < 0 || dr->rec_date_time[3] >= 24) {  // validate hours
          return 0;
      }
-     if(dr->rec_date_time[4] < 0 || dr->rec_date_time[4] >= 60) {  // validate minutes
+     if (dr->rec_date_time[4] < 0 || dr->rec_date_time[4] >= 60) {  // validate minutes
          return 0;
      }
-     if(dr->rec_date_time[5] < 0 || dr->rec_date_time[5] >= 60) {  // validate seconds
+     if (dr->rec_date_time[5] < 0 || dr->rec_date_time[5] >= 60) {  // validate seconds
          return 0;
      }
-     if(dr->rec_date_time[1] <= 0 || dr->rec_date_time[1] > 12) {  // validate month
+     if (dr->rec_date_time[1] <= 0 || dr->rec_date_time[1] > 12) {  // validate month
          return 0;
      }
-     if(dr->rec_date_time[2] <= 0 || dr->rec_date_time[2] > 31) {  // validate day
+     if (dr->rec_date_time[2] <= 0 || dr->rec_date_time[2] > 31) {  // validate day
          return 0;
      }
-     if(dr->rec_date_time[0] < 0) {    // validate year
+     if (dr->rec_date_time[0] < 0) {    // validate year
          return 0;
      }
      return 1;
@@ -149,7 +153,7 @@ int is_valid_record(struct directory_record *dr) {
 
 //Documentation in header
 int iso_dclose(struct iso_dir *dir) {
-    if(dir) {
+    if (dir) {
         kfree(dir);
         return 0;
     }
@@ -160,12 +164,18 @@ int iso_dclose(struct iso_dir *dir) {
 struct iso_dir *iso_dopen(const char *pname, int ata_unit) {
     uint32_t dl;  //data length, needed in iso_look_up
     int extent_num = iso_look_up(pname, &dl, ata_unit);
-    if(extent_num < 0) {
+    if (extent_num < 0) {
         return 0;
     }
     struct iso_dir *to_return = kmalloc(sizeof(*to_return));
     struct iso_point *iso_p = iso_media_open(ata_unit);
     iso_media_seek(iso_p, ATAPI_BLOCKSIZE * extent_num, SEEK_SET);
+    struct directory_record *dr = kmalloc(sizeof(*dr));
+    get_directory_record(iso_p, dr);
+    if (!is_dir(dr->file_flags[0])) {
+        console_printf("Failed to open directory\n");
+        return 0;
+    }
     to_return->cur_offset = 0;
     to_return->extent_offset = extent_num;
     to_return->ata_unit = ata_unit;
@@ -177,13 +187,15 @@ struct iso_dir *iso_dopen(const char *pname, int ata_unit) {
 
 //Documentation in header
 struct directory_record *iso_dread(struct iso_dir *read_from) {
-    if(read_from->cur_offset + 1 >= read_from->data_length) {
+    if (read_from->cur_offset + 1 >= read_from->data_length) {
         //"return null" if at end of directory record
         return 0;
     }
 
     struct iso_point *iso_p = iso_media_open(read_from->ata_unit);
-    iso_media_seek(iso_p, read_from->extent_offset * ATAPI_BLOCKSIZE + read_from->cur_offset, SEEK_SET);  // seek to current offset of iso_p
+
+    // seek to current offset of iso_p
+    iso_media_seek(iso_p, read_from->extent_offset * ATAPI_BLOCKSIZE + read_from->cur_offset, SEEK_SET);
     struct directory_record *next_dr = kmalloc(sizeof(*next_dr));
 
     //if not the end of the directory record, fill the dest by dereferencing dest_ptr
@@ -201,7 +213,7 @@ struct directory_record *iso_dread(struct iso_dir *read_from) {
 
 //Documentation in header
 int iso_fclose(struct iso_file *file) {
-    if(file) {
+    if (file) {
         kfree(file);
         return 0;
     }
@@ -235,12 +247,14 @@ int iso_fread(void *dest, int elem_size, int num_elem, struct iso_file *file) {
     int bytes_to_disk_read = elem_size * num_elem;
     int bytes_to_file_read = bytes_to_disk_read;
     if ((bytes_to_file_read + file->cur_offset) > file->data_length) {
-        bytes_to_file_read = file->data_length - file->cur_offset + 1;  // Don't actually want to read off the end of the file
+
+        // Don't actually want to read off the end of the file
+        bytes_to_file_read = file->data_length - file->cur_offset + 1;
         bytes_to_disk_read = bytes_to_file_read - 1;
         file->at_EOF = 1;
     }
     int bytes_read = iso_media_read(dest, 1, bytes_to_disk_read, iso_p);
-    if(bytes_read != bytes_to_disk_read) {
+    if (bytes_read != bytes_to_disk_read) {
         console_printf("file reading error\n");
         iso_media_close(iso_p);
         return -1;
@@ -252,14 +266,13 @@ int iso_fread(void *dest, int elem_size, int num_elem, struct iso_file *file) {
 }
 
 /**
- * @brief Acts as an fopen() for iso disk
- * @details Allocates iso_point that is initialized to the beginning of disk
- * It does not do anything to actually move the head of disk reader.
+ * @brief Acts as an fclose() for iso disk
+ * @details Frees the iso_point that was used to navigate the ISO disk.
  *
  * @param iso_p A pointer to the iso_point to close.
  * @return Pointer to an allocated iso_point with members initialized to 0
  */
-void iso_media_close(struct iso_point *iso_p) {
+static void iso_media_close(struct iso_point *iso_p) {
     kfree(iso_p);
     return;
 }
@@ -272,7 +285,7 @@ void iso_media_close(struct iso_point *iso_p) {
  * @param ata_unit The ata unit to open the iso_point on
  * @return A pointer to the iso_point at the first byte of the iso.
  */
-struct iso_point *iso_media_open(int ata_unit) {
+static struct iso_point *iso_media_open(int ata_unit) {
     struct iso_point *to_return = kmalloc(sizeof(struct iso_point));
     to_return->cur_extent = 0;
     to_return->cur_offset = 0;
@@ -291,9 +304,9 @@ struct iso_point *iso_media_open(int ata_unit) {
  * @param iso_p Pointer to the struct iso_point to begin reading at.
  * @return The number of elements read in, -1 on error.
  */
-int iso_media_read(void *dest, int elem_size, int num_elem, struct iso_point *stream) {
+static int iso_media_read(void *dest, int elem_size, int num_elem, struct iso_point *stream) {
     int bytes_needed = num_elem * elem_size;
-    if(bytes_needed <= 0) {
+    if (bytes_needed <= 0) {
         return 0;
     }
 
@@ -314,8 +327,7 @@ int iso_media_read(void *dest, int elem_size, int num_elem, struct iso_point *st
         if (!atapi_read(stream->ata_unit, buffer, atapi_blocks_to_read, stream->cur_extent)) {
             console_printf("atapi_read is 0 in iso_media_read()\n");
             return -1;
-        }
-        else {
+        } else {
             //Do not start at the start of the buffer, because that is the start of
             //the current extent, not where the cur_extent + cur_offset is
             memcpy(dest, buffer + stream->cur_offset, elem_size * num_elem);
@@ -331,8 +343,7 @@ int iso_media_read(void *dest, int elem_size, int num_elem, struct iso_point *st
             global_atapi_extent = stream->cur_extent;
             return num_elem;
         }
-    }
-    else {
+    } else {
         //Do not start at the start of the buffer, because that is the start of
         //the current extent, not where the cur_extent + cur_offset is
         memcpy(dest, global_atapi_block + stream->cur_offset, elem_size * num_elem);
@@ -346,14 +357,14 @@ int iso_media_read(void *dest, int elem_size, int num_elem, struct iso_point *st
 }
 
 /**
- * @brief Moves the iso_p
+ * @brief Moves the iso_point
  * @details Changes the offset and extent values of the iso_point as instructed
  *
  * @param iso_p Pointer to the iso_point to adjust
  * @param offset How far to move the current pointer
- * @param whence The relative place to move the pointer from, SEEK_CUR is moving forward from current position, SEEK_SET is from the zeroth byte of the iso
+ * @param whence The relative place to move the pointer from, SEEK_CUR is moving forward from current position, SEEK_SET is from the zeroth byte of the iso file
  */
-void iso_media_seek(struct iso_point *iso_p, long offset, int whence) {
+static void iso_media_seek(struct iso_point *iso_p, long offset, int whence) {
     switch(whence) {
         case SEEK_SET:
             //from the start of the file
@@ -387,7 +398,7 @@ void iso_media_seek(struct iso_point *iso_p, long offset, int whence) {
  * @param offset The extent number to search the
  * @return Offset (extent number) of the pathname, or -1 if not found or error
  */
-long int iso_look_up(const char *pname, uint32_t *dl, int ata_unit) {
+static long int iso_look_up(const char *pname, uint32_t *dl, int ata_unit) {
     int root_dr_loc;
     struct iso_point *iso_p = iso_media_open(ata_unit);
     //locate the root directory
@@ -396,17 +407,16 @@ long int iso_look_up(const char *pname, uint32_t *dl, int ata_unit) {
     struct directory_record dr;
     unsigned char loc_of_parent[8];
     int success = get_directory_record(iso_p, &dr);
-    if(!success) {
+    if (!success) {
         return -1;
     }
 
     memcpy(&loc_of_parent, dr.loc_of_ext, 8);
     root_dr_loc = hex_to_int(loc_of_parent + 4, 4);
 
-    if(strcmp(pname, "/") == 0) {
+    if (strcmp(pname, "/") == 0) {
         return root_dr_loc;
-    }
-    else {
+    } else {
         iso_media_seek(iso_p, root_dr_loc * ISO_BLOCKSIZE, SEEK_SET);
         //moving forward, get rid of the first slash and give the iso_p we already seek'd for
         long int result = iso_recursive_look_up(&pname[1], iso_p, dl);
@@ -426,7 +436,7 @@ long int iso_look_up(const char *pname, uint32_t *dl, int ata_unit) {
  * @param offset The extent number to search the
  * @return The extent offset for the pname, or -1 if not found or on error
  */
-long int iso_recursive_look_up (const char *pname, struct iso_point *iso_p, uint32_t *dl) {
+static long int iso_recursive_look_up (const char *pname, struct iso_point *iso_p, uint32_t *dl) {
     int next_is_found = 0;
 
     //Find the location of the next slash in pname
@@ -467,7 +477,7 @@ long int iso_recursive_look_up (const char *pname, struct iso_point *iso_p, uint
         }
     }
 
-    if(!next_is_found) {
+    if (!next_is_found) {
         return -1;
     }
 
@@ -477,8 +487,7 @@ long int iso_recursive_look_up (const char *pname, struct iso_point *iso_p, uint
         //return it's location as an extent number, and say how long it is
         *dl = hex_to_int(dr.data_length + 4, 4);
         return entity_location;
-    }
-    else {
+    } else {
         iso_media_seek(iso_p, entity_location * ISO_BLOCKSIZE, SEEK_SET);
         return iso_recursive_look_up(pname + next_slash_index + 1, iso_p, dl);
     }
