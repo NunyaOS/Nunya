@@ -7,6 +7,7 @@ See the file LICENSE for details.
 
 #include "console.h"
 #include "string.h"
+#include "testing.h"
 
 #define KEYBOARD_BUFFER_SIZE 256
 
@@ -26,6 +27,8 @@ void cmd_line_attempt(const char * line) {
     //Ugly case statement alternative
     if (strcmp("echo", first_word) == 0) {
         cmd_line_echo(the_rest);
+    } else if(strcmp("test", first_word) == 0) {
+        run_all_tests();
     }
     /*else if () {
      *...
