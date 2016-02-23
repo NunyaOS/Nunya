@@ -25,10 +25,6 @@ struct test_unit {
     // TODO: NUN-14 Add type or grouping so we can run specific groups of tests
 };
 
-// The list of all tests to be run when the graphics test suite is called upon
-static struct test_unit tests[] = {
-};
-
 /**
  * @brief Runs all tests
  * @details Runs every test listed in tests, and compares the runtime to the expected

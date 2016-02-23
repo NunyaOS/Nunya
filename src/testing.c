@@ -8,6 +8,10 @@ See the file LICENSE for details.
 
 #include "console.h"
 
+// The tests will be defined in a separate file
+extern struct test_unit tests[];
+extern int tests_size;
+
 // A flag used to record the return value of the most recent test
 static int recent_test_result = 1;
 
@@ -35,11 +39,10 @@ int run_test(struct test_unit *runner) {
 }
 
 void run_all_tests() {
-    int size = sizeof(tests) / sizeof(tests[0]);
-    console_printf("Running %d tests\n", size);
+    console_printf("Running %d tests\n", tests_size);
     int i;
     int failed = 0;
-    for(i = 0; i < size; i += 1) {
+    for(i = 0; i < tests_size; i += 1) {
         if(!run_test(&(tests[i]))) {
             failed += 1;
         }
