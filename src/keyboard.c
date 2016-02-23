@@ -19,7 +19,6 @@ See the file LICENSE for details.
 #define SPECIAL_CTRL  3
 #define SPECIAL_SHIFTLOCK 4
 
-#define PS2_DATA_PORT 0x60
 #define KEYBOARD_PORT_B     0x61
 #define KEYBOARD_ACK    0x80
 
