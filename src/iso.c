@@ -146,19 +146,10 @@ struct iso_dir *iso_dopen(const char *pname, int ata_unit) {
         return 0;
     }
     struct iso_dir *to_return = kmalloc(sizeof(*to_return));
-    struct iso_point *iso_p = iso_media_open(ata_unit);
-    iso_media_seek(iso_p, ATAPI_BLOCKSIZE * extent_num, SEEK_SET);
-    struct directory_record *dr = kmalloc(sizeof(*dr));
-    get_directory_record(iso_p, dr);
-    if (!is_dir(dr->file_flags[0])) {
-        return 0;
-    }
     to_return->cur_offset = 0;
     to_return->extent_offset = extent_num;
     to_return->ata_unit = ata_unit;
     to_return->data_length = dl;
-
-    iso_media_close(iso_p);
     return to_return;
 }
 
@@ -213,12 +204,12 @@ struct iso_file *iso_fopen(const char *pname, int ata_unit) {
     struct iso_file *file = kmalloc(sizeof(struct iso_file));
     strcpy(file->pname, pname);
     uint32_t dl;  //the data_length of the last item on the path
-    int file_offset = iso_look_up(pname, &dl, ata_unit, 0);
-    if (file_offset < 0) {
+    int extent_num = iso_look_up(pname, &dl, ata_unit, 0);
+    if (extent_num < 0) {
         return 0;
     }
     file->cur_offset = 0;
-    file->extent_offset = file_offset;
+    file->extent_offset = extent_num;
     file->ata_unit = ata_unit;
     file->at_EOF = 0;
     file->data_length = dl;
