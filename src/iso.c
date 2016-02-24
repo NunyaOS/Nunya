@@ -44,7 +44,6 @@ struct iso_point {
 
 static int get_directory_record(struct iso_point *iso_p, struct directory_record *dr);
 static uint32_t bendian_chars_to_int(unsigned char *src, int len);
-static bool is_dir(int flags);
 static long int iso_look_up(const char *pname, uint32_t *dl, int ata_unit, bool is_dir_search);
 static long int iso_recursive_look_up (const char *pname, struct iso_point *iso_p, uint32_t *dl, bool is_dir_search);
 static void iso_media_close(struct iso_point *iso_p);
@@ -113,14 +112,8 @@ static uint32_t bendian_chars_to_int(unsigned char *src, int len) {
     return sum;
 }
 
-/**
- * @brief Checks whether flags represent a directory
- * @details Bit compares directory record file flags to the dir flag bit
- *
- * @param flags The file flags from a directory record
- * @return 1 if dir bit is high, 0 otherwise
- */
-static bool is_dir(int flags) {
+//Documentation in header
+bool is_dir(int flags) {
     if ((flags >> 1) & 1) {
         return 1;
     } else {
@@ -150,6 +143,7 @@ struct iso_dir *iso_dopen(const char *pname, int ata_unit) {
     to_return->extent_offset = extent_num;
     to_return->ata_unit = ata_unit;
     to_return->data_length = dl;
+    strcpy(to_return->pname, pname);
     return to_return;
 }
 
@@ -410,6 +404,7 @@ static long int iso_look_up(const char *pname, uint32_t *dl, int ata_unit, bool 
     if (strcmp(pname, "/") == 0) {
         iso_media_close(iso_p);
         if (is_dir_search) {
+            *dl = bendian_chars_to_int(dr.data_length + 4, 4);
             return root_dr_loc;
         }
         else {  //Tried to open "/" as file

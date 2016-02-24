@@ -23,6 +23,7 @@ struct iso_dir {
     int extent_offset;  //location of the directory's extent
     int cur_offset;  //offset to the front of the next directory record to read
     uint32_t data_length;    // Length of data in directory record
+    char pname[256];
 };
 
 
@@ -39,6 +40,15 @@ struct directory_record {
     uint8_t len_identifier;
     char file_identifier[32];  //max file id with extension is 30, max directory name is 31, +1 for null
 };
+
+/**
+ * @brief Checks whether flags represent a directory
+ * @details Bit compares directory record file flags to the dir flag bit
+ *
+ * @param flags The file flags from a directory record
+ * @return 1 if dir bit is high, 0 otherwise
+ */
+bool is_dir(int flags);
 
 /**
  * @brief Opens the file specified

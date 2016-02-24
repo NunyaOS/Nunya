@@ -15,5 +15,6 @@ See the file LICENSE for details.
 * @return void
 */
 void cmd_line_attempt(const char * line);
+void cmd_line_init();
 
 #endif
