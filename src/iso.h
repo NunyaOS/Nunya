@@ -30,14 +30,14 @@ struct directory_record {
     uint8_t length_of_record;
     uint8_t length_of_ext_record;
     unsigned char loc_of_ext[8];   //Characters of hex for location of extent, first 4 are little endian, second 4 are big endian
-    unsigned char data_length[8];  //Characters of hex for the length of the directory record, first 4 are little endian, second 4 are big endian
-    uint8_t rec_date_time[7];   // timestamp of last modification
+    unsigned char data_length[8];  //Characters of hex for the length of the entity, first 4 are little endian, second 4 are big endian
+    uint8_t rec_date_time[7];   // time stamp of last modification
     char file_flags[1];
     char file_flags_interleaved[1];
     uint8_t interleave_gap_size;
     char vol_seq_num[4];
     uint8_t len_identifier;
-    char file_identifier[31];  //max file id with extent is 30, +1 for null
+    char file_identifier[32];  //max file id with extension is 30, max directory name is 31, +1 for null
 };
 
 /**
@@ -75,8 +75,8 @@ int iso_fread(void *dest, int elem_size, int num_elem, struct iso_file *file);
 
 /**
  * @brief Opens the directory specified
- * @details Attempts to find and open the directory specified by the pname on the given ata_unit,
- * calls kmalloc to create return value
+ * @details Attempts to find and open the directory specified by the absolute pname on the given ata_unit,
+ * calls kmalloc to create return value. No relative paths allowed.
  *
  * @param pname The absolute path name to search for the directory at
  * @param ata_unit The ata unit to search for the directory on
