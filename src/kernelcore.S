@@ -3,7 +3,7 @@
 # See the file LICENSE for details.
 
 #include "memorylayout.h"
-	
+
 # _start is the initial entry point for the kernel
 # Note that we start here merely because it comes
 # first in the link order.  The name _start is there
@@ -16,70 +16,129 @@ _start:
 
 # First, jump to the real code start,
 # skipping over the immediate data that follows
-	jmp	realstart
+    jmp     realstart
 
 # At a fixed offset, place an integer that contains
 # the length of the kernel in bytes.  This is used
 # by the bootblock code to figure out how many sectors to load.
-	
+
 .org KERNEL_SIZE_OFFSET
 .global kernel_size
 kernel_size:
-	.long	_end-_start
-		
+    .long   _end - _start
+
 realstart:
-	
+
 # While we are briefly still in 16-bit real mode,
 # it is safe to call the BIOS to set things up.
 
 # Reset the disk system in order to quiet motors
 # and turn off any pending interrupts.
-		
-	mov	$0,%ah
-	int	$0x13
+
+    mov     $0, %ah
+    int     $0x13
 
 # Turn off the screen cursor, because the
 # console will have its own.
 
-	mov	$1,%ah
-	mov	$0,%cl
-	mov	$0x20,%ch
-	int	$0x10
+    mov     $1, %ah
+    mov     $0, %cl
+    mov     $0x20, %ch
+    int     $0x10
 
 # Get the amount of memory above 1MB and save it for later.
 # There are two ways to do this:
 
-# BIOS call 0xe801 measures memory as follows:	
+# BIOS call 0xe820 measures memory as follows:
+# %eax is the SMAP signature
+# %ebx is the continuation value
+# %ecx is the number of bytes returned by BIOS
+memtest_e820:
+    clc
+    xor     %ebx, %ebx          # continuation value; must be zero to start
+    xor     %ebp, %ebp          # entry count
+    mov     $0x534d4150, %edx   # SMAP signature
+    mov     $0xe820, %eax       # interrupt e820
+    mov     $mem_descriptor, %edi   # destination address
+    mov     $24, %ecx           # request 24 bytes for each descriptor
+    int     $0x15               # issue interrupt
+
+    jc      memtest1            # if carry bit is set, fail
+    mov     $0x534d4150, %edx
+    cmp     %eax, %edx
+    jne     memtest1            # if %eax is not set to SMAP, fail
+    test    %ebx, %ebx
+    je      memtest1            # if %ebx is 0, the list has only 1 entry, fail
+    jmp     memtest_e820_first_jump # jump to test the entry
+
+memtest_e820_loop:
+    mov     $0xe820, %eax
+    mov     $24, %ecx
+    int     $0x15
+    jc      memtest_e820_end        # if carry bit is set, measuring is done
+    mov     $0x534d4150, %edx
+
+memtest_e820_first_jump:
+    jcxz    memtest_e820_test_end   # if the length is 0, test for end
+
+    cmp     $20, %cl
+    jbe     memtest_e820_no_acpi    # if the entry has an acpi bit,
+    cmpl    $1, 20(%edi)            # then test if we're instructed to ignore
+    je      memtest_e820_test_end
+
+memtest_e820_no_acpi:
+    # TODO (SL): this following line halts, need investigation
+    # mov     8(%edi), %ecx           # lower 32 bits of length
+    # or      12(%edi), %ecx          # lower 32 bits OR higher 32 bits of length
+    # jz      memtest_e820_test_end   # if length is 0, skip it
+
+    inc     %ebp                    # entry is good; increment count
+    add     $24, %edi               # increment pointer
+
+memtest_e820_test_end:
+    # TODO (SL): when the buffer is filled, quit
+    test    %ebx, %ebx
+    jne     memtest_e820_loop
+
+memtest_e820_end:
+    # mov    %ebp, (mem_descriptor_arr_length)    # store array length
+    clc                         # clear carry bit
+    jmp     memdone
+
+
+# If 0xe820 doesn't work, fallback to int 0x15, ax = 0xe801
+
+# BIOS call 0xe801 measures memory as follows:
 # %ax returns memory above 1MB in 1KB increments, maximum of 16MB.
 # %bx returns memory above 64MB in 64KB increments, maximum of 4GB.
-# However, this call is relatively new, so if it
-# fails, we fall back on memtest2 below.
 
-memtest1:	
-	clc
-	mov	$0, %bx
-	mov	$0xe801,%ax
-	int	$0x15
-	jc	memtest2
-	
-	shr	$10, %ax
-	shr	$4, %bx
-	add	%ax, %bx
-	mov	%bx, total_memory-_start
-	jmp	memdone
+memtest1:
+    clc
+    mov     $0, %bx
+    mov     $0xe801, %ax
+    int     $0x15
+    jc      memtest2
+
+    shr     $10, %ax
+    shr     $4, %bx
+    add     %ax, %bx
+    mov     %bx, total_memory - _start
+    jmp     memdone
+
+# If 0xe801 doesn't work, fallback to int 0x15, ah = 0x88
 
 # BIOS call 0x0088 measures memory as follows:
 # %ax returns memory above 1MB in 1KB increments, maxiumum of 64MB.
 
 memtest2:
-	clc
-	mov	$0, %ax
-	mov	$0x88, %ah
-	int	$0x15
-	shr	$10, %ax
-	inc	%ax
-	mov	%ax, total_memory-_start
-memdone:	
+    clc
+    mov     $0, %ax
+    mov     $0x88, %ah
+    int     $0x15
+    shr     $10, %ax
+    inc     %ax
+    mov     %ax, total_memory - _start
+memdone:
 
 # Now, set the video mode using VBE interrupts.
 # Keep trying until we find one that works.
@@ -98,51 +157,51 @@ memdone:
 #    ES:DI  = Pointer to CRCTCInfoBlock structure.
 
 jmp video640
-	
+
 video1280:
- 	mov	$0x4f02, %ax
- 	mov	$0x411b, %bx
-	int	$0x10
-	cmp	$0x004f, %ax
-	je	videodone
+    mov     $0x4f02, %ax
+    mov     $0x411b, %bx
+    int     $0x10
+    cmp     $0x004f, %ax
+    je      videodone
 video1024:
- 	mov	$0x4f02, %ax
- 	mov	$0x4118, %bx
-	int	$0x10
-	cmp	$0x004f, %ax
-	je	videodone
+    mov     $0x4f02, %ax
+    mov     $0x4118, %bx
+    int     $0x10
+    cmp     $0x004f, %ax
+    je      videodone
 video800:
-	mov	$0x4f02, %ax
- 	mov	$0x4115, %bx
-	int	$0x10
-	cmp	$0x004f, %ax
-	je	videodone
+    mov     $0x4f02, %ax
+    mov     $0x4115, %bx
+    int     $0x10
+    cmp     $0x004f, %ax
+    je      videodone
 video640:
-	mov	$0x4f02, %ax
- 	mov	$0x4112, %bx
-	int	$0x10
-	cmp	$0x004f, %ax
-	je	videodone
+    mov     $0x4f02, %ax
+    mov     $0x4112, %bx
+    int     $0x10
+    cmp     $0x004f, %ax
+    je      videodone
 
 videofailed:
-	mov	$videomsg, %esi
-	call	bios_putstring
-	jmp	halt
+    mov     $videomsg, %esi
+    call    bios_putstring
+    jmp     halt
 
-videodone:	
+videodone:
 
 # After all that, query the video mode and
 # figure out the dimensions and the frame
 # buffer address.  The set mode is still in bx.
 
-	mov	%ds, %ax		# Set up the extra segment
-	mov	%ax, %es		# with the data segment
+    mov     %ds, %ax                # Set up the extra segment
+    mov     %ax, %es                # with the data segment
 
-	mov	$(video_info-_start),%di
-	mov	$0x4f01, %ax
-	mov	%bx, %cx
-	int	$0x10
-	
+    mov     $(video_info - _start), %di
+    mov     $0x4f01, %ax
+    mov     %bx, %cx
+    int     $0x10
+
 # Finally, we are ready to enter protected mode.
 # To do this, we disable interrupts so that
 # handlers will not see an inconsistent state.
@@ -154,51 +213,51 @@ videodone:
 # atomically loading the new code segment and
 # starting the kernel.
 
-	cli				# clear interrupts
-	lidt	(idt_init-_start)	# load the interrupt table
-	lgdt	(gdt_init-_start)	# load the descriptor table
-	mov	%cr0, %eax		# get the status word
-	or	$0x01, %eax		# turn on the P bit
-	mov	%eax, %cr0		# store the status word
-					# (we are now in protected mode)
-	mov	$2*8, %ax		# selector two is flat 4GB data data
-	mov	%ax, %ds		# set stack and data segments to selector two
-	mov	%ax, %ss
-	mov	$5*8, %ax		# set TSS to selector five
-	ltr	%ax
-	mov	$0, %ax			# unused segments are nulled out
-	mov	%ax, %es
-	mov	%ax, %fs
-	mov	%ax, %gs
-	mov	$INTERRUPT_STACK_TOP, %sp    # set up initial C stack
-	mov	$INTERRUPT_STACK_TOP, %bp    # set up initial C stack
-	ljmpl	$(1*8), $(kernel_main)	     # jump to the C main!
+    cli                             # clear interrupts
+    lidt    (idt_init - _start)       # load the interrupt table
+    lgdt    (gdt_init - _start)       # load the descriptor table
+    mov     %cr0, %eax              # get the status word
+    or      $0x01, %eax             # turn on the P bit
+    mov     %eax, %cr0              # store the status word
+                    # (we are now in protected mode)
+    mov     $2*8, %ax               # selector two is flat 4GB data data
+    mov     %ax, %ds                # set stack and data segments to selector two
+    mov     %ax, %ss
+    mov     $5*8, %ax               # set TSS to selector five
+    ltr     %ax
+    mov     $0, %ax                 # unused segments are nulled out
+    mov     %ax, %es
+    mov     %ax, %fs
+    mov     %ax, %gs
+    mov     $INTERRUPT_STACK_TOP, %sp    # set up initial C stack
+    mov     $INTERRUPT_STACK_TOP, %bp    # set up initial C stack
+    ljmpl   $(1 * 8), $(kernel_main)       # jump to the C main!
 
 # bios_putstring displays an ASCII string pointed to by %si,
 # useful for basic startup messages or fatal errors.
 
 bios_putstring:
-	mov	(%si), %al
-	cmp	$0, %al
-	jz	bios_putstring_done
-        call	bios_putchar
-	inc	%si
-	jmp	bios_putstring
+    mov     (%si), %al
+    cmp     $0, %al
+    jz      bios_putstring_done
+    call    bios_putchar
+    inc     %si
+    jmp     bios_putstring
 bios_putstring_done:
-        ret
+    ret
 
 # bios_putchar invokes the bios to display
 # one character on the screen.
-	
+
 bios_putchar:
-	push	%ax
-	push	%bx
-        mov	$14,%ah
-        mov	$1,%bl
-        int	$0x10
-	pop	%bx
-	pop	%ax
-	ret
+    push    %ax
+    push    %bx
+    mov     $14, %ah
+    mov     $1, %bl
+    int     $0x10
+    pop     %bx
+    pop     %ax
+    ret
 
 # The video_info structure is filled in by a BIOS
 # call above, and is used to record the basic video
@@ -207,36 +266,36 @@ bios_putchar:
 
 .align 4
 video_info:
-	.word	0
-	.byte	0,0
-	.word	0,0,0,0
-	.long	0
+    .word   0
+    .byte   0,0
+    .word   0,0,0,0
+    .long   0
 .global video_xbytes
 video_xbytes:
-	.word	0
+    .word   0
 .global video_xres
 video_xres:
-	.word	0 
+    .word   0
 .global video_yres
 video_yres:
-	.word	0
-	.byte	0,0,0,0,0,0,0,0,0
-	.byte	0,0,0,0,0,0,0,0,0
+    .word   0
+    .byte   0,0,0,0,0,0,0,0,0
+    .byte   0,0,0,0,0,0,0,0,0
 .global video_buffer
 video_buffer:
-	.long	0
-	.long	0
-	.word	0
-	.word	0
-	.byte	0,0,0,0,0,0,0,0,0,0
-	.long	0
+    .long   0
+    .long   0
+    .word   0
+    .word   0
+    .byte   0,0,0,0,0,0,0,0,0,0
+    .long   0
 .rept 190
-	.byte	0
+    .byte   0
 .endr
 
 .align 4
 videomsg:
-	.asciz	"fatal error: couldn't find suitable video mode!\r\n"
+    .asciz  "fatal error: couldn't find suitable video mode!\r\n"
 
 ###########################
 # 32 BIT CODE BEGINS HERE #
@@ -244,7 +303,7 @@ videomsg:
 
 # All code below this point is 32-bit code and data
 # that is invoked by higher levels of the kernel from C code.
-	
+
 .code32
 
 # Rebooting the machine is easy.
@@ -253,16 +312,16 @@ videomsg:
 
 .global reboot
 reboot:
-	cli
-	lidt	idt_invalid	
-	int	$1
+    cli
+    lidt    idt_invalid
+    int     $1
 
 
 .global halt
 halt:
-	cli
-	hlt
-	jmp	halt
+    cli
+    hlt
+    jmp     halt
 
 # This is the global descriptor table to be used by the kernel.
 # Because we don't really want to use segmentation, we define
@@ -271,19 +330,19 @@ halt:
 .align 16
 .global gdt
 gdt:
-	.word	0,0,0,0				# seg 0 - null
-	.word	0xffff, 0x0000, 0x9a00, 0x00cf	# seg 1 - kernel flat 4GB code
-	.word	0xffff, 0x0000, 0x9200, 0x00cf	# seg 2 - kernel flat 4GB data
-	.word	0xffff, 0x0000, 0xfa00, 0x00cf	# seg 3 - user flat 4GB code
-	.word	0xffff, 0x0000, 0xf200, 0x00cf	# seg 4 - user flat 4GB data
-	.word	0x0068, (tss-_start),0x8901, 0x00cf  # seg 5 - TSS
-	
+    .word   0,0,0,0                         # seg 0 - null
+    .word   0xffff, 0x0000, 0x9a00, 0x00cf  # seg 1 - kernel flat 4GB code
+    .word   0xffff, 0x0000, 0x9200, 0x00cf  # seg 2 - kernel flat 4GB data
+    .word   0xffff, 0x0000, 0xfa00, 0x00cf  # seg 3 - user flat 4GB code
+    .word   0xffff, 0x0000, 0xf200, 0x00cf  # seg 4 - user flat 4GB data
+    .word   0x0068, (tss - _start), 0x8901, 0x00cf  # seg 5 - TSS
+
 # This is the initializer for the global descriptor table.
 # It simply tells us the size and location of the table.
 
 gdt_init:
-	.word	gdt_init-gdt
-	.long	gdt
+    .word   gdt_init - gdt
+    .long   gdt
 
 # The TSS is a big task management structure used by the 386.
 # We do not use the TSS, but simply rely on pushing variables
@@ -291,42 +350,79 @@ gdt_init:
 # to initialize the stack pointer and segment for priv level 0
 
 .align 16
-.global tss	
+.global tss
 tss:
-	.long	0
+    .long   0
 .global interrupt_stack_pointer
-interrupt_stack_pointer:	
-	.long	INTERRUPT_STACK_TOP # initial interrupt stack ptr at 64 KB
-	.long	2*8		    # use segment 2 for the interrupt stack
-	.long	0
-	.long	0
-	.long	0
-	.long	0
-	.long	0
-	.long	0
-	.long	0
-	.long	0
-	.long	0
-	.long	0
-	.long	0
-	.long	0
-	.long	0
-	.long	0
-	.long	0
-	.long	0
-	.long	0
-	.long	0
-	.long	0
-	.long	0
-	.long	0
-	.long	0
-	.long	0
+interrupt_stack_pointer:
+    .long   INTERRUPT_STACK_TOP # initial interrupt stack ptr at 64 KB
+    .long   2 * 8               # use segment 2 for the interrupt stack
+    .long   0
+    .long   0
+    .long   0
+    .long   0
+    .long   0
+    .long   0
+    .long   0
+    .long   0
+    .long   0
+    .long   0
+    .long   0
+    .long   0
+    .long   0
+    .long   0
+    .long   0
+    .long   0
+    .long   0
+    .long   0
+    .long   0
+    .long   0
+    .long   0
+    .long   0
+    .long   0
 
-	
+
 .global total_memory
 total_memory:
-	.word	32
-	
+    .word   32
+
+# This is an address range descriptor structure for measuring memory
+.global mem_descriptor_arr_max_length
+mem_descriptor_arr_max_length:
+    .word   20
+
+# .global mem_descriptor_arr_length
+# mem_descriptor_arr_length:
+#     .word   0
+
+.global mem_descriptor
+mem_descriptor:
+    .long   0   # lower 32 bits of base address
+    .long   0   # higher 32 bits of base address
+    .long   0   # lower 32 bits of length (in bytes)
+    .long   0   # higher 32 bits of length (in bytes)
+    .long   0   # address type
+    .long   0   # ACPI extended attribute
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+    .long   0, 0, 0, 0, 0, 0
+
 # First, the internal interrupts.
 # Note that some already push their own detail
 # code onto the stack.  For the others, we push
@@ -390,115 +486,115 @@ intr47: pushl $0 ; pushl $47 ; jmp intr_handler
 intr48: pushl $0 ; pushl $48 ; jmp intr_syscall
 
 intr_handler:
-	pushl	%ds
-	pushl	%ebp		# push regs
-	pushl	%edi
-	pushl	%esi
-	pushl	%edx
-	pushl	%ecx
-	pushl	%ebx
-	pushl	%eax
-	pushl	36(%esp)	# push interrupt code
-	pushl	36(%esp)	# push interrupt number
-	movl	$2*8, %eax	# switch to kernel data seg
-	movl	%eax, %ds
-	call	interrupt_handler
-	addl	$4, %esp	# remove interrupt number
-	addl	$4, %esp	# remove interrupt code
-	jmp	intr_return
-	
+    pushl   %ds
+    pushl   %ebp            # push regs
+    pushl   %edi
+    pushl   %esi
+    pushl   %edx
+    pushl   %ecx
+    pushl   %ebx
+    pushl   %eax
+    pushl   36(%esp)        # push interrupt code
+    pushl   36(%esp)        # push interrupt number
+    movl    $2 * 8, %eax      # switch to kernel data seg
+    movl    %eax, %ds
+    call    interrupt_handler
+    addl    $4, %esp        # remove interrupt number
+    addl    $4, %esp        # remove interrupt code
+    jmp     intr_return
+
 intr_syscall:
-	pushl	%ds
-	pushl	%ebp		# push regs
-	pushl	%edi
-	pushl	%esi
-	pushl	%edx
-	pushl	%ecx
-	pushl	%ebx
-	pushl	%eax		# note these *are* the syscall args
-	movl	$2*8, %eax	# switch to kernel data seg
-	movl	%eax, %ds
-	call	syscall_handler
-	addl	$4, %esp	# remove the old eax
-	jmp	syscall_return	
+    pushl   %ds
+    pushl   %ebp            # push regs
+    pushl   %edi
+    pushl   %esi
+    pushl   %edx
+    pushl   %ecx
+    pushl   %ebx
+    pushl   %eax            # note these *are* the syscall args
+    movl    $2*8, %eax      # switch to kernel data seg
+    movl    %eax, %ds
+    call    syscall_handler
+    addl    $4, %esp        # remove the old eax
+    jmp     syscall_return
 
 .global intr_return
 intr_return:
-	popl	%eax
-syscall_return:	
-	popl	%ebx
-	popl	%ecx
-	popl	%edx
-	popl	%esi
-	popl	%edi
-	popl	%ebp
-	popl	%ds
-	addl	$4, %esp	# remove interrupt num
-	addl	$4, %esp	# remove detail code
-	iret			# iret gets the intr context
-			
+    popl    %eax
+syscall_return:
+    popl    %ebx
+    popl    %ecx
+    popl    %edx
+    popl    %esi
+    popl    %edi
+    popl    %ebp
+    popl    %ds
+    addl    $4, %esp        # remove interrupt num
+    addl    $4, %esp        # remove detail code
+    iret                    # iret gets the intr context
+
 .align 2
 idt:
-	.word	intr00-_start,1*8,0x8e00,0x0001
-	.word	intr01-_start,1*8,0x8e00,0x0001
-	.word	intr02-_start,1*8,0x8e00,0x0001
-	.word	intr03-_start,1*8,0x8e00,0x0001
-	.word	intr04-_start,1*8,0x8e00,0x0001
-	.word	intr05-_start,1*8,0x8e00,0x0001
-	.word	intr06-_start,1*8,0x8e00,0x0001
-	.word	intr07-_start,1*8,0x8e00,0x0001
-	.word	intr08-_start,1*8,0x8e00,0x0001
-	.word	intr09-_start,1*8,0x8e00,0x0001
-	.word	intr10-_start,1*8,0x8e00,0x0001
-	.word	intr11-_start,1*8,0x8e00,0x0001
-	.word	intr12-_start,1*8,0x8e00,0x0001
-	.word	intr13-_start,1*8,0x8e00,0x0001
-	.word	intr14-_start,1*8,0x8e00,0x0001
-	.word	intr15-_start,1*8,0x8e00,0x0001
-	.word	intr16-_start,1*8,0x8e00,0x0001
-	.word	intr17-_start,1*8,0x8e00,0x0001
-	.word	intr18-_start,1*8,0x8e00,0x0001
-	.word	intr19-_start,1*8,0x8e00,0x0001
-	.word	intr20-_start,1*8,0x8e00,0x0001
-	.word	intr21-_start,1*8,0x8e00,0x0001
-	.word	intr22-_start,1*8,0x8e00,0x0001
-	.word	intr23-_start,1*8,0x8e00,0x0001
-	.word	intr24-_start,1*8,0x8e00,0x0001
-	.word	intr25-_start,1*8,0x8e00,0x0001
-	.word	intr26-_start,1*8,0x8e00,0x0001
-	.word	intr27-_start,1*8,0x8e00,0x0001
-	.word	intr28-_start,1*8,0x8e00,0x0001
-	.word	intr29-_start,1*8,0x8e00,0x0001
-	.word	intr30-_start,1*8,0x8e00,0x0001
-	.word	intr31-_start,1*8,0x8e00,0x0001
-	.word	intr32-_start,1*8,0x8e00,0x0001
-	.word	intr33-_start,1*8,0x8e00,0x0001
-	.word	intr34-_start,1*8,0x8e00,0x0001
-	.word	intr35-_start,1*8,0x8e00,0x0001
-	.word	intr36-_start,1*8,0x8e00,0x0001
-	.word	intr37-_start,1*8,0x8e00,0x0001
-	.word	intr38-_start,1*8,0x8e00,0x0001
-	.word	intr39-_start,1*8,0x8e00,0x0001
-	.word	intr40-_start,1*8,0x8e00,0x0001
-	.word	intr41-_start,1*8,0x8e00,0x0001
-	.word	intr42-_start,1*8,0x8e00,0x0001
-	.word	intr43-_start,1*8,0x8e00,0x0001
-	.word	intr44-_start,1*8,0x8e00,0x0001
-	.word	intr45-_start,1*8,0x8e00,0x0001
-	.word	intr46-_start,1*8,0x8e00,0x0001
-	.word	intr47-_start,1*8,0x8e00,0x0001
-	.word	intr48-_start,1*8,0xee00,0x0001
-	
+    .word   intr00 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr01 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr02 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr03 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr04 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr05 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr06 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr07 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr08 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr09 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr10 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr11 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr12 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr13 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr14 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr15 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr16 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr17 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr18 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr19 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr20 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr21 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr22 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr23 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr24 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr25 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr26 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr27 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr28 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr29 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr30 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr31 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr32 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr33 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr34 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr35 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr36 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr37 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr38 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr39 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr40 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr41 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr42 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr43 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr44 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr45 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr46 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr47 - _start, 1 * 8, 0x8e00, 0x0001
+    .word   intr48 - _start, 1 * 8, 0xee00, 0x0001
+
 # This is the initializer for the global interrupt table.
 # It simply gives the size and location of the interrupt table
-	
+
 idt_init:
-	.word	idt_init-idt
-	.long	idt
+    .word   idt_init - idt
+    .long   idt
 
 # This is the initializer for an invalid interrupt table.
 # Its only purpose is to assist with the reboot routine.
-	
+
 idt_invalid:
-	.word	0
-	.long	0
+    .word   0
+    .long   0
