@@ -196,19 +196,3 @@ static int memory_is_range_type_available(int type) {
     }
 }
 
-int memory_freemap_walk() {
-    int i, j;
-    uint32_t cellmask;
-    for (i = 0; i < freemap_cells; i++) {
-        if (freemap[i] != 0) {
-            for (j = 0; j < CELL_BITS; j++) {
-                cellmask = (1 << j);
-                if (freemap[i] & cellmask) {
-                    return 1;
-                }
-            }
-        }
-    }
-    return 0;
-}
-

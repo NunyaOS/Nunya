@@ -98,28 +98,6 @@ void ps2_init() {
     ps2_command_write(0x60, cont_config_byte);
     ps2_write_controller_config_byte(cont_config_byte);
 
-    console_printf("free?: %d\n", memory_freemap_walk());
-    // causes memory issues (the outb call)
-    /*
-    // test PS/2 controller (causes memory issues)
-    outb(0xAA, PS2_COMMAND_REGISTER);
-    console_printf("free?: %d\n", memory_freemap_walk());
-    ps2_controller_read_ready();
-    console_printf("free?: %d\n", memory_freemap_walk());
-    int test = inb(PS2_DATA_PORT);
-    console_printf("free?: %d\n", memory_freemap_walk());
-    if (test == 0x55) {
-        console_printf("ps/2: controller test successful\n");
-    }
-    else if (test == 0xFC) {
-        console_printf("ps/2: controller test unsuccessful\n");
-    }
-    else {
-        console_printf("ps/2: controller test failed with unknown error: %x\n", test);
-    }
-
-    console_printf("free?: %d\n", memory_freemap_walk());
-    */
     int test;
     // determine if there are 2 channels
     if (second_channel_enabled == 1) {

@@ -9,7 +9,6 @@ See the file LICENSE for details.
 #include "memory_raw.h"     // memory_init
 #include "process.h"
 #include "interrupt.h"
-#include "ps2.h"
 #include "keyboard.h"
 #include "mouse.h"
 #include "clock.h"

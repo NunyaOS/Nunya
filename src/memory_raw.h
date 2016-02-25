@@ -12,6 +12,5 @@ See the file LICENSE for details.
 void memory_init();
 void *memory_alloc_page(bool zeroit);
 void memory_free_page(void *addr);
-int memory_freemap_walk();
 
 #endif
