@@ -24,14 +24,14 @@ uint8_t mouse_button;
 void mouse_init();
 
 /**
- * @brief request a packet from the mouse
+ * @brief Request a packet from the mouse
  * @details This function is for polling mouse to see if it is still alive (hot plugging). It checks for the appropritae ACK as well.
  * @return byte sent by mouse
  */
 int mouse_request_packet();
 
 /**
- * @brief poll mouse for bytes
+ * @brief Poll mouse for bytes
  * @details This is for polling the mouse for movement bytes (as opposed to interrupts). It waits
  * for the byte (until a timeout) to read from the PS2 data port.
  * @return mouse data
