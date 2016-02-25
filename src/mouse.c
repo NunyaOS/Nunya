@@ -64,7 +64,6 @@ void mouse_map() {
     mouse_y -= byte3;
 }
 
-// return requested packet (and check for an ack)
 int mouse_request_packet() {
 	// command to request a single packet
 	ps2_command_write(0xEB , PS2_COMMAND_REGISTER);

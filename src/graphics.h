@@ -84,6 +84,10 @@ void graphics_arc(int x, int y, double r, double start_theta, double end_theta,
  */
 void graphics_circle(int x, int y, double r, struct graphics_color c);
 
+/**
+ * @brief draw the mouse
+ * @details This reads the mouse_x and mouse_y variables and draws a point on the screen that corresponds to that point.
+ */
 void graphics_mouse();
 
 void graphics_rect(int x, int y, int w, int h, struct graphics_color c);
