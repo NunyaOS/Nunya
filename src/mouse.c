@@ -29,7 +29,6 @@ int mouse_scan() {
 
 // TODO: handle button events (e.g., downclick and release, doubleclick)
 void mouse_map() {
-    int i;
     // signs for x and y movement (bytes 2 and 3); default to positive
     bool x_sign = 0;
     bool y_sign = 0;
