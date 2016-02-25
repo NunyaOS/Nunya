@@ -14,8 +14,29 @@ See the file LICENSE for details.
 
 char cur_path[256];
 
+void move_up_directory();
+
 void cmd_line_init() {
     strcpy(cur_path, "/");
+}
+
+void move_up_directory() {
+    if (strcmp(cur_path, "/") == 0) {
+        console_printf("cd: root has no parent directory\n");
+        return;
+    }
+    int i;
+    // Move up one directory by finding the last occurrence of '/'
+    for (i = strlen(cur_path); i >= 0; i--) {
+        if (i == 0) {
+            strcpy(cur_path, "/");
+            return;
+        }
+        else if (cur_path[i] == '/') {
+            cur_path[i] = '\0';
+            return;
+        }
+    }
 }
 
 void cmd_line_cd(const char *arg_line) {
@@ -34,23 +55,9 @@ void cmd_line_cd(const char *arg_line) {
     if (strcmp(first_word, ".") == 0) {
         // Do nothing, just going to self directory
         return;
-    } else if (strcmp(first_word, "..") == 0) {
-        if (strcmp(cur_path, "/") == 0) {
-            console_printf("cd: root has no parent directory\n");
-            return;
-        }
-        int i;
-        // Move up one directory by finding the last occurrence of '/'
-        for (i = strlen(cur_path); i >= 0; i--) {
-            if (i == 0) {
-                strcpy(cur_path, "/");
-                return;
-            }
-            else if (cur_path[i] == '/') {
-                cur_path[i] = '\0';
-                return;
-            }
-        }
+    } else if (strcmp(first_word, "..") == 0) {     // Move up a directory
+        move_up_directory();
+        return;
     } else if (first_word[0] == '/') {   // Argument is an absolute path
         strcpy(dir_arg, first_word);
     } else {    // Argument is a relative path
