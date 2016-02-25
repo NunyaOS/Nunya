@@ -410,6 +410,7 @@ static long int iso_look_up(const char *pname, uint32_t *dl, int ata_unit, bool 
     if (strcmp(pname, "/") == 0) {
         iso_media_close(iso_p);
         if (is_dir_search) {
+            *dl = bendian_chars_to_int(dr.data_length + 4, 4);
             return root_dr_loc;
         }
         else {  //Tried to open "/" as file
