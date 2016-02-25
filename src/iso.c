@@ -34,7 +34,7 @@ See the file LICENSE for details.
 // ATAPI block for consecutive, single character reads
 static char global_atapi_block[ATAPI_BLOCKSIZE];
 static int global_atapi_unit = -1;
-int global_atapi_extent = -1;
+static int global_atapi_extent = -1;
 
 struct iso_point {
     int ata_unit;
@@ -167,8 +167,7 @@ struct directory_record *iso_dread(struct iso_dir *read_from) {
         if (iso_p->cur_extent < final_extent_of_directory) {
             iso_media_seek(iso_p, (iso_p->cur_extent + 1) * ISO_BLOCKSIZE, SEEK_SET);
             read_from->cur_offset = ISO_BLOCKSIZE * (iso_p->cur_extent - read_from->extent_offset);
-        }
-        else {
+        } else {
             //End of this directory, return null
             iso_media_close(iso_p);
             return 0;
@@ -412,12 +411,10 @@ static long int iso_look_up(const char *pname, uint32_t *dl, int ata_unit, bool 
         if (is_dir_search) {
             *dl = bendian_chars_to_int(dr.data_length + 4, 4);
             return root_dr_loc;
-        }
-        else {  //Tried to open "/" as file
+        } else {  //Tried to open "/" as file
             return -1;
         }
-    }
-    else {
+    } else {
         iso_media_seek(iso_p, root_dr_loc * ISO_BLOCKSIZE, SEEK_SET);
         //moving forward, get rid of the first slash and give the iso_p we already seek'd for
         long int result = iso_recursive_look_up(&pname[1], iso_p, dl, is_dir_search);
@@ -479,8 +476,7 @@ static long int iso_recursive_look_up (const char *pname, struct iso_point *iso_
             if (final_extent_of_directory == iso_p->cur_extent) {
                 //And we're on the final extent, desired path not found
                 return -1;
-            }
-            else {
+            } else {
                 //Move to the next extent and continue searching this directory.
                 iso_media_seek(iso_p, (iso_p->cur_extent + 1) * ISO_BLOCKSIZE, SEEK_SET);
                 continue;
@@ -514,22 +510,18 @@ static long int iso_recursive_look_up (const char *pname, struct iso_point *iso_
             if (is_dir(dr.file_flags[0])) {
                 *dl = bendian_chars_to_int(dr.data_length + 4, 4);
                 return entity_location;
-            }
-            else {  //Tried to open directory, but found file
+            } else {  //Tried to open directory, but found file
                 return -1;
             }
-        }
-        else {  //looking for a file
+        } else {  //looking for a file
             if (!is_dir((int)dr.file_flags[0])) {  //it is a file (it's not a dir)
                 *dl = bendian_chars_to_int(dr.data_length + 4, 4);
                 return entity_location;
-            }
-            else {  //Tried to open file, but found dir in its place
+            } else {  //Tried to open file, but found dir in its place
                 return -1;
             }
         }
-    }
-    else {
+    } else {
         iso_media_seek(iso_p, entity_location * ISO_BLOCKSIZE, SEEK_SET);
         return iso_recursive_look_up(pname + next_slash_index + 1, iso_p, dl, is_dir_search);
     }
