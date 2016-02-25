@@ -13,13 +13,15 @@ See the file LICENSE for details.
 #define KEYBOARD_BUFFER_SIZE 256
 #define ROOT "/"
 
-char cur_path[256];
+char cur_path[256]; // The current working directory for the command line environment
 
-void move_up_directory();
-void move_into_directory(const char *dname);
-void try_cd(const char *dpath, const char *dname);
-void process_cd_part(const char *dname);
+void move_up_directory(char *abs_path);
+void move_into_directory(const char *dname, char *abs_path);
+void process_path_part(const char *dname, char *abs_path);
 void set_cur_path(const char *dpath);
+void get_abs_path(const char *path, char *abs_path);
+void cat_file(const char *fname);
+void ls_dir(const char *dname);
 
 /**
  * @brief Initialize the command line
@@ -40,20 +42,20 @@ void set_cur_path(const char *dpath) {
  * @brief Moves up one directory
  * @details Changes working directory to the parent of current directory
  */
-void move_up_directory() {
-    if (strcmp(cur_path, "/") == 0) {
-        console_printf("cd: root has no parent directory\n");
+void move_up_directory(char *abs_path) {
+    if (strcmp(abs_path, "/") == 0) {
+        abs_path[0] = '\0';
         return;
     }
     int i;
     // Move up one directory by finding the last occurrence of '/'
-    for (i = strlen(cur_path); i >= 0; i--) {
+    for (i = strlen(abs_path); i >= 0; i--) {
         if (i == 0) {
-            set_cur_path(ROOT);
+            strcpy(abs_path, ROOT);
             return;
         }
-        else if (cur_path[i] == '/') {
-            cur_path[i] = '\0';
+        else if (abs_path[i] == '/') {
+            abs_path[i] = '\0';
             return;
         }
     }
@@ -64,16 +66,14 @@ void move_up_directory() {
  * @details Move into the directory below yourself specified by dname
  * @param dname Name of directory into which you attempt to move
  */
-void move_into_directory(const char *dname) {
-    char dpath[256];
-    strcpy(dpath, cur_path);
-    if (strcmp(cur_path, ROOT) != 0) {   // Not at root, so we need to add a '/' to the path
-        memcpy(dpath + strlen(cur_path), "/", 1);
-        memcpy(dpath + strlen(cur_path) + 1, dname, strlen(dname) + 1);
+void move_into_directory(const char *dname, char *abs_path) {
+    if (strcmp(abs_path, ROOT) != 0) {   // Not at root, so we need to add a '/' to the path
+        int abs_path_len = strlen(abs_path);
+        memcpy(abs_path + abs_path_len, "/", 1);
+        memcpy(abs_path + abs_path_len + 1, dname, strlen(dname) + 1);
     } else {
-        memcpy(dpath + strlen(cur_path), dname, strlen(dname) + 1);
+        memcpy(abs_path + strlen(abs_path), dname, strlen(dname) + 1);
     }
-    try_cd(dpath, dname);
 }
 
 /**
@@ -82,31 +82,55 @@ void move_into_directory(const char *dname) {
  * Moves up or down one directory, specified by dname
  * @param dname Next directory in which to move
  */
-void process_cd_part(const char *dname) {
-    if (strcmp(dname, "..") == 0) {     // Move up one directory
-        move_up_directory();
+void process_path_part(const char *dname, char *abs_path) {
+    if (strcmp(dname, ".") == 0) {
+        return;
+    } else if (strcmp(dname, "..") == 0) {     // Move up one directory
+        move_up_directory(abs_path);
         return;
     } else {
-        move_into_directory(dname);
+        move_into_directory(dname, abs_path);
         return;
     }
 }
 
 /**
- * @brief Try to move into a new directory
- * @details Try to move into the directory at dpath.
- * If not possible, doesn't update cur_path.
- * @param dpath Full path to new directory location
- * @param dname Name of new directory location
+ * @brief Translate a path argument into an absolute path
+ * @details Takes filepath path and translates it into an
+ * absolute path that is copied into abs_path. If the path
+ * is relative, it builds off of the cur_path. Otherwise, it
+ * treats path as an absolute path.
+ * @param path Argument that points to the desired file/directory
+ * @param abs_path Buffer into which resultant absolute path is placed
  */
-void try_cd(const char *dpath, const char *dname) {
-    struct iso_dir *dir = iso_dopen(dpath, 3);
-    if (!dir) {
-        console_printf("cd: %s is not a directory\n", dname);
+void get_abs_path(const char *path, char *abs_path) {
+    if (strlen(path) == 0) {
+        abs_path[0] = '\0';
         return;
     }
-    iso_dclose(dir);
-    set_cur_path(dpath);
+    if (strcmp(path, ROOT) == 0) {
+        strcpy(abs_path, ROOT);
+        return;
+    }
+    char path_copy[256];
+    strcpy(path_copy, path);
+    char *next_dir;
+
+    if (path[0] == '/') {   // Absolute path
+        strcpy(abs_path, "/");
+        next_dir = strtok(path_copy + 1, "/");    // Move up one character to look like a relative path in root directory
+    } else {    // Relative path
+        strcpy(abs_path, cur_path);
+        next_dir = strtok(path_copy, "/");
+    }
+
+    while (next_dir) {
+        process_path_part(next_dir, abs_path);
+        if (!abs_path[0]) {     // An error occurred on this part of the path
+            return;
+        }
+        next_dir = strtok(0, "/");
+    }
 }
 
 /**
@@ -125,17 +149,60 @@ void cmd_line_cd(const char *arg_line) {
         return;
     }
 
-    // Process path piece-wise separated by '/'
-    char *next_dir = strtok(first_word, "/");
-    while (next_dir) {
-        process_cd_part(next_dir);
-        next_dir = strtok(0, "/");
+    char abs_path[256];
+    get_abs_path(first_word, abs_path);
+    if (!abs_path[0]) {
+        console_printf("cd: root has no parent\n");
+        return;
+    }
+    struct iso_dir *dir = iso_dopen(abs_path, 3);
+    if (!dir) {
+        console_printf("cd: no such path %s\n", abs_path);
+    } else {
+        set_cur_path(abs_path);
+    }
+    iso_dclose(dir);
+    return;
+}
+
+/**
+ * @brief List contents for multiple directories
+ * @details List all files and directories for the directories
+ * listed in arg_line. If no argument it given, it assumes the
+ * self directory. Otherwise, it prints out the contents of each
+ * directory supplied in arg_line
+ * @param arg_line Paths to directories to list. If empty, assumes self.
+ */
+void cmd_line_ls(const char *arg_line) {
+    if (strlen(arg_line) > 0) {
+        char arg_line_copy[256];
+        strcpy(arg_line_copy, arg_line);
+        char *dname = arg_line_copy;
+        int i;
+        for(i = 0; i < strlen(arg_line); i++) {
+            if (arg_line_copy[i] == ' ') {
+                arg_line_copy[i] = '\0';
+                console_printf("%s:\n", dname);
+                ls_dir(dname);
+                console_printf("\n");
+                dname = arg_line_copy + i + 1;
+            }
+        }
+        console_printf("%s:\n", dname);
+        ls_dir(dname);
+    } else {
+        ls_dir(cur_path);
     }
 }
 
-// Currently does not use arg_line at all
-void cmd_line_ls(const char *arg_line) {
-    struct iso_dir *dir = iso_dopen(cur_path, 3);
+/**
+ * @brief Lists contents of a single directory
+ * @param dname Name of directory to list
+ */
+void ls_dir(const char *dname) {
+    char abs_path[256];
+    get_abs_path(dname, abs_path);
+    struct iso_dir *dir = iso_dopen(abs_path, 3);
     struct directory_record *dr = iso_dread(dir);
     while (dr) {
         if (is_dir(dr->file_flags[0])) {
@@ -150,37 +217,62 @@ void cmd_line_ls(const char *arg_line) {
     iso_dclose(dir);
 }
 
+/**
+ * @brief Print the current working directory
+ */
 void cmd_line_pwd() {
     console_printf("%s\n", cur_path);
 }
 
-//Privates
+/**
+ * @brief Echo the argument supplied on a new line
+ * @param arg_line The string to be printed out
+ */
 void cmd_line_echo(const char *arg_line) {
     console_printf("%s\n", arg_line);
     return;
 }
 
+/**
+ * @brief Prints the contents of multiple files
+ * @details Prints the contents of multiple files
+ * listed in the argument arg_line separated by space.
+ * @param arg_line Names of files to be printed
+ */
 void cmd_line_cat(const char *arg_line) {
     char arg_line_copy[256];
     strcpy(arg_line_copy, arg_line);
-    char *fname = strtok(arg_line_copy, " ");
-    char c;
-    char fpath[256];
-    while (fname) {
-        strcpy(fpath, cur_path);
-        if (strcmp(cur_path, "/") != 0) {
-            memcpy(fpath + strlen(cur_path), "/", 1);
-            memcpy(fpath + strlen(cur_path) + 1, fname, strlen(fname) + 1);
-        } else {
-            memcpy(fpath + strlen(cur_path), fname, strlen(fname) + 1);
+    char *fname = arg_line_copy;
+    int i;
+    for(i = 0; i < strlen(arg_line); i++) {
+        if (arg_line_copy[i] == ' ') {
+            arg_line_copy[i] = '\0';
+            cat_file(fname);
+            fname = arg_line_copy + i + 1;
         }
-        struct iso_file *file = iso_fopen(fpath, 3);
-        while (!file->at_EOF) {
-            iso_fread(&c, 1, 1, file);
-            console_putchar(c);
-        }
-        fname = strtok(0, " ");
     }
+    cat_file(fname);
+}
+
+/**
+ * @brief Prints contents of a single file
+ * @param fname Name of file to be printed
+ */
+void cat_file(const char *fname) {
+    char abs_path[256];
+    char c;
+    get_abs_path(fname, abs_path);
+    struct iso_file *file = iso_fopen(abs_path, 3);
+    if (!file) {
+        console_printf("cat: %s does not exist\n", fname);
+        iso_fclose(file);
+        return;
+    }
+    while (!file->at_EOF) {
+        iso_fread(&c, 1, 1, file);
+        console_putchar(c);
+    }
+    iso_fclose(file);
 }
 
 //Exposed
