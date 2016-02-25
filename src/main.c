@@ -42,13 +42,13 @@ int kernel_main() {
     rtc_init();
     clock_init();
     keyboard_init();
-    mouse_init();
 
     /*
     process_init() is a big step.  This initializes the process table, but also gives us our own process structure, private stack, and enables paging.  Now we can do complex things like wait upon events.
     */
     process_init();
 
+    mouse_init();
     ata_init();
 
     console_printf("\nBASEKERNEL READY:\n");
