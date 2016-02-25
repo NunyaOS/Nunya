@@ -126,7 +126,7 @@ int kmalloc_get_largest_gap_size(struct kmalloc_page_info *page_info) {
 void *kmalloc(unsigned int size) {
     uint16_t slots_needed = (size + sizeof(uint16_t)) / KMALLOC_SLOT_SIZE;
     //addresses integer division truncation
-    if (size % 8 != 0) {
+    if ((size + sizeof(uint16_t)) / KMALLOC_SLOT_SIZE) {
         slots_needed++;
     }
 
