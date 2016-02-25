@@ -1,8 +1,8 @@
 /*
-Copyright (C) 2015 The University of Notre Dame
-This software is distributed under the GNU General Public License.
-See the file LICENSE for details.
-*/
+   Copyright (C) 2015 The University of Notre Dame
+   This software is distributed under the GNU General Public License.
+   See the file LICENSE for details.
+   */
 
 #include "mouse.h"
 #include "interrupt.h"
@@ -65,38 +65,38 @@ void mouse_map() {
 }
 
 int mouse_request_packet() {
-	// command to request a single packet
-	ps2_command_write(0xEB , PS2_COMMAND_REGISTER);
-	ps2_controller_read_ready();
+    // command to request a single packet
+    ps2_command_write(0xEB , PS2_COMMAND_REGISTER);
+    ps2_controller_read_ready();
     int ack = inb(PS2_DATA_PORT);
-	if (ack != MOUSE_ACK) {
-		// TODO: handle ack
-		console_printf("mouse: bad ack: %x\n", ack);
-	}
-	ps2_controller_read_ready();
-	return inb(PS2_DATA_PORT);
+    if (ack != MOUSE_ACK) {
+        // TODO: handle ack
+        console_printf("mouse: bad ack: %x\n", ack);
+    }
+    ps2_controller_read_ready();
+    return inb(PS2_DATA_PORT);
 }
 
 void mouse_interrupt() {
     // mice sends 3 bytes; only process on third byte
     // TODO: handle 4th byte (scroll wheel)
-	switch(mouse_cycle) {
-		case 0:
-			mouse_byte[0] = inb(PS2_DATA_PORT);
-			mouse_cycle++;
-			break;
-		case 1:
-			mouse_byte[1] = inb(PS2_DATA_PORT);
-			mouse_cycle++;
-			break;
-		case 2:
-			mouse_byte[2] = inb(PS2_DATA_PORT);
-			mouse_cycle++;
-			mouse_cycle = 0;
+    switch(mouse_cycle) {
+        case 0:
+            mouse_byte[0] = inb(PS2_DATA_PORT);
+            mouse_cycle++;
+            break;
+        case 1:
+            mouse_byte[1] = inb(PS2_DATA_PORT);
+            mouse_cycle++;
+            break;
+        case 2:
+            mouse_byte[2] = inb(PS2_DATA_PORT);
+            mouse_cycle++;
+            mouse_cycle = 0;
             mouse_map();
             graphics_mouse();
-			break;
-	}
+            break;
+    }
 
     process_wakeup(&queue);
 }
@@ -105,27 +105,27 @@ void mouse_init() {
     // enable port 2 and interrupts for port 2 (enable IRQ12)
     outb(0xA8, PS2_COMMAND_REGISTER);
     uint8_t cont_config_byte = ps2_read_controller_config_byte();
-	// enable port 2
+    // enable port 2
     cont_config_byte |= 0x02;
     // clear bit 5 (disable mouse clock)
     cont_config_byte &= ~0x08;
     ps2_write_controller_config_byte(cont_config_byte);
-	// send set defaults command to mouse
+    // send set defaults command to mouse
     ps2_command_write(0xD4, 0xF6);
     ps2_controller_read_ready();
     int ack = inb(PS2_DATA_PORT);
-	if (ack != MOUSE_ACK) {
-		// TODO: handle bad ack
-		console_printf("mouse: bad ack: %x\n", ack);
-	}
-	// enable packet streaming
-	ps2_command_write(0xD4, 0xF4);
+    if (ack != MOUSE_ACK) {
+        // TODO: handle bad ack
+        console_printf("mouse: bad ack: %x\n", ack);
+    }
+    // enable packet streaming
+    ps2_command_write(0xD4, 0xF4);
     ps2_controller_read_ready();
     ack = inb(PS2_DATA_PORT);
-	if (ack != MOUSE_ACK) {
-		// TODO: handle bad ack
-		console_printf("mouse: bad ack: %x\n", ack);
-	}
+    if (ack != MOUSE_ACK) {
+        // TODO: handle bad ack
+        console_printf("mouse: bad ack: %x\n", ack);
+    }
 
     // init pointer location to middle of screen
     mouse_x = graphics_width() / 2;
