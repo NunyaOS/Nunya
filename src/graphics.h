@@ -83,6 +83,9 @@ void graphics_arc(int x, int y, double r, double start_theta, double end_theta,
  * @param graphics_color The color to draw in
  */
 void graphics_circle(int x, int y, double r, struct graphics_color c);
+
+void graphics_mouse();
+
 void graphics_rect(int x, int y, int w, int h, struct graphics_color c);
 void graphics_clear(struct graphics_color c);
 void graphics_char(int x, int y, char ch, struct graphics_color fgcolor,

@@ -9,6 +9,7 @@ See the file LICENSE for details.
 #include "font.h"
 #include "kernelcore.h"
 #include "math.h"
+#include "mouse.h"
 
 #define ARC_DT 0.01
 
@@ -191,3 +192,9 @@ void graphics_char(int x, int y, char ch, struct graphics_color fgcolor,
     return graphics_bitmap(x, y, FONT_WIDTH, FONT_HEIGHT, &fontdata[u],
                            fgcolor, bgcolor);
 }
+
+void graphics_mouse() {
+    // just draw a pixel for now
+    plot_pixel(mouse_x, mouse_y, mouse_fg_color);
+}
+

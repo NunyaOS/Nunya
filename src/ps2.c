@@ -89,7 +89,7 @@ void ps2_init() {
 
 
     // disable IRQs and port translation (bits 0, 1, 6)
-    cont_config_byte &= ~((1) | (1 << 1) | (1 << 6));
+    cont_config_byte &= ~(0x01 | 0x02 | 0x40);
     // if clear, not dual channel PS/2 controller (b/c second PS/2 port disabled)
     if (((cont_config_byte >> 5) & 0x01) == 1) {
         second_channel_enabled = 1;
@@ -99,6 +99,7 @@ void ps2_init() {
     ps2_write_controller_config_byte(cont_config_byte);
 
     console_printf("free?: %d\n", memory_freemap_walk());
+    // causes memory issues (the outb call)
     /*
     // test PS/2 controller (causes memory issues)
     outb(0xAA, PS2_COMMAND_REGISTER);
@@ -162,7 +163,7 @@ void ps2_init() {
     }
     // enable interrupts for port 1 and 2
     cont_config_byte = ps2_read_controller_config_byte();
-    cont_config_byte &= (1) | (1 << 1);
+    cont_config_byte &= (0x01 | 0x02);
     ps2_write_controller_config_byte(cont_config_byte);
 
     // reset devices (1st then 2nd port)

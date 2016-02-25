@@ -7,12 +7,18 @@ See the file LICENSE for details.
 #ifndef MOUSE_H
 #define MOUSE_H
 
-#define MOUSE_ACK 0xFA
-// TODO: to support hotplugging, then every so often, need to query if mouse if alive (send 0xEB and recv and ack)
+#include "graphics.h"
 
-// used to check if data on port 0x60 is for the mouse or the keyboard
+#define MOUSE_ACK 0xFA
+// TODO: to support hotplugging, then every so often, need to query if mouse is alive (send 0xEB and recv and ack)
+extern struct graphics_color mouse_fg_color;
+
+int mouse_x;
+int mouse_y;
+uint8_t mouse_button;
+
 void mouse_init();
-void mouse_init_2();
+int mouse_request_packet();
 int mouse_scan();
 
 #endif
