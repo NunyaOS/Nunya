@@ -13,9 +13,17 @@ See the file LICENSE for details.
 // TODO: to support hotplugging, then every so often, need to query if mouse is alive (send 0xEB and recv and ack)
 extern struct graphics_color mouse_fg_color;
 
-int mouse_x;
-int mouse_y;
-uint8_t mouse_button;
+/**
+ * @brief Get current mouse x position
+ * @return mouse x position
+ */
+int get_mouse_x();
+
+/**
+ * @brief Get current mouse y position
+ * @return mouse y position
+ */
+int get_mouse_y();
 
 /**
  * @brief Intializes PS2 mosue

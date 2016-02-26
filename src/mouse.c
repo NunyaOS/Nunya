@@ -9,14 +9,22 @@
 #include "console.h"
 #include "ps2.h"
 #include "ioports.h"
-#include "process.h"
 #include "graphics.h"
 
 static uint8_t mouse_cycle = 0;
 static uint8_t mouse_byte[3];
 struct graphics_color mouse_fg_color = {0, 255, 0};
+static int mouse_x;
+static int mouse_y;
+static uint8_t mouse_button;
 
-static struct list queue = { 0, 0 };
+int get_mouse_x() {
+    return mouse_x;
+}
+
+int get_mouse_y() {
+    return mouse_y;
+}
 
 int mouse_scan() {
     // see if data to be read on PS2_DATA_PORT
@@ -27,6 +35,7 @@ int mouse_scan() {
     return data;
 }
 
+// maps user mouse bytes to buttons and movements
 // TODO: handle button events (e.g., downclick and release, doubleclick)
 void mouse_map() {
     // signs for x and y movement (bytes 2 and 3); default to positive
@@ -77,6 +86,7 @@ int mouse_request_packet() {
     return inb(PS2_DATA_PORT);
 }
 
+// handles mouse interrupts (IRQ 12); waits for every third byte to process
 void mouse_interrupt() {
     // mice sends 3 bytes; only process on third byte
     // TODO: handle 4th byte (scroll wheel)
@@ -98,7 +108,6 @@ void mouse_interrupt() {
             break;
     }
 
-    process_wakeup(&queue);
 }
 
 void mouse_init() {
