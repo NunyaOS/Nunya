@@ -56,6 +56,7 @@ int kernel_main() {
     cmd_line_init();
 
     while(1) {
+        cmd_line_show_prompt();
         cmd_line_attempt(keyboard_read_str());
     }
 

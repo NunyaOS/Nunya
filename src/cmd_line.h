@@ -16,5 +16,6 @@ See the file LICENSE for details.
 */
 void cmd_line_attempt(const char * line);
 void cmd_line_init();
+void cmd_line_show_prompt();
 
 #endif

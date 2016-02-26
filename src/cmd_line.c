@@ -280,11 +280,18 @@ void cat_file(const char *fname) {
 }
 
 //Exposed
+void cmd_line_show_prompt() {
+    console_printf("%s > ", cur_path);
+}
+
+//Exposed
 void cmd_line_attempt(const char * line) {
     char line_copy[KEYBOARD_BUFFER_SIZE];
     strcpy(line_copy, line);
     char *first_word = strtok(line_copy, " ");
-    const char *the_rest = line_copy + (strlen(first_word) + 1);
+    const char *the_rest_mixed_case = line_copy + (strlen(first_word) + 1);
+    char the_rest[strlen(the_rest_mixed_case) + 1];
+    to_upper(the_rest, the_rest_mixed_case);
 
     //Ugly case statement alternative
     if (strcmp("echo", first_word) == 0) {

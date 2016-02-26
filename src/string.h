@@ -21,4 +21,7 @@ void memcpy(void *d, const void *s, unsigned length);
 
 void printf(const char *s, ...);
 
+void to_upper(char *dest, const char *src);
+void to_lower(char *dest, const char *src);
+
 #endif
