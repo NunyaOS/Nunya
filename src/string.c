@@ -230,3 +230,19 @@ void to_lower(char *dest, const char *src) {
     }
     dest[strlen(src)] = '\0';
 }
+
+void strip_backspace(char *src) {
+    int overwrite = 0;  // Location of next overwrite location
+    int i;
+    for (i = 0; i < strlen(src); i++) {
+        if (src[i] == 8) {  // The backspace character
+            if (overwrite > 0) {
+                overwrite--;
+            }
+        } else {
+            src[overwrite] = src[i];
+            overwrite++;
+        }
+    }
+    src[overwrite] = '\0';
+}

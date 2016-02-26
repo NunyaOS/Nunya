@@ -112,7 +112,6 @@ static uint32_t bendian_chars_to_int(unsigned char *src, int len) {
     return sum;
 }
 
-//Documentation in header
 bool is_dir(int flags) {
     if ((flags >> 1) & 1) {
         return 1;
@@ -122,7 +121,6 @@ bool is_dir(int flags) {
 }
 
 
-//Documentation in header
 int iso_dclose(struct iso_dir *dir) {
     if (dir) {
         kfree(dir);
@@ -131,7 +129,6 @@ int iso_dclose(struct iso_dir *dir) {
     return -1;
 }
 
-//Documentation in header
 struct iso_dir *iso_dopen(const char *pname, int ata_unit) {
     uint32_t dl;  //data length, needed in iso_look_up
     int extent_num = iso_look_up(pname, &dl, ata_unit, 1);
@@ -147,7 +144,6 @@ struct iso_dir *iso_dopen(const char *pname, int ata_unit) {
     return to_return;
 }
 
-//Documentation in header
 struct directory_record *iso_dread(struct iso_dir *read_from) {
     int num_extents_in_directory = read_from->data_length / ATAPI_BLOCKSIZE;
     int final_extent_of_directory = read_from->extent_offset + (num_extents_in_directory - 1);
@@ -183,7 +179,6 @@ struct directory_record *iso_dread(struct iso_dir *read_from) {
     return next_dr;
 }
 
-//Documentation in header
 int iso_fclose(struct iso_file *file) {
     if (file) {
         kfree(file);
@@ -192,7 +187,6 @@ int iso_fclose(struct iso_file *file) {
     return -1;
 }
 
-//Documentation in header
 struct iso_file *iso_fopen(const char *pname, int ata_unit) {
     struct iso_file *file = kmalloc(sizeof(struct iso_file));
     strcpy(file->pname, pname);
@@ -210,7 +204,6 @@ struct iso_file *iso_fopen(const char *pname, int ata_unit) {
     return file;
 }
 
-//Documentation in header
 int iso_fread(void *dest, int elem_size, int num_elem, struct iso_file *file) {
     struct iso_point *iso_p = iso_media_open(file->ata_unit);
     iso_media_seek(iso_p, ISO_BLOCKSIZE * file->extent_offset + file->cur_offset, SEEK_SET);

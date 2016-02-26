@@ -22,7 +22,7 @@ See the file LICENSE for details.
 #define KEYBOARD_PORT_B     0x61
 #define KEYBOARD_ACK    0x80
 
-#define BUFFER_SIZE 256
+#define KEYBOARD_BUFFER_SIZE 256
 
 struct keymap {
     char normal;
@@ -35,11 +35,11 @@ static struct keymap keymap[] = {
 #include "keymap.us.c"
 };
 
-static char buffer[BUFFER_SIZE];
+static char buffer[KEYBOARD_BUFFER_SIZE];
 static int buffer_read = 0;
 static int buffer_write = 0;
 
-static char str_buffer[BUFFER_SIZE];
+static char str_buffer[KEYBOARD_BUFFER_SIZE];
 
 static struct list queue = { 0, 0 };
 
@@ -117,11 +117,11 @@ void keyboard_interrupt(int i, int code) {
     if (c == KEY_INVALID) {
         return;
     }
-    if ((buffer_write + 1) == (buffer_read % BUFFER_SIZE)) {
+    if ((buffer_write + 1) == (buffer_read % KEYBOARD_BUFFER_SIZE)) {
         return;
     }
     buffer[buffer_write] = c;
-    buffer_write = (buffer_write + 1) % BUFFER_SIZE;
+    buffer_write = (buffer_write + 1) % KEYBOARD_BUFFER_SIZE;
     process_wakeup(&queue);
 }
 
@@ -131,14 +131,14 @@ char keyboard_read() {
         process_wait(&queue);
     }
     result = buffer[buffer_read];
-    buffer_read = (buffer_read + 1) % BUFFER_SIZE;
+    buffer_read = (buffer_read + 1) % KEYBOARD_BUFFER_SIZE;
     return result;
 }
 
 const char *keyboard_read_str() {
     int i = 0;
     char c = keyboard_read();
-    while (c != '\n' && c != '\r' && i < BUFFER_SIZE - 1) {
+    while (c != '\n' && c != '\r' && i < KEYBOARD_BUFFER_SIZE - 1) {
         console_putchar(c);
         str_buffer[i++] = c;
 
