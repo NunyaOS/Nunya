@@ -206,3 +206,43 @@ void printf(const char *s, ...) {
     }
     va_end(args);
 }
+
+void to_upper(char *dest, const char *src) {
+    int i;
+    for (i = 0; i < strlen(src); i++) {
+        if (src[i] >= 97 && src[i] <= 122) {
+            dest[i] = src[i] - 32;
+        } else {
+            dest[i] = src[i];
+        }
+    }
+    dest[strlen(src)] = '\0';
+}
+
+void to_lower(char *dest, const char *src) {
+    int i;
+    for (i = 0; i < strlen(src); i++) {
+        if (src[i] >= 65 && src[i] <= 90) {
+            dest[i] = src[i] + 32;
+        } else {
+            dest[i] = src[i];
+        }
+    }
+    dest[strlen(src)] = '\0';
+}
+
+void strip_backspace(char *src) {
+    int overwrite = 0;  // Location of next overwrite location
+    int i;
+    for (i = 0; i < strlen(src); i++) {
+        if (src[i] == 8) {  // The backspace character
+            if (overwrite > 0) {
+                overwrite--;
+            }
+        } else {
+            src[overwrite] = src[i];
+            overwrite++;
+        }
+    }
+    src[overwrite] = '\0';
+}

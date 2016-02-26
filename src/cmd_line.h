@@ -16,4 +16,16 @@ See the file LICENSE for details.
 */
 void cmd_line_attempt(const char * line);
 
+/**
+ * @brief Initialize the command line
+ */
+void cmd_line_init();
+
+/**
+ * @brief Display terminal prompt to user
+ * @details Prints in light red the current working directory
+ * to the terminal screen
+ */
+void cmd_line_show_prompt();
+
 #endif
