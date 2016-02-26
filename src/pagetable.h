@@ -123,4 +123,11 @@ void pagetable_enable();
  */
 void pagetable_refresh();
 
+/**
+ * @brief   Handle a pagefault exception
+ * @details Handle a pagefault exception originated by the CPU. This function
+ *          should *NEVER* be called directly.
+ */
+void exception_handle_pagefault(int intr, int code);
+
 #endif

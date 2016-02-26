@@ -7,7 +7,11 @@ See the file LICENSE for details.
 #include "pagetable.h"
 #include "memory_raw.h"
 #include "string.h"
-#include "kernelcore.h"
+#include "kerneltypes.h"    // uint32_t
+#include "kernelcore.h"     // halt
+#include "console.h"        // console_printf
+#include "process.h"        // current, process_dump, process_exit
+#include "interrupt.h"      // interrupt_dump_process
 
 #define ENTRIES_PER_TABLE (PAGE_SIZE/4)
 
@@ -222,3 +226,36 @@ void pagetable_enable() {
 
 void pagetable_copy(struct pagetable *sp, unsigned saddr,
                     struct pagetable *tp, unsigned taddr, unsigned length);
+
+void exception_handle_pagefault(int intr, int code) {
+    // vector index should be 14; otherwise something really wrong happened
+    if (intr != 14) {
+        console_printf("interrupt: incorrect exception handler called\n");
+        console_printf("expect vector 14; received vector %d\n", intr);
+        halt();
+    }
+
+    uint32_t vaddr, paddr;
+    asm("mov %%cr2, %0":"=r"(vaddr));
+    // When a page fault exception is thrown, test if the vaddr is mapped
+    if (pagetable_getmap(current->pagetable, vaddr, &paddr)) {
+        // If it's mapped, then it means we can't access the vaddr.
+        // Dump the process
+        console_printf("interrupt: illegal page access at vaddr %x\n",
+                       vaddr);
+        process_dump(current);
+        process_exit(0);
+    } else {
+        // Otherwise, we know we have a legit page fault
+        // If we can't allocate additional memory, kill the process
+        if (0) {
+            interrupt_dump_process();
+        }
+
+        // Currently we give it as much memory as we could
+        pagetable_alloc(current->pagetable, vaddr, PAGE_SIZE,
+            // TODO(SL): figure out if these flags are correct
+            PAGE_FLAG_READWRITE | PAGE_FLAG_USER | PAGE_FLAG_ALLOC);
+    }
+}
+
