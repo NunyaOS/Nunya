@@ -64,14 +64,16 @@ int pagetable_map(struct pagetable *p, unsigned vaddr, unsigned paddr,
  * @param   p       A pointer to the page directory to be looked up
  * @param   vaddr   Virtual address to be looked up
  * @param   paddr   A pointer to store the looked up physical address
- * @return  1 if the lookup is successful, and 0 otherwise
+ * @return  1 if the lookup is successful; 0 if the virtual address is not
+ *          mapped to any physical address, or if the page isn't currently in
+ *          memory
  */
 int pagetable_getmap(struct pagetable *p, unsigned vaddr, unsigned *paddr);
 
 /**
  * @brief   Unmap a page from a given pagetable
- * @details Given a virtual address, the pagetable unmaps the corresponding
- *          virtual page from the given pagetable.
+ * @details Given a virtual address, the pagetable marks the corresponding page
+ *          as "not in memory" in the given pagetable.
  *
  * @param   p       A pointer to the pagetable to be modified
  * @param   vaddr   A virtual address in the page
@@ -80,12 +82,12 @@ void pagetable_unmap(struct pagetable *p, unsigned vaddr);
 
 /**
  * @brief   Allocate pagetables and map a given virtual address and length
- * @details Given a virtual address, the pagetable unmaps the corresponding
- *          virtual page from the given pagetable.
+ * @details Given a virtual address, the pagetable allocates physical memory and
+ *          maps it for a given range of virtual memory.
  *
  * @param   p       A pointer to the page directory to be modified
  * @param   vaddr   Address to the beginning of the first page
- * @param   length  Total amount of memory to be mapped (in bytes)
+ * @param   length  Total amount of memory to be allocated and mapped (in bytes)
  * @param   flags   Flags of the new pages
  */
 void pagetable_alloc(struct pagetable *p, unsigned vaddr, unsigned length,
@@ -97,7 +99,7 @@ void pagetable_alloc(struct pagetable *p, unsigned vaddr, unsigned length,
  *          physical memory mapped to the virtual addresses contained in the
  *          page directory.
  *
- * @param   p       A pointer to the pagetable to be deleted
+ * @param   p   A pointer to the pagetable to be deleted
  */
 void pagetable_delete(struct pagetable *p);
 
