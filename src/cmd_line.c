@@ -188,7 +188,6 @@ void cmd_line_ls(const char *arg_line) {
                 dname = arg_line_copy + i + 1;
             }
         }
-        console_printf("%s:\n", dname);
         ls_dir(dname);
     } else {
         ls_dir(cur_path);
@@ -203,17 +202,22 @@ void ls_dir(const char *dname) {
     char abs_path[256];
     get_abs_path(dname, abs_path);
     struct iso_dir *dir = iso_dopen(abs_path, 3);
-    struct directory_record *dr = iso_dread(dir);
-    while (dr) {
-        if (is_dir(dr->file_flags[0])) {
-            console_set_fgcolor(100,100,255);
-        } else {
-            console_set_fgcolor(0,255,0);
+    if (dir) {
+        struct directory_record *dr = iso_dread(dir);
+        while (dr) {
+            if (is_dir(dr->file_flags[0])) {
+                console_set_fgcolor(100,100,255);
+            } else {
+                console_set_fgcolor(0,255,0);
+            }
+            console_printf("%s\n", dr->file_identifier);
+            dr = iso_dread(dir);
         }
-        console_printf("%s\n", dr->file_identifier);
-        dr = iso_dread(dir);
+        console_set_fgcolor(255,255,255);
+        iso_dclose(dir);
+    } else {
+        console_printf("ls: no directory %s\n", dname);
     }
-    console_set_fgcolor(255,255,255);
     iso_dclose(dir);
 }
 
@@ -280,7 +284,7 @@ void cmd_line_attempt(const char * line) {
     char line_copy[KEYBOARD_BUFFER_SIZE];
     strcpy(line_copy, line);
     char *first_word = strtok(line_copy, " ");
-    const char *the_rest = line + (strlen(first_word) + 1);
+    const char *the_rest = line_copy + (strlen(first_word) + 1);
 
     //Ugly case statement alternative
     if (strcmp("echo", first_word) == 0) {
@@ -303,5 +307,6 @@ void cmd_line_attempt(const char * line) {
     else {
         console_printf("%s: command not found\n", first_word);
     }
+    memset(line_copy, '\0', KEYBOARD_BUFFER_SIZE);
     return;
 }
