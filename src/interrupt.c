@@ -10,6 +10,8 @@ See the file LICENSE for details.
 #include "process.h"
 #include "kernelcore.h"
 
+#include "pagetable.h"  // page fault exception handler
+
 static interrupt_handler_t interrupt_handler_table[48];
 static uint32_t interrupt_count[48];
 static uint8_t interrupt_spurious[48];
@@ -35,33 +37,9 @@ static const char *exception_names[] = {
 };
 
 static void unknown_exception(int i, int code) {
-    unsigned vaddr, paddr;
-
-    if (i == 14) {
-        asm("mov %%cr2, %0":"=r"(vaddr));
-        if (pagetable_getmap(current->pagetable, vaddr, &paddr)) {
-            console_printf("interrupt: illegal page access at vaddr %x\n",
-                           vaddr);
-            process_dump(current);
-            process_exit(0);
-        } else {
-            printf("interrupt: page fault at %x\n", vaddr);
-            printf("please write a fault handler in interrupt.c!\n");
-            printf("kernel halted.\n");
-            halt();
-        }
-    } else {
-        console_printf("interrupt: exception %d: %s (code %x)\n", i,
-                       exception_names[i], code);
-        process_dump(current);
-    }
-
-    if (current) {
-        process_exit(0);
-    } else {
-        console_printf("interrupt: exception in kernel code!\n");
-        halt();
-    }
+    console_printf("interrupt: exception %d: %s (code %x)\n", i,
+                   exception_names[i], code);
+    interrupt_dump_process();
 }
 
 static void unknown_hardware(int i, int code) {
@@ -101,6 +79,9 @@ void interrupt_init() {
         interrupt_count[i] = 0;
     }
 
+    // Wire vector index 14 to pagefault handler
+    interrupt_handler_table[14] = exception_handle_pagefault;
+
     interrupt_unblock();
 
     console_printf("interrupt: ready\n");
@@ -139,4 +120,14 @@ void interrupt_unblock() {
 void interrupt_wait() {
     asm("sti");
     asm("hlt");
+}
+
+void interrupt_dump_process() {
+    if (current) {
+        process_dump(current);
+        process_exit(0);
+    } else {
+        console_printf("interrupt: exception in kernel code!\n");
+        halt();
+    }
 }
