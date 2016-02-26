@@ -20,9 +20,13 @@ struct process *current = 0;
 struct list ready_list = { 0, 0 };
 
 void process_init() {
+    // Create a dummy process with no code and no data, and load its pagetable
+    // Even though it's dummy, at least kernel memory is direct mapped, so
+    // kernel code can run as usual
     current = process_create(0, 0);
-
     pagetable_load(current->pagetable);
+
+    // Enable paging
     pagetable_enable();
 
     current->state = PROCESS_STATE_READY;
