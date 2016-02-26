@@ -39,6 +39,7 @@ void pic_enable(uint8_t irq) {
         mask = mask & ~(1 << irq);
         outb(mask, pic_data[0]);
     } else {
+        irq -= 8;
         mask = inb(pic_data[1]);
         mask = mask & ~(1 << irq);
         outb(mask, pic_data[1]);
@@ -53,6 +54,7 @@ void pic_disable(uint8_t irq) {
         mask = mask | (1 << irq);
         outb(mask, pic_data[0]);
     } else {
+        irq -= 8;
         mask = inb(pic_data[1]);
         mask = mask | (1 << irq);
         outb(mask, pic_data[1]);
