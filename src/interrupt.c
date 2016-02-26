@@ -10,7 +10,7 @@ See the file LICENSE for details.
 #include "process.h"
 #include "kernelcore.h"
 
-#include "pagefault.h"  // memory-related exception handlers
+#include "pagetable.h"  // page fault exception handler
 
 static interrupt_handler_t interrupt_handler_table[48];
 static uint32_t interrupt_count[48];
