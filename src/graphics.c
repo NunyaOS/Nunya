@@ -195,6 +195,6 @@ void graphics_char(int x, int y, char ch, struct graphics_color fgcolor,
 
 void graphics_mouse() {
     // just draw a pixel for now
-    plot_pixel(mouse_x, mouse_y, mouse_fg_color);
+    plot_pixel(get_mouse_x(), get_mouse_y(), mouse_fg_color);
 }
 

@@ -16,7 +16,6 @@ static uint8_t mouse_byte[3];
 struct graphics_color mouse_fg_color = {0, 255, 0};
 static int mouse_x;
 static int mouse_y;
-static uint8_t mouse_button;
 
 int get_mouse_x() {
     return mouse_x;
