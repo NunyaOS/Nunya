@@ -16,6 +16,7 @@ static uint8_t mouse_byte[3];
 struct graphics_color mouse_fg_color = {0, 255, 0};
 static int mouse_x;
 static int mouse_y;
+static bool mouse_enabled = 1;
 
 int get_mouse_x() {
     return mouse_x;
@@ -23,6 +24,14 @@ int get_mouse_x() {
 
 int get_mouse_y() {
     return mouse_y;
+}
+
+bool get_mouse_enabled() {
+	return mouse_enabled;
+}
+
+void set_mouse_enabled(bool enable) {
+    mouse_enabled = enable;
 }
 
 int mouse_scan() {
@@ -102,8 +111,10 @@ void mouse_interrupt() {
             mouse_byte[2] = inb(PS2_DATA_PORT);
             mouse_cycle++;
             mouse_cycle = 0;
-            mouse_map();
-            graphics_mouse();
+            if (mouse_enabled) {
+                mouse_map();
+                graphics_mouse();
+            }
             break;
     }
 

@@ -14,6 +14,18 @@ See the file LICENSE for details.
 extern struct graphics_color mouse_fg_color;
 
 /**
+ * @brief See if mouse interrupt handling is enabled
+ * @return boolean value of whether mouse interrupt handing is enabled
+ */
+bool get_mouse_enabled();
+
+/**
+ * @brief Sets if mouse interrupt handling is enabled
+ * @param enable boolean value to enable/disable mouse interrupt handling
+ */
+void set_mouse_enabled(bool enable);
+
+/**
  * @brief Get current mouse x position
  * @return mouse x position
  */
