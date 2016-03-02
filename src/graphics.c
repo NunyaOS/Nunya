@@ -82,26 +82,7 @@ void graphics_rect(int x, int y, int w, int h, struct graphics_color c) {
     }
 }
 
-// checks that a number is in the x bounds of the video display
-int graphics_check_bounds_x(int x) {
-    x = x >= video_xres ? video_xres - 1 : x;
-    x = x < 0 ? 0 : x;
-    return x;
-}
-
-// checks that a number is in the y bounds of the video display
-int graphics_check_bounds_y(int y) {
-    y = y >= video_yres ? video_yres - 1 : y;
-    y = y < 0 ? 0: y;
-    return y;
-}
-
 void graphics_line(int x1, int y1, int x2, int y2, struct graphics_color c) {
-    // check for bounds
-    x1 = graphics_check_bounds_x(x1);
-    x2 = graphics_check_bounds_x(x2);
-    y1 = graphics_check_bounds_y(y1);
-    y2 = graphics_check_bounds_y(y2);
 
     int tmp;
     // flip points if x2 is less than x1
