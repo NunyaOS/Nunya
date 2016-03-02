@@ -225,7 +225,7 @@ void cmd_line_cd(const char *arg_line) {
 }
 
 void cmd_line_echo(const char *arg_line) {
-    if(strcmp(arg_line, "--help") == 0) {
+    if(strcmp(arg_line, "--HELP") == 0) {
         console_printf("Print contents of argument to screen\nusage: echo <buffer to print>\n");
         return;
     }
