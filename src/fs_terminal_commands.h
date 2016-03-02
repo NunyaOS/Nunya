@@ -46,7 +46,7 @@ void cmd_line_ls(const char *arg_line);
 /**
  * @brief Print the current working directory
  */
-void cmd_line_pwd();
+void cmd_line_pwd(const char *arg_line);
 
 /**
  * @brief Get the current working directory path
