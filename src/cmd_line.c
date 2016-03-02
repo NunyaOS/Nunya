@@ -62,15 +62,9 @@ void cmd_line_attempt(const char *line) {
 }
 
 void cmd_line_help(const char *args) {
-    char line_copy[strlen(args) + 1];
-    strcpy(line_copy, args);
-    char *first_arg = strtok(line_copy, " ");
-
-    if (strlen(first_arg) == 0) {
-        console_printf("help:\nAvailable terminal commands:\n");
-        print_all_functions();
-        console_printf("\nFor help with a specific command, type \"<command> --help\"\n");
-    }
+    console_printf("help:\nAvailable terminal commands:\n");
+    print_all_functions();
+    console_printf("\nFor help with a specific command, type \"<command> --help\"\n");
 }
 
 /**
