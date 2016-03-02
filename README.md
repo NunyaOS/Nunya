@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/NunyaOS/Nunya.svg?branch=master)](https://travis-ci.org/NunyaOS/Nunya)
+[![Build Status](https://travis-ci.org/alexmwu/Nunya.svg?branch=master)](https://travis-ci.org/alexmwu/Nunya)
 
 # NunyaOS, an operating system. 
 

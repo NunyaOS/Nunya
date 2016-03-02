@@ -5,13 +5,12 @@ See the file LICENSE for details.
 */
 
 #include "kmalloc.h"
-#include "process.h"
 #include "console.h"
 #include "kerneltypes.h"
 #include "string.h"
 #include "memorylayout.h"
 #include "kernelcore.h"
-#include "pagetable.h"
+#include "memory_raw.h"
 
 #define KMALLOC_SLOT_SIZE 8
 
@@ -28,7 +27,6 @@ struct __attribute__((__packed__)) kmalloc_page_info {
 
 // globals necessary for kmalloc
 struct kmalloc_page_info *kmalloc_head = 0;
-unsigned kmalloc_next_vaddr = ALLOC_MEMORY_START;
 
 struct kmalloc_page_info *kmalloc_create_page_info(unsigned paddr) {
     struct kmalloc_page_info *n = (struct kmalloc_page_info *)paddr;
@@ -42,23 +40,9 @@ struct kmalloc_page_info *kmalloc_create_page_info(unsigned paddr) {
 * @details When kmalloc does not have sufficient space on any of the allocated pages on its linked list, this function helps it by using a new page from the pagetable, putting a struct kmalloc_page_info at the start of it, and inserting said page at the beginning of the linked list of pages.
 */
 void kmalloc_get_page() {
-    //get current process's pagetable
-    struct pagetable *pt = current->pagetable;
-    unsigned phys_addr;
-
-    if (kmalloc_next_vaddr >= PROCESS_ENTRY_POINT) {
-        console_printf("kmalloc is out of space... uh oh\n");
-        //TODO: figure out a system interrupt of some sort here
-        return;
-    }
-
-    if (pagetable_getmap(pt, kmalloc_next_vaddr, &phys_addr) != 1) {
-        console_printf("kmalloc: Unable to get mapping to next vmem page\n");
-        return;
-    }
-
-    //prepare for the next page requested by updating the global variable for it.
-    kmalloc_next_vaddr += PAGE_SIZE;
+    // Grab a new free page from memory
+    // This marks the page as used
+    unsigned phys_addr = (unsigned)memory_alloc_page(0);
 
     // build the page struct
     struct kmalloc_page_info *pg_info = kmalloc_create_page_info(phys_addr);
