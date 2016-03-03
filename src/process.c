@@ -22,7 +22,7 @@ struct list ready_list = { 0, 0 };
 void process_init() {
     // Create a dummy process with no code and no data, and load its pagetable
     // Even though it's dummy, at least kernel memory is direct mapped, so
-    // kernel code can run as usual
+    // kernel code can run as usual (specifically to enable ata interrupts)
     current = process_create(0, 0);
     pagetable_load(current->pagetable);
 
@@ -179,4 +179,8 @@ void process_dump(struct process *p) {
     console_printf("ebp: %x\n", s->regs1.ebp);
     console_printf("esp: %x\n", s->esp);
     console_printf("eip: %x\n", s->eip);
+}
+
+void __process_set_initial_process_ready(struct process *p) {
+    list_push_tail(&ready_list, &p->node);
 }
