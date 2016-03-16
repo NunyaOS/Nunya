@@ -33,5 +33,8 @@ kernel: ${OBJECTS}
 %.o: %.S
 	gcc ${KERNEL_CCFLAGS} $< -o $@
 
+%.s: %.c
+	gcc -Wall -S -ffreestanding -m32 -march=i386 $< -o $@
+
 clean:
 	rm -rf basekernel.iso basekernel.img bootblock kernel *.o
