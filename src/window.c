@@ -76,7 +76,7 @@ void window_draw_char(struct window *w, int x, int y, char ch, struct graphics_c
     window_end_draw();
 }
 
-void window_draw_string(struct window *w, int x, int y, const char *str, struct graphics_color fgcolor,
+void window_draw_string(struct window *w, int x, int y, char *str, struct graphics_color fgcolor,
                         struct graphics_color bgcolor) {
     int pos_h = 0;
     int pos_w = 0;
