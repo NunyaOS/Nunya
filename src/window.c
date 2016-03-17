@@ -15,7 +15,16 @@ See the file LICENSE for details.
 // THIS FUNCTION SHOULD ALWAYS BE CALLED BEFORE MAKING A GRAPHICS DRAW
 // CALL IN THE WINDOW SYSTEM
 static inline void window_begin_draw(struct window *w) {
-    graphics_set_bounds(w->x, w->y, w->width, w->height);
+    int x = w->x;
+    int y = w->y;
+    int width = w->width;
+    int height = w->height;
+    while(w->parent) {
+        w = w->parent;
+        x += w->x;
+        y += w->y;
+    }
+    graphics_set_bounds(x, y, width, height);
 }
 
 // This function removes the restrictions used to enforce window clipping
@@ -26,13 +35,14 @@ static inline void window_end_draw() {
     graphics_clear_bounds();
 }
 
-struct window *window_create(int x, int y, int width, int height) {
+struct window *window_create(int x, int y, int width, int height, struct window *parent) {
     struct window *w = kmalloc(sizeof(*w));
 
     w->x = x;
     w->y = y;
     w->width = width;
     w->height = height;
+    w->parent = parent;
 
     // Draw the border
     struct graphics_color bc = {128,128,128};
