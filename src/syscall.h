@@ -12,6 +12,8 @@ See the file LICENSE for details.
 #define SYSCALL_exit     1
 #define SYSCALL_testcall 2
 #define SYSCALL_yield    3
+#define SYSCALL_open     4
+#define SYSCALL_close    5
 
 uint32_t syscall(uint32_t n, uint32_t a, uint32_t b, uint32_t c, uint32_t d,
                  uint32_t e);
@@ -26,6 +28,14 @@ static inline int32_t testcall(int x) {
 
 static inline int32_t yield() {
     return syscall(SYSCALL_yield, 0, 0, 0, 0, 0);
+}
+
+static inline int32_t open(const char *path) {
+    return syscall(SYSCALL_open, path, 0, 0, 0, 0);
+}
+
+static inline int32_t close(uint32_t fd) {
+    return syscall(SYSCALL_close, fd, 0, 0, 0, 0);
 }
 
 #endif
