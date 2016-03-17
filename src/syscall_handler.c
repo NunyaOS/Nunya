@@ -32,6 +32,10 @@ int32_t syscall_handler(uint32_t n, uint32_t a, uint32_t b, uint32_t c,
             return sys_testcall(a);
         case SYSCALL_yield:
             return sys_yield();
+        case SYSCALL_open:
+            return syscall_open(a);
+        case SYSCALL_close:
+            return syscall_close(a);
         default:
             return -1;
     }
