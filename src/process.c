@@ -14,6 +14,7 @@ See the file LICENSE for details.
 #include "memorylayout.h"
 #include "kernelcore.h"
 
+#include "fs_sys.h" //struct process->files
 #include "memory_raw.h" // memory_alloc_page, memory_free_page
 
 struct process *current = 0;
@@ -72,6 +73,8 @@ struct process *process_create(unsigned code_size, unsigned stack_size) {
 
     p->kstack = memory_alloc_page(1);
     p->entry = PROCESS_ENTRY_POINT;
+
+    fs_sys_init_security(p);
 
     process_stack_init(p);
 
@@ -182,4 +185,8 @@ void process_dump(struct process *p) {
     console_printf("ebp: %x\n", s->regs1.ebp);
     console_printf("esp: %x\n", s->esp);
     console_printf("eip: %x\n", s->eip);
+}
+
+void __process_set_initial_process_ready(struct process *p) {
+    list_push_tail(&ready_list, &p->node);
 }
