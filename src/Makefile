@@ -25,7 +25,7 @@ kernel: ${OBJECTS}
 test_iso.iso: userproc
 	mkdir ./test_iso && mv ./userproc ./test_iso/userproc && genisoimage -o ../test_iso.iso ./test_iso/ && rm -r ./test_iso
 
-userproc: test_userproc.o syscall.o
+userproc: test_userproc.o syscall.h syscall.o
 	ld ${KERNEL_LDFLAGS} -Ttext 0x80000000 -s --oformat binary test_userproc.o syscall.o -o $@
 
 %.o: %.c
