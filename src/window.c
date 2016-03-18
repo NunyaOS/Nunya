@@ -10,6 +10,9 @@ See the file LICENSE for details.
 #define CHARACTER_W 8
 #define CHARACTER_H 8
 
+static int x_offset = 0;
+static int y_offset = 0;
+
 // This function prepares to draw in a window by setting up its boundary
 // restrictions.
 // THIS FUNCTION SHOULD ALWAYS BE CALLED BEFORE MAKING A GRAPHICS DRAW
@@ -23,7 +26,19 @@ static inline void window_begin_draw(struct window *w) {
         w = w->parent;
         x += w->x;
         y += w->y;
+        if(w->width - x < width)
+            width = w->width - x;
+        if(w->height - y < height)
+            height = w->height - y;
     }
+
+    // Account for the offset of the top-level window
+    height += w->y;
+    width += w->x;
+
+    x_offset = x;
+    y_offset = y;
+
     graphics_set_bounds(x, y, width, height);
 }
 
@@ -33,6 +48,8 @@ static inline void window_begin_draw(struct window *w) {
 // TO FINISH THE DRAW
 static inline void window_end_draw() {
     graphics_clear_bounds();
+    x_offset = 0;
+    y_offset = 0;
 }
 
 struct window *window_create(int x, int y, int width, int height, struct window *parent) {
@@ -63,7 +80,11 @@ void window_set_border_color(struct window *w, struct graphics_color border_colo
 
 void window_draw_line(struct window *w, int x1, int y1, int x2, int y2, struct graphics_color color) {
     window_begin_draw(w);
-    graphics_line(x1 + w->x, y1 + w->y, x2 + w->x, y2 + w->y, color);
+    x1 += x_offset;
+    y1 += y_offset;
+    x2 += x_offset;
+    y2 += y_offset;
+    graphics_line(x1, y1, x2, y2, color);
     window_end_draw();
 }
 
@@ -82,12 +103,16 @@ void window_draw_circle(struct window *w, int x, int y, double r, struct graphic
 void window_draw_char(struct window *w, int x, int y, char ch, struct graphics_color fgcolor,
                       struct graphics_color bgcolor) {
     window_begin_draw(w);
-    graphics_char(x + w->x, y + w->y, ch, fgcolor, bgcolor);
+    x += x_offset;
+    y += y_offset;
+    graphics_char(x, y, ch, fgcolor, bgcolor);
     window_end_draw();
 }
 
-void window_draw_string(struct window *w, int x, int y, char *str, struct graphics_color fgcolor,
+void window_draw_string(struct window *w, int x, int y, const char *str, struct graphics_color fgcolor,
                         struct graphics_color bgcolor) {
+    x += x_offset;
+    y += y_offset;
     int pos_h = 0;
     int pos_w = 0;
     while (*str) {
@@ -109,4 +134,16 @@ void window_draw_bitmap(struct window *w, int x, int y, int width, int height, u
     window_begin_draw(w);
     graphics_bitmap(x + w->x, y + w->y, width, height, data, fgcolor, bgcolor);
     window_end_draw();
+}
+
+void window_hierarchy_test() {
+    struct graphics_color text_color = {0,255,0};
+    struct graphics_color text_bg = {0,0,0};
+
+    struct window *top = window_create(30, 30, 500, 400, 0);
+    struct window *child = window_create(100, 200, 500, 300, top);
+    window_draw_string(child, 250, 0, "Hello world!", text_color, text_bg);
+
+    kfree(top);
+    kfree(child);
 }

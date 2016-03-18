@@ -110,8 +110,7 @@ void window_draw_char(struct window *w, int x, int y, char ch, struct graphics_c
  * @param graphics_color The color to draw the characters
  * @param graphics_color The color to draw the negative space
  */
-
-void window_draw_string(struct window *w, int x, int y, char *str, struct graphics_color fgcolor,
+void window_draw_string(struct window *w, int x, int y, const char *str, struct graphics_color fgcolor,
                         struct graphics_color bgcolor);
 
 /**
@@ -131,5 +130,12 @@ void window_draw_string(struct window *w, int x, int y, char *str, struct graphi
  */
 void window_draw_bitmap(struct window *w, int x, int y, int width, int height, uint8_t * data,
                      struct graphics_color fgcolor,
-                     struct graphics_color bgcolor); 
+                     struct graphics_color bgcolor);
+
+/**
+ * @brief Tests drawing in nested windows
+ * @details This creates nested windows and draws to them, to ensure
+ * that child windows are being correctly clipped
+ */
+void window_hierarchy_test();
 #endif
