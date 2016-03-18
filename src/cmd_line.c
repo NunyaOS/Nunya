@@ -12,9 +12,15 @@ See the file LICENSE for details.
 #include "window.h"
 #include "graphics.h"
 
+#include "iso.h"
+#include "memorylayout.h"
+#include "process.h"
+#include "kernelcore.h"
+
 #define KEYBOARD_BUFFER_SIZE 256
 
 void print_all_functions();
+void cmd_line_run_proc(char *proc_path);
 
 void cmd_line_init() {
     set_cur_path(ROOT);
@@ -54,6 +60,8 @@ void cmd_line_attempt(const char *line) {
     } else if (strcmp("window_test", first_word) == 0) {
         console_printf("\f");
         window_hierarchy_test();
+    } else if (strcmp("read_file", first_word) == 0) {
+        cmd_line_run_proc("/READ_FIL.");
     }
     /*else if () {
      *...
@@ -84,4 +92,33 @@ void print_all_functions() {
             "pwd\n"
             "test\n"
     );
+}
+
+void cmd_line_run_proc(char *proc_path) {
+    // Load process data
+    struct iso_dir *root_dir = iso_dopen("/", 3);
+    struct iso_file *proc_file = iso_fopen(proc_path, root_dir->ata_unit);
+    uint8_t *process_data = kmalloc(proc_file->data_length);
+    int num_read = iso_fread(process_data, proc_file->data_length, 1, proc_file);
+
+    // Create a new process(page, page)
+    struct process *new_proc = process_create(PAGE_SIZE, PAGE_SIZE);
+
+    // Load the code into the proper page
+    uint32_t real_addr;
+    if (!pagetable_getmap(new_proc->pagetable, PROCESS_ENTRY_POINT, &real_addr)) {
+        console_printf("Unable to get physical address of 0x80000000\n");
+        halt();
+    }
+    // Copy data
+    memcpy((void *)real_addr, (void *)process_data, proc_file->data_length);
+    kfree(process_data);
+
+    // Push the new process onto the ready list
+    __process_set_initial_process_ready(new_proc);
+
+    // Exit the current process, enter user mode
+    console_printf("Enter user mode\n");
+    process_yield();
+    // process_exit(0);
 }
