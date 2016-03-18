@@ -4,11 +4,16 @@ This software is distributed under the GNU General Public License.
 See the file LICENSE for details.
 */
 
-
+#include "cmd_line.h"
 #include "console.h"
 #include "string.h"
 #include "testing.h"
 #include "fs_terminal_commands.h"
+
+#include "iso.h"            // iso
+#include "memorylayout.h"   // PROCESS_ENTRY_POINT
+#include "process.h"        // current, pagetable_getmap
+#include "kernelcore.h"     // halt
 
 #define KEYBOARD_BUFFER_SIZE 256
 
@@ -45,6 +50,8 @@ void cmd_line_attempt(const char *line) {
         cmd_line_ls(the_rest);
     } else if (strcmp("cat", first_word) == 0) {
         cmd_line_cat(the_rest);
+    } else if (strcmp("runproc", first_word) == 0) {
+        cmd_line_run_userproc();
     }
     /*else if () {
      *...
@@ -55,4 +62,32 @@ void cmd_line_attempt(const char *line) {
     }
     memset(line_copy, '\0', KEYBOARD_BUFFER_SIZE);
     return;
+}
+
+void cmd_line_run_userproc() {
+    // Load process data
+    struct iso_dir *root_dir = iso_dopen("/", 3);
+    struct iso_file *proc_file = iso_fopen("/USERPROC.", root_dir->ata_unit);
+    uint8_t *process_data = kmalloc(proc_file->data_length);
+    int num_read = iso_fread(process_data, proc_file->data_length, 1, proc_file);
+
+    // Create a new process(page, page)
+    struct process *new_proc = process_create(PAGE_SIZE, PAGE_SIZE);
+
+    // Load the code into the proper page
+    uint32_t real_addr;
+    if (!pagetable_getmap(new_proc->pagetable, PROCESS_ENTRY_POINT, &real_addr)) {
+        console_printf("Unable to get physical address of 0x80000000\n");
+        halt();
+    }
+    // Copy data
+    memcpy((void *)real_addr, (void *)process_data, proc_file->data_length);
+    kfree(process_data);
+
+    // Push the new process onto the ready list
+    __process_set_initial_process_ready(new_proc);
+
+    // Exit the current process, enter user mode
+    console_printf("Enter user mode\n");
+    process_exit(0);
 }

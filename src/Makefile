@@ -6,7 +6,7 @@ TEST_OBJS=module_tests.o testing.o tests.o
 KERNEL_CCFLAGS=-Wall -c -ffreestanding -m32 -march=i386
 KERNEL_LDFLAGS=-m elf_i386
 
-all: basekernel.iso
+all: basekernel.iso test_iso.iso
 
 basekernel.iso: basekernel.img
 	genisoimage -J -R -o basekernel.iso -b basekernel.img basekernel.img
@@ -22,6 +22,12 @@ bootblock: bootblock.o
 kernel: ${OBJECTS}
 	ld ${KERNEL_LDFLAGS} -Ttext 0x10000 -s --oformat binary ${OBJECTS} -o $@
 
+test_iso.iso: userproc
+	mkdir ./test_iso && mv ./userproc ./test_iso/userproc && genisoimage -o ../test_iso.iso ./test_iso/ && rm -r ./test_iso
+
+userproc: test_userproc.o syscall.h syscall.o
+	ld ${KERNEL_LDFLAGS} -Ttext 0x80000000 -s --oformat binary test_userproc.o syscall.o -o $@
+
 %.o: %.c
 	gcc ${KERNEL_CCFLAGS} $< -o $@
 
@@ -29,4 +35,4 @@ kernel: ${OBJECTS}
 	gcc ${KERNEL_CCFLAGS} $< -o $@
 
 clean:
-	rm -rf basekernel.iso basekernel.img bootblock kernel *.o
+	rm -rf basekernel.iso basekernel.img bootblock userproc kernel ./test_iso *.o

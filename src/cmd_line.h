@@ -28,4 +28,10 @@ void cmd_line_init();
  */
 void cmd_line_show_prompt();
 
+/**
+ * @brief Run a designated test user process
+ * @details Load a designated user process from test_iso.iso and execute it.
+ */
+void cmd_line_run_userproc();
+
 #endif

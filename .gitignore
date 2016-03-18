@@ -3,3 +3,5 @@ bootblock
 kernel
 basekernel.img
 basekernel.iso
+test_iso.iso
+
