@@ -31,6 +31,14 @@ struct window {
 struct window *window_create(int x, int y, int width, int height);
 
 /**
+ * @brief Sets the border color of the window
+ * @details Sets the border color of the window and re-draws with the new color
+ *
+ * @param window The window whose border color to change
+ * @param graphics_color The new border color
+ */
+void window_set_border_color(struct window *w, struct graphics_color border_color);
+/**
  * @brief Draws a line in the window
  * @details Draws a line at given position in the window
  * It will be clipped if it extends outside the window
@@ -88,6 +96,21 @@ void window_draw_circle(struct window *w, int x, int y, double r, struct graphic
  */
 void window_draw_char(struct window *w, int x, int y, char ch, struct graphics_color fgcolor,
                       struct graphics_color bgcolor);
+
+/**
+ * @brief Draws a string in the window
+ * @details Draws the given string in the window. If the string extends beyond
+ * the bounds of the window, it will be clipped.
+ *
+ * @param window The window to draw in
+ * @param x The x position of the top left corner of the first character
+ * @param y The y position of the top right corner of the first character
+ * @param str The text to be drawn, null terminated
+ * @param graphics_color The color to draw the characters
+ * @param graphics_color The color to draw the negative space
+ */
+void window_draw_string(struct window *w, int x, int y, const char *str, struct graphics_color fgcolor,
+						struct graphics_color bgcolor);
 
 /**
  * @brief Draws data to window

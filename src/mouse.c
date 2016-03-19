@@ -14,17 +14,7 @@
 static uint8_t mouse_cycle = 0;
 static uint8_t mouse_byte[3];
 struct graphics_color mouse_fg_color = {0, 255, 0};
-static int mouse_x;
-static int mouse_y;
 static bool mouse_enabled = 1;
-
-int get_mouse_x() {
-    return mouse_x;
-}
-
-int get_mouse_y() {
-    return mouse_y;
-}
 
 bool get_mouse_enabled() {
 	return mouse_enabled;
@@ -76,6 +66,9 @@ void mouse_map() {
     // neg sign bytes, if necessary
     byte2 = x_sign ? (byte2 | 0xFFFFFF00) : byte2;
     byte3 = y_sign ? (byte3 | 0xFFFFFF00) : byte3;
+
+    old_mouse_x = mouse_x;
+    old_mouse_y = mouse_y;
     mouse_x += byte2;
     // negative values are down with mouse offsets (opposite of graphics
     mouse_y -= byte3;
@@ -150,10 +143,16 @@ void mouse_init() {
     mouse_x = graphics_width() / 2;
     mouse_y = graphics_height() / 2;
 
+    old_mouse_x = 0;
+    old_mouse_y = 0;
+
+    // TODO: URGENT: DON'T FORGET. SERIOUSLY. copy mouse region of vid buf into mouse_draw_buf
+
 
     interrupt_register(44, mouse_interrupt);
     mouse_scan();
     interrupt_enable(44);
+    mouse_dirty = 0;
     console_printf("mouse: ready\n");
 }
 

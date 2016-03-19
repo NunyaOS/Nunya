@@ -8,6 +8,7 @@ See the file LICENSE for details.
 #define GRAPHICS_H
 
 #include "kerneltypes.h"
+#include "mouse.h"
 
 struct graphics_color {
     uint8_t r;
@@ -97,5 +98,67 @@ void graphics_char(int x, int y, char ch, struct graphics_color fgcolor,
 void graphics_bitmap(int x, int y, int width, int height, uint8_t * data,
                      struct graphics_color fgcolor,
                      struct graphics_color bgcolor);
+
+static inline void graphics_copy_from_color_buffer(int x, int y, int width, int height, struct graphics_color *buffer) {
+    int i, j;
+    int buf_ix;
+    // copy old buffer into video buffer
+    for (j = y; i < height; i++) {
+        for (i = x; i < width; i++) {
+            if (i < 0 || i > video_xres - 1 || j < 0 || j > video_yres - 1) {
+                continue;
+            }
+            uint8_t *v = video_buffer + video_xbytes * j + i * 3;
+            v[2] = buffer[buf_ix].r;
+            v[1] = buffer[buf_ix].g;
+            v[0] = buffer[buf_ix].b;
+			buf_ix++;
+        }
+    }
+}
+
+static inline void graphics_copy_from_color_buffer(int x, int y, int width, int height, struct graphics_color *buffer) {
+    int i, j;
+    int buf_ix;
+    // copy video buf into a color buffer
+    for (j = mouse_y - MOUSE_SIDE_2; i < MOUSE_SIDE_2; i++) {
+        for (j = -MOUSE_SIDE_2 + 1; i < MOUSE_SIDE_2; i++) {
+            if (x < 0 || x > video_xres - 1 || y < 0 || y > video_yres - 1) {
+                continue;
+            }
+			buffer[buf_ix].r = ;
+			buffer[buf_ix].g = ;
+			buffer[buf_ix].b = ;
+
+            uint8_t *v = video_buffer + video_xbytes * j + i * 3;
+            v[2] = c.r;
+            v[1] = c.g;
+            v[0] = c.b;
+        }
+    }
+    uint8_t *v = video_buffer + video_xbytes * y + x * 3;
+    v[2] = mouse_fg_color.r;
+    v[1] = mouse_fg_color.g;
+    v[0] = mouse_fg_color.b;
+}
+}
+
+/**
+ * @brief Draws mouse on the vid buf
+ * @brief This draws mouse on the vid buf. This does not check erase the mouse in the sense that it just 
+ */
+static inline void graphics_draw_mouse() {
+
+}
+
+/**
+ * @brief Draws the mouse on the screen
+ * @details This copies the old mouse_draw_buffer back into the video buffer and then copies the new mouse region from the video buffer into mouse_draw_buffer. It then draws the mouse (a cross) on the screen. graphics_mouse does not use plot_pixel because of mouse_buffer checking
+ */
+static inline void graphics_mouse() {
+    // copy mouse buffer into video_buf
+    graphics_copy_from_color_buffer(old_mouse_x - MOUSE_SIDE_2 + 1, old_mouse_y - MOUSE_SIDE_2 + 1, MOUSE_SIDE - 1, MOUSE_SIDE - 1, mouse_draw_buffer);
+    // copy mouse region of video buf into mouse_buffer
+}
 
 #endif

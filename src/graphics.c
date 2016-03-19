@@ -48,6 +48,19 @@ static inline void plot_pixel(int x, int y, struct graphics_color c) {
     if (x < bounds_x_1 || x > bounds_x_2 || y < bounds_y_1 || y > bounds_y_2) {
         return;
     }
+
+    // Check to make sure that we are not drawing out of bounds
+
+    /*int diff_x = x - mouse_x;*/
+    /*int diff_y = y - mouse_y;*/
+    /*if (diff_x < MOUSE_SIDE_2 && diff_x > -MOUSE_SIDE_2 && diff_y < MOUSE_SIDE_2 && diff_y > -MOUSE_SIDE_2) {*/
+        /*// wraps to [0, 28]*/
+        /*int x_index = diff_x + MOUSE_SIDE_2 - 1;*/
+        /*int y_index = diff_y + MOUSE_SIDE_2 - 1;*/
+
+    /*}*/
+    /*if (x < mouse_x + (MOUSE_SIDE / 2) && x > mouse_x - (MOUSE_SIDE / 2) && y < mouse_y + (MOUSE_SIDE / 2) && y > mouse_y + (MOUSE_SIDE / 2)) {*/
+    /*}*/
     uint8_t *v = video_buffer + video_xbytes * y + x * 3;
     v[2] = c.r;
     v[1] = c.g;
@@ -174,6 +187,7 @@ void graphics_char(int x, int y, char ch, struct graphics_color fgcolor,
                            fgcolor, bgcolor);
 }
 
+<<<<<<< HEAD
 void graphics_mouse() {
     // just draw a pixel for now
     plot_pixel(get_mouse_x(), get_mouse_y(), mouse_fg_color);
