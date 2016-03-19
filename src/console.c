@@ -116,6 +116,14 @@ void console_set_fgcolor(uint8_t r, uint8_t g, uint8_t b) {
     fgcolor.b = b;
 }
 
+struct graphics_color console_get_fg_color() {
+    return fgcolor;
+}
+
+struct graphics_color console_get_bg_color() {
+    return bgcolor;
+}
+
 void console_set_bgcolor(uint8_t r, uint8_t g, uint8_t b) {
     r = console_verify_color_range(r);
     g = console_verify_color_range(g);
