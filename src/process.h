@@ -12,7 +12,7 @@ See the file LICENSE for details.
 #include "pagetable.h"
 #include "x86.h"
 #include "memory.h"
-#include "fs_sys.h"
+#include "fs_sys_structs.h"
 
 #define PROCESS_STATE_CRADLE  0
 #define PROCESS_STATE_READY   1

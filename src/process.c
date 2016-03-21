@@ -72,16 +72,7 @@ struct process *process_create(unsigned code_size, unsigned stack_size) {
     p->kstack = memory_alloc_page(1);
     p->entry = PROCESS_ENTRY_POINT;
 
-    //Open files table
-    p->files = kmalloc(sizeof(*(p->files)));
-    
-    //Allowances allocing.
-    p->fs_allowances_head = kmalloc(sizeof(*(p->fs_allowances_head)));
-
-    //Set the lone permission in the list to root (that is all of the fs)
-    p->fs_allowances_head->next = 0;
-    strcpy(p->fs_allowances_head->path, "/");
-    p->fs_allowances_head->do_allow_below = 1;
+    fs_sys_init_security(p);
 
     process_stack_init(p);
 
