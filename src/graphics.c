@@ -42,7 +42,7 @@ void graphics_clear_bounds() {
     bounds_y_1 = 0;
     bounds_y_2 = video_yres - 1;
 }
-#include "console.h"
+
 static inline void plot_pixel(int x, int y, struct graphics_color c) {
     // Check to make sure that we are not drawing out of bounds
     if (x < bounds_x_1 || x > bounds_x_2 || y < bounds_y_1 || y > bounds_y_2) {
@@ -53,8 +53,7 @@ static inline void plot_pixel(int x, int y, struct graphics_color c) {
     int diff_x = x - mouse_x;
     int diff_y = y - mouse_y;
     // if the point is in the mouse region, draw to the mouse buffer, copy into the video region, and draw the mouse
-        /*console_printf("diff_x: %d, diff_y: %d; ", diff_x, diff_y);*/
-    if (diff_x < MOUSE_SIDE_2 && diff_x > -MOUSE_SIDE_2 && diff_y < MOUSE_SIDE_2 && diff_y > -MOUSE_SIDE_2) {
+    if (mouse_inited && diff_x < MOUSE_SIDE_2 && diff_x > -MOUSE_SIDE_2 && diff_y < MOUSE_SIDE_2 && diff_y > -MOUSE_SIDE_2) {
         // wraps to [0, 28]
         int x_index = diff_x + MOUSE_SIDE_2 - 1;
         int y_index = diff_y + MOUSE_SIDE_2 - 1;

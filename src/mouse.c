@@ -164,15 +164,17 @@ void mouse_init() {
     mouse_x = graphics_width() / 2;
     mouse_y = graphics_height() / 2;
 
-    old_mouse_x = 0;
-    old_mouse_y = 0;
+    old_mouse_x = mouse_x;
+    old_mouse_y = mouse_y;
 
     graphics_copy_to_color_buffer(mouse_x - MOUSE_SIDE_2 + 1, mouse_y - MOUSE_SIDE_2 + 1, MOUSE_SIDE - 1, MOUSE_SIDE - 1, mouse_draw_buffer, (MOUSE_SIDE - 1) * (MOUSE_SIDE - 1));
-
 
     interrupt_register(44, mouse_interrupt);
     mouse_scan();
     interrupt_enable(44);
+
+    // set flag to flip buffers
+    mouse_inited = 1;
     console_printf("mouse: ready\n");
 }
 

@@ -9,15 +9,17 @@ See the file LICENSE for details.
 
 #include "graphics.h"
 
+#define MOUSE_SIDE 30
+#define MOUSE_SIDE_2 15
 #define MOUSE_ACK 0xFA
+
 // TODO: to support hotplugging, then every so often, need to query if mouse is alive (send 0xEB and recv and ack)
+
 int mouse_x;
 int mouse_y;
 int old_mouse_x;
 int old_mouse_y;
-#define MOUSE_SIDE 30
-#define MOUSE_SIDE_2 15
-#define MOUSE_ACK 0xFA
+int mouse_inited;
 
 // TODO: to support hotplugging, then every so often, need to query if mouse is alive (send 0xEB and recv and ack)
 extern struct graphics_color mouse_fg_color;
