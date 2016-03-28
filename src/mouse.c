@@ -10,11 +10,21 @@
 #include "ps2.h"
 #include "ioports.h"
 #include "graphics.h"
+#include "console.h"
 
 static uint8_t mouse_cycle = 0;
 static uint8_t mouse_byte[3];
 struct graphics_color mouse_fg_color = {0, 255, 0};
 static bool mouse_enabled = 1;
+
+void set_mouse_fg_color(uint8_t r, uint8_t g, uint8_t b) {
+    r = graphics_verify_color_range(r);
+    g = graphics_verify_color_range(g);
+    b = graphics_verify_color_range(b);
+    mouse_fg_color.r = r;
+    mouse_fg_color.g = g;
+    mouse_fg_color.b = b;
+}
 
 bool get_mouse_enabled() {
 	return mouse_enabled;
@@ -33,9 +43,9 @@ int mouse_scan() {
     return data;
 }
 
-// maps user mouse bytes to buttons and movements
+// maps user mouse bytes to buttons and movements; returns 1 if mouse position changed, 0 otherwise
 // TODO: handle button events (e.g., downclick and release, doubleclick)
-void mouse_map() {
+int mouse_map() {
     // signs for x and y movement (bytes 2 and 3); default to positive
     bool x_sign = 0;
     bool y_sign = 0;
@@ -69,9 +79,21 @@ void mouse_map() {
 
     old_mouse_x = mouse_x;
     old_mouse_y = mouse_y;
+
     mouse_x += byte2;
     // negative values are down with mouse offsets (opposite of graphics
     mouse_y -= byte3;
+
+    // keep mouse coords in bounds
+    mouse_x = mouse_x < 0 ? 0 : mouse_x;
+    mouse_x = mouse_x > graphics_width() - 1 ? graphics_width() - 1 : mouse_x;
+    mouse_y = mouse_y < 0 ? 0 : mouse_y;
+    mouse_y = mouse_y > graphics_height() - 1 ? graphics_height() - 1 : mouse_y;
+
+    if (old_mouse_x != mouse_x || old_mouse_y != mouse_y) {
+        return 1;
+    }
+    return 0;
 }
 
 int mouse_request_packet() {
@@ -105,8 +127,9 @@ void mouse_interrupt() {
             mouse_cycle++;
             mouse_cycle = 0;
             if (mouse_enabled) {
-                mouse_map();
-                graphics_mouse();
+                if (mouse_map()) {
+                    graphics_mouse();
+                }
             }
             break;
     }
@@ -146,13 +169,12 @@ void mouse_init() {
     old_mouse_x = 0;
     old_mouse_y = 0;
 
-    // TODO: URGENT: DON'T FORGET. SERIOUSLY. copy mouse region of vid buf into mouse_draw_buf
+    graphics_copy_to_color_buffer(mouse_x - MOUSE_SIDE_2 + 1, mouse_y - MOUSE_SIDE_2 + 1, MOUSE_SIDE - 1, MOUSE_SIDE - 1, mouse_draw_buffer, (MOUSE_SIDE - 1) * (MOUSE_SIDE - 1));
 
 
     interrupt_register(44, mouse_interrupt);
     mouse_scan();
     interrupt_enable(44);
-    mouse_dirty = 0;
     console_printf("mouse: ready\n");
 }
 

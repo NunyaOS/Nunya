@@ -24,9 +24,6 @@ extern struct graphics_color mouse_fg_color;
 // mouse is a 30 px by 30 px drawing by default. -1 is for OBOE
 struct graphics_color mouse_draw_buffer[(MOUSE_SIDE - 1) * (MOUSE_SIDE - 1)];
 
-// dirty bit for the mouse
-bool mouse_dirty;
-
 /**
  * @brief See if mouse interrupt handling is enabled
  * @return boolean value of whether mouse interrupt handing is enabled

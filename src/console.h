@@ -26,12 +26,6 @@ void console_heartbeat();
 void console_set_fgcolor(uint8_t r, uint8_t g, uint8_t b);
 
 /**
- * @brief gets the console's foreground color
- * @return console foreground color
- */
-struct graphics_color console_get_fg_color() {
-
-/**
 * @brief sets the consoles bg color to given RGB
 * @details The purpose of this function is to change the color of highlighting behind text displayed on the screen shown when booting to an RGB tuple.
 * @param r The value for red between 0, 255 inclusive
