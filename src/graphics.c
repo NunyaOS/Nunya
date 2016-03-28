@@ -59,14 +59,11 @@ static inline void plot_pixel(int x, int y, struct graphics_color c) {
         int x_index = diff_x + MOUSE_SIDE_2 - 1;
         int y_index = diff_y + MOUSE_SIDE_2 - 1;
         int index = y_index * (MOUSE_SIDE - 1) + x_index;
-        /*console_printf("x_in: %d, y_in: %d; ", x_index, y_index);*/
-        /*mouse_draw_buffer[index].r = c.r;*/
-        /*mouse_draw_buffer[index].g = c.g;*/
-        /*mouse_draw_buffer[index].b = c.b;*/
-        /*graphics_draw_mouse();*/
+        mouse_draw_buffer[index].r = c.r;
+        mouse_draw_buffer[index].g = c.g;
+        mouse_draw_buffer[index].b = c.b;
+        graphics_draw_mouse();
     }
-    /*if (x < mouse_x + (MOUSE_SIDE / 2) && x > mouse_x - (MOUSE_SIDE / 2) && y < mouse_y + (MOUSE_SIDE / 2) && y > mouse_y + (MOUSE_SIDE / 2)) {*/
-    /*}*/
     uint8_t *v = video_buffer + video_xbytes * y + x * 3;
     v[2] = c.r;
     v[1] = c.g;
