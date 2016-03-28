@@ -197,13 +197,12 @@ uint8_t graphics_verify_color_range(uint8_t x) {
     return x;
 }
 
-#include "console.h"
 void graphics_copy_from_color_buffer(int x, int y, int width, int height, struct graphics_color *buffer, int buf_size) {
     int i, j;
     int buf_ix = 0;
     // copy old buffer into video buffer
-    for (j = y; i < height; i++) {
-        for (i = x; i < width; i++) {
+    for (j = y; j < y + height; j++) {
+        for (i = x; i < x + width; i++) {
             if (i < 0 || i > video_xres - 1 || j < 0 || j > video_yres - 1) {
                 continue;
             }
@@ -223,8 +222,8 @@ void graphics_copy_to_color_buffer(int x, int y, int width, int height, struct g
     int i, j;
     int buf_ix = 0;
     // copy video buffer into color buffer
-    for (j = y; i < height; i++) {
-        for (i = x; i < width; i++) {
+    for (j = y; j < y + height; j++) {
+        for (i = x; i < x + width; i++) {
             if (i < 0 || i > video_xres - 1 || j < 0 || j > video_yres - 1) {
                 continue;
             }

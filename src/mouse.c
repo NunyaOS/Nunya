@@ -126,10 +126,8 @@ void mouse_interrupt() {
             mouse_byte[2] = inb(PS2_DATA_PORT);
             mouse_cycle++;
             mouse_cycle = 0;
-            if (mouse_enabled) {
-                if (mouse_map()) {
-                    graphics_mouse();
-                }
+            if (mouse_enabled && mouse_map()) {
+                graphics_mouse();
             }
             break;
     }

@@ -48,7 +48,6 @@ int kernel_main() {
     process_init();
 
     mouse_init();
-    /*set_mouse_enabled(0);*/
     ata_init();
 
     console_printf("\nBASEKERNEL READY:\n");
