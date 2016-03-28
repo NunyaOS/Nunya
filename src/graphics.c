@@ -42,7 +42,7 @@ void graphics_clear_bounds() {
     bounds_y_1 = 0;
     bounds_y_2 = video_yres - 1;
 }
-
+#include "console.h"
 static inline void plot_pixel(int x, int y, struct graphics_color c) {
     // Check to make sure that we are not drawing out of bounds
     if (x < bounds_x_1 || x > bounds_x_2 || y < bounds_y_1 || y > bounds_y_2) {
@@ -50,16 +50,22 @@ static inline void plot_pixel(int x, int y, struct graphics_color c) {
     }
 
     // Check to make sure that we are not drawing out of bounds
-    /*int diff_x = x - mouse_x;*/
-    /*int diff_y = y - mouse_y;*/
-    /*if (diff_x < MOUSE_SIDE_2 && diff_x > -MOUSE_SIDE_2 && diff_y < MOUSE_SIDE_2 && diff_y > -MOUSE_SIDE_2) {*/
-        /*// wraps to [0, 28]*/
-        /*int x_index = diff_x + MOUSE_SIDE_2 - 1;*/
-        /*int y_index = diff_y + MOUSE_SIDE_2 - 1;*/
-
-    /*}*/
+    int diff_x = x - mouse_x;
+    int diff_y = y - mouse_y;
+    // if the point is in the mouse region, draw to the mouse buffer, copy into the video region, and draw the mouse
+        /*console_printf("diff_x: %d, diff_y: %d; ", diff_x, diff_y);*/
+    if (diff_x < MOUSE_SIDE_2 && diff_x > -MOUSE_SIDE_2 && diff_y < MOUSE_SIDE_2 && diff_y > -MOUSE_SIDE_2) {
+        // wraps to [0, 28]
+        int x_index = diff_x + MOUSE_SIDE_2 - 1;
+        int y_index = diff_y + MOUSE_SIDE_2 - 1;
+        int index = y_index * (MOUSE_SIDE - 1) + x_index;
+        /*console_printf("x_in: %d, y_in: %d; ", x_index, y_index);*/
+        /*mouse_draw_buffer[index].r = c.r;*/
+        /*mouse_draw_buffer[index].g = c.g;*/
+        /*mouse_draw_buffer[index].b = c.b;*/
+        /*graphics_draw_mouse();*/
+    }
     /*if (x < mouse_x + (MOUSE_SIDE / 2) && x > mouse_x - (MOUSE_SIDE / 2) && y < mouse_y + (MOUSE_SIDE / 2) && y > mouse_y + (MOUSE_SIDE / 2)) {*/
-    /*graphics_draw_mouse();*/
     /*}*/
     uint8_t *v = video_buffer + video_xbytes * y + x * 3;
     v[2] = c.r;
@@ -239,11 +245,31 @@ void graphics_copy_to_color_buffer(int x, int y, int width, int height, struct g
     }
 }
 
+// Can't use graphics_line since it uses plot pixel.
+// This does mouse region checking, which draws into the mouse buffer.
+// This would then just draw into the mouse buffer, defeating its purpose.
 void graphics_draw_mouse() {
-    // vertical line
-    graphics_line(mouse_x - MOUSE_SIDE_2 + 1, mouse_y, mouse_x + MOUSE_SIDE_2 - 1, mouse_y, mouse_fg_color);
+    int i;
+    uint8_t *v;
+    int start_x = (mouse_x - MOUSE_SIDE_2 + 1) < 0 ? 0 : mouse_x - MOUSE_SIDE_2 + 1;
+    int end_x = (mouse_x + MOUSE_SIDE_2) > video_xres ? video_xres : mouse_x + MOUSE_SIDE_2;
     // horizontal line
-    graphics_line(mouse_x, mouse_y - MOUSE_SIDE_2 + 1, mouse_x, mouse_y + MOUSE_SIDE_2 - 1, mouse_fg_color);
+    for (i = start_x; i < end_x; i++) {
+        v = video_buffer + video_xbytes * mouse_y + i * 3;
+        v[2] = mouse_fg_color.r;
+        v[1] = mouse_fg_color.g;
+        v[0] = mouse_fg_color.b;
+    }
+
+    int start_y = (mouse_y - MOUSE_SIDE_2 + 1) < 0 ? 0 : mouse_y - MOUSE_SIDE_2 + 1;
+    int end_y = (mouse_y + MOUSE_SIDE_2) > video_yres ? video_yres : mouse_y + MOUSE_SIDE_2;
+    // vertical line
+    for (i = start_y; i < end_y; i++) {
+        v = video_buffer + video_xbytes * i + mouse_x * 3;
+        v[2] = mouse_fg_color.r;
+        v[1] = mouse_fg_color.g;
+        v[0] = mouse_fg_color.b;
+    }
 }
 
 void graphics_mouse() {
