@@ -83,7 +83,6 @@ void graphics_arc(int x, int y, double r, double start_theta, double end_theta,
  * @param graphics_color The color to draw in
  */
 void graphics_circle(int x, int y, double r, struct graphics_color c);
-
 void graphics_rect(int x, int y, int w, int h, struct graphics_color c);
 void graphics_clear(struct graphics_color c);
 void graphics_char(int x, int y, char ch, struct graphics_color fgcolor,
@@ -92,13 +91,35 @@ void graphics_bitmap(int x, int y, int width, int height, uint8_t * data,
                      struct graphics_color fgcolor,
                      struct graphics_color bgcolor);
 
+/**
+ * @brief Copies part of video buffer into a color buffer.
+ * @details Copies a rectangular region of the video into a buffer of graphics_color. It does checking for the region size exceeding the buffer size (provided as a param).
+ *
+ * @param x Starting x coordinate.
+ * @param y Starting y coordinate.
+ * @param width Width of the region.
+ * @param height Height of the region.
+ * @param buffer Pointer to a struct graphics_color buffer.
+ * @param buf_size Size of the buffer.
+ */
 void graphics_copy_to_color_buffer(int x, int y, int width, int height, struct graphics_color *buffer, int buf_size);
 
+/**
+ * @brief Copies a color buffer into the video buffer.
+ * @details Copies a buffer of graphics_color into a rectangular region of the video. It does checking for the region size exceeding the buffer size (provided as a param).
+ *
+ * @param x Starting x coordinate.
+ * @param y Starting y coordinate.
+ * @param width Width of the region.
+ * @param height Height of the region.
+ * @param buffer Pointer to a struct graphics_color buffer.
+ * @param buf_size Size of the buffer.
+ */
 void graphics_copy_from_color_buffer(int x, int y, int width, int height, struct graphics_color *buffer, int buf_size);
 
 /**
  * @brief Draws mouse on the vid buf
- * @brief This only draws the mouse on the vid buf. It does not look at the buffer underneath it.
+ * @details This only draws the mouse on the vid buf. It does not look at the buffer underneath it.
  */
 void graphics_draw_mouse();
 
