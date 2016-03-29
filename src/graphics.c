@@ -49,7 +49,12 @@ static inline void plot_pixel(int x, int y, struct graphics_color c) {
         return;
     }
 
-    // Check to make sure that we are not drawing out of bounds
+    uint8_t *v = video_buffer + video_xbytes * y + x * 3;
+    v[2] = c.r;
+    v[1] = c.g;
+    v[0] = c.b;
+
+    // Check to make sure that we are not drawing in mouse region
     int diff_x = x - mouse_x;
     int diff_y = y - mouse_y;
     // if the point is in the mouse region, draw to the mouse buffer, copy into the video region, and draw the mouse
@@ -61,12 +66,7 @@ static inline void plot_pixel(int x, int y, struct graphics_color c) {
         mouse_draw_buffer[index].r = c.r;
         mouse_draw_buffer[index].g = c.g;
         mouse_draw_buffer[index].b = c.b;
-        graphics_draw_mouse();
     }
-    uint8_t *v = video_buffer + video_xbytes * y + x * 3;
-    v[2] = c.r;
-    v[1] = c.g;
-    v[0] = c.b;
 }
 
 void graphics_arc(int x, int y, double r, double start_theta, double end_theta, struct graphics_color c) {
@@ -242,8 +242,8 @@ void graphics_copy_to_color_buffer(int x, int y, int width, int height, struct g
 }
 
 // Can't use graphics_line since it uses plot pixel.
-// This does mouse region checking, which draws into the mouse buffer.
-// This would then just draw into the mouse buffer, defeating its purpose.
+// It does mouse region checking, which draws into the mouse buffer.
+// It would then just draw into the mouse buffer, defeating the purpose of the mouse buffer.
 void graphics_draw_mouse() {
     int i;
     uint8_t *v;
