@@ -18,9 +18,6 @@ struct graphics_color mouse_fg_color = {0, 255, 0};
 static bool mouse_enabled = 1;
 
 void set_mouse_fg_color(uint8_t r, uint8_t g, uint8_t b) {
-    r = graphics_verify_color_range(r);
-    g = graphics_verify_color_range(g);
-    b = graphics_verify_color_range(b);
     mouse_fg_color.r = r;
     mouse_fg_color.g = g;
     mouse_fg_color.b = b;

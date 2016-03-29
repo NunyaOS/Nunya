@@ -189,16 +189,6 @@ void graphics_char(int x, int y, char ch, struct graphics_color fgcolor,
                            fgcolor, bgcolor);
 }
 
-uint8_t graphics_verify_color_range(uint8_t x) {
-    if (x < 0) {
-        return 0;
-    }
-    if (x > 255) {
-        return 255;
-    }
-    return x;
-}
-
 void graphics_copy_from_color_buffer(int x, int y, int width, int height, struct graphics_color *buffer, int buf_size) {
     int i, j;
     int buf_ix = 0;

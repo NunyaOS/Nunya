@@ -195,4 +195,3 @@ static int memory_is_range_type_available(int type) {
         return 0;
     }
 }
-

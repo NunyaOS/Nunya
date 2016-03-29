@@ -98,18 +98,12 @@ void console_init() {
 }
 
 void console_set_fgcolor(uint8_t r, uint8_t g, uint8_t b) {
-    r = graphics_verify_color_range(r);
-    g = graphics_verify_color_range(g);
-    b = graphics_verify_color_range(b);
     fgcolor.r = r;
     fgcolor.g = g;
     fgcolor.b = b;
 }
 
 void console_set_bgcolor(uint8_t r, uint8_t g, uint8_t b) {
-    r = graphics_verify_color_range(r);
-    g = graphics_verify_color_range(g);
-    b = graphics_verify_color_range(b);
     bgcolor.r = r;
     bgcolor.g = g;
     bgcolor.b = b;

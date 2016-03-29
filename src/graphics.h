@@ -92,13 +92,6 @@ void graphics_bitmap(int x, int y, int width, int height, uint8_t * data,
                      struct graphics_color fgcolor,
                      struct graphics_color bgcolor);
 
-/**
- * @brief Ensures that a color is within 0 and 255.
- * @param x A color value.
- * @return A clipped color value, between 0 and 255.
- */
-uint8_t graphics_verify_color_range(uint8_t x);
-
 void graphics_copy_to_color_buffer(int x, int y, int width, int height, struct graphics_color *buffer, int buf_size);
 
 void graphics_copy_from_color_buffer(int x, int y, int width, int height, struct graphics_color *buffer, int buf_size);
