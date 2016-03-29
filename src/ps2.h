@@ -14,8 +14,6 @@ See the file LICENSE for details.
 
 #include "ioports.h"
 
-void ps2_init();
-
 /**
  * @brief Whether second channel is enabled
  * @details This function returns (default no) whether the second PS2 channel is enabled.
