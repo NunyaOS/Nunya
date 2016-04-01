@@ -20,6 +20,8 @@ See the file LICENSE for details.
 struct process *current = 0;
 struct list ready_list = { 0, 0 };
 
+extern uint32_t last_interrupt;
+
 void process_init() {
     // Create a dummy process with no code and no data, and load its pagetable
     // Even though it's dummy, at least kernel memory is direct mapped, so
@@ -169,6 +171,7 @@ void process_wakeup_all(struct list *q) {
 }
 
 void process_dump(struct process *p) {
+    console_printf("last interrupt: %d\n", last_interrupt);
     struct x86_stack *s =
         (struct x86_stack *)(p->kstack + PAGE_SIZE - sizeof(*s));
     console_printf("kstack: %x\n", p->kstack);

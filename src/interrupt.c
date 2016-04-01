@@ -16,6 +16,9 @@ static interrupt_handler_t interrupt_handler_table[48];
 static uint32_t interrupt_count[48];
 static uint8_t interrupt_spurious[48];
 
+// Flag to record last interrupt before crashes
+uint32_t last_interrupt = -1;
+
 static const char *exception_names[] = {
     "division by zero",
     "debug exception",
@@ -88,6 +91,7 @@ void interrupt_init() {
 }
 
 void interrupt_handler(int i, int code) {
+    last_interrupt = i;
     (interrupt_handler_table[i]) (i, code);
     interrupt_acknowledge(i);
     interrupt_count[i]++;
