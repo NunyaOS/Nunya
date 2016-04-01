@@ -75,6 +75,8 @@ struct process *process_create(unsigned code_size, unsigned stack_size) {
 
     process_stack_init(p);
 
+    p->window = 0;
+
     return p;
 }
 

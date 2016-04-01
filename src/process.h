@@ -28,6 +28,7 @@ struct process {
     char *kstack_top;
     char *stack_ptr;
     uint32_t entry;
+    struct window *window;
 };
 
 void process_init();
