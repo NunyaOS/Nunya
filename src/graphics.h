@@ -118,12 +118,6 @@ void graphics_copy_to_color_buffer(int x, int y, int width, int height, struct g
 void graphics_copy_from_color_buffer(int x, int y, int width, int height, struct graphics_color *buffer, int buf_size);
 
 /**
- * @brief Draws mouse on the vid buf
- * @details This only draws the mouse on the vid buf. It does not look at the buffer underneath it.
- */
-void graphics_draw_mouse();
-
-/**
  * @brief Draws the mouse on the screen
  * @details This copies the old mouse_draw_buffer back into the video buffer and then copies the new mouse region from the video buffer into mouse_draw_buffer. It then draws the mouse (a cross) on the screen. graphics_mouse does not use plot_pixel because of mouse_buffer checking. This should be used only when the mouse position changes. Otherwise, it wastes computation.
  */
