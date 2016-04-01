@@ -9,6 +9,8 @@ See the file LICENSE for details.
 #include "string.h"
 #include "testing.h"
 #include "fs_terminal_commands.h"
+#include "window.h"
+#include "graphics.h"
 
 #define KEYBOARD_BUFFER_SIZE 256
 
@@ -49,6 +51,9 @@ void cmd_line_attempt(const char *line) {
         cmd_line_cat(the_rest);
     } else if (strcmp("help", first_word) == 0) {   // Leave this as the last case
         cmd_line_help(the_rest);
+    } else if (strcmp("window_test", first_word) == 0) {
+        console_printf("\f");
+        window_hierarchy_test();
     }
     /*else if () {
      *...
