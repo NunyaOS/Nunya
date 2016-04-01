@@ -3,10 +3,21 @@
 #include "kerneltypes.h"
 #include "process.h"
 #include "iso.h"
+#include "console.h"
 
 #define READ 4
 #define WRITE 2
 #define APPEND 1
+
+void fs_print_allowances() {
+    console_printf("fs_print_allowances: ");
+    struct fs_allowance *iterator = current->fs_allowances_head;
+    while (iterator) {
+        console_printf("%s -> ", iterator->path);
+        iterator = iterator->next;
+    }
+    console_printf("\n");
+}
 
 void fs_sys_init_security(struct process *p) {
     //Open files table
@@ -111,9 +122,9 @@ uint32_t fs_sys_open(const char *path, const char *mode) {
     strcpy(media_path, path+2);
 
     int ata_unit = path[1] - 48; //48 is ascii for 0
-    
+
     int ata_type = map_media_to_driver_id(ata_unit);
-    
+
     int next_fd;
     //find current's next available fd by 'files' member
     //add to process file->file table
@@ -129,11 +140,12 @@ uint32_t fs_sys_open(const char *path, const char *mode) {
             if (current->files->open_files[next_fd]) {
                 opened = 1;
                 current->files->num_open += 1;
+                break;
             } else {
                 return -1;
             }
         }
-    } 
+    }
 
     // TODO: keep on OS's open file table
 
@@ -170,16 +182,13 @@ uint32_t fs_sys_close(uint32_t fd) {
 // -2 illegal allowances
 uint32_t fs_sys_read(char *dest, uint32_t bytes, uint32_t fd) {
     int bytes_read = 0;
-
     if (fd >= PROCESS_MAX_OPEN_FILES) {
         return -1;
     }
-
     struct fs_agnostic_file *fp = current->files->open_files[fd];
     if(!fp) {
         return -1;
     }
-
     //must be okay with security and be allowed to read
     if (fs_sys_security_check(fp->path) && (fp->mode & READ)) {
         switch (fp->ata_type) {
@@ -189,7 +198,7 @@ uint32_t fs_sys_read(char *dest, uint32_t bytes, uint32_t fd) {
                 break;
             default:
                 return -2;
-        }        
+        }
     } else {
         return -1;
     }
@@ -231,10 +240,9 @@ uint32_t fs_sys_remove_allowance(const char *path) {
     //does not recursively remove allowances from fs
     //should recursively remove allowances from processes,
     //but we can't, because we don't have pointers to our children
-
     struct fs_allowance *iterator;
     struct fs_allowance *trailing_iterator = 0;
-    
+
     for(iterator = current->fs_allowances_head; iterator != 0; iterator = iterator->next) {
         if (strcmp(iterator->path, path) == 0) {
             //Found it! Remove it from the linked list
@@ -300,8 +308,8 @@ bool fs_sys_allowance_check(const char *path) {
         } else {
             iterator = iterator->next;
         }
-    } 
-    return 0; 
+    }
+    return 0;
 }
 
 uint32_t fs_sys_security_check(const char *path) {
