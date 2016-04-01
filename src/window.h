@@ -10,6 +10,7 @@ See the file LICENSE for details.
 #include "graphics.h"
 
 struct window {
+    struct window *parent;
     int x;
     int y;
     int width;
@@ -26,14 +27,14 @@ struct window {
  * @param y The y position of the window, relative to the screen
  * @param width The width of the window in pixels
  * @param height The height of the window in pixels
+ * @param parent The parent window, or NULL if none
  * @return A pointer to the window
  */
-struct window *window_create(int x, int y, int width, int height);
+struct window *window_create(int x, int y, int width, int height, struct window *parent);
 
 /**
  * @brief Sets the border color of the window
  * @details Sets the border color of the window and re-draws with the new color
- *
  * @param window The window whose border color to change
  * @param graphics_color The new border color
  */
@@ -110,7 +111,7 @@ void window_draw_char(struct window *w, int x, int y, char ch, struct graphics_c
  * @param graphics_color The color to draw the negative space
  */
 void window_draw_string(struct window *w, int x, int y, const char *str, struct graphics_color fgcolor,
-						struct graphics_color bgcolor);
+                        struct graphics_color bgcolor);
 
 /**
  * @brief Draws data to window
@@ -129,5 +130,12 @@ void window_draw_string(struct window *w, int x, int y, const char *str, struct 
  */
 void window_draw_bitmap(struct window *w, int x, int y, int width, int height, uint8_t * data,
                      struct graphics_color fgcolor,
-                     struct graphics_color bgcolor); 
+                     struct graphics_color bgcolor);
+
+/**
+ * @brief Tests drawing in nested windows
+ * @details This creates nested windows and draws to them, to ensure
+ * that child windows are being correctly clipped
+ */
+void window_hierarchy_test();
 #endif
