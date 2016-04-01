@@ -9,6 +9,8 @@ See the file LICENSE for details.
 #include "string.h"
 #include "testing.h"
 #include "fs_terminal_commands.h"
+#include "window.h"
+#include "graphics.h"
 
 #include "iso.h"            // iso
 #include "memorylayout.h"   // PROCESS_ENTRY_POINT
@@ -52,6 +54,9 @@ void cmd_line_attempt(const char *line) {
         cmd_line_cat(the_rest);
     } else if (strcmp("runproc", first_word) == 0) {
         cmd_line_run_userproc();
+    } else if (strcmp("window_test", first_word) == 0) {
+        console_printf("\f");
+        window_hierarchy_test();
     }
     /*else if () {
      *...
