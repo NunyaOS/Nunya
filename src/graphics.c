@@ -15,6 +15,8 @@ See the file LICENSE for details.
 
 static int bounds_x_1, bounds_x_2, bounds_y_1, bounds_y_2;
 
+void graphics_draw_mouse();
+
 int graphics_width() {
     return video_xres;
 }
