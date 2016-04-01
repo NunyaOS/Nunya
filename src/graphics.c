@@ -9,10 +9,13 @@ See the file LICENSE for details.
 #include "font.h"
 #include "kernelcore.h"
 #include "math.h"
+#include "mouse.h"
 
 #define ARC_DT 0.01
 
 static int bounds_x_1, bounds_x_2, bounds_y_1, bounds_y_2;
+
+void graphics_draw_mouse();
 
 int graphics_width() {
     return video_xres;
@@ -47,10 +50,26 @@ static inline void plot_pixel(int x, int y, struct graphics_color c) {
     if (x < bounds_x_1 || x > bounds_x_2 || y < bounds_y_1 || y > bounds_y_2) {
         return;
     }
+
     uint8_t *v = video_buffer + video_xbytes * y + x * 3;
     v[2] = c.r;
     v[1] = c.g;
     v[0] = c.b;
+
+    // Check to make sure that we are not drawing in mouse region
+    int diff_x = x - mouse_x;
+    int diff_y = y - mouse_y;
+    // if the point is in the mouse region, draw to the mouse buffer, copy into the video region, and draw the mouse
+    if (mouse_inited && diff_x < MOUSE_SIDE_2 && diff_x > -MOUSE_SIDE_2 && diff_y < MOUSE_SIDE_2 && diff_y > -MOUSE_SIDE_2) {
+        // wraps to [0, 28]
+        int x_index = diff_x + MOUSE_SIDE_2 - 1;
+        int y_index = diff_y + MOUSE_SIDE_2 - 1;
+        int index = y_index * (MOUSE_SIDE - 1) + x_index;
+        mouse_draw_buffer[index].r = c.r;
+        mouse_draw_buffer[index].g = c.g;
+        mouse_draw_buffer[index].b = c.b;
+        graphics_draw_mouse();
+    }
 }
 
 void graphics_arc(int x, int y, double r, double start_theta, double end_theta, struct graphics_color c) {
@@ -172,3 +191,82 @@ void graphics_char(int x, int y, char ch, struct graphics_color fgcolor,
     return graphics_bitmap(x, y, FONT_WIDTH, FONT_HEIGHT, &fontdata[u],
                            fgcolor, bgcolor);
 }
+
+void graphics_copy_from_color_buffer(int x, int y, int width, int height, struct graphics_color *buffer, int buf_size) {
+    int i, j;
+    int buf_ix = 0;
+    // copy old buffer into video buffer
+    for (j = y; j < y + height; j++) {
+        for (i = x; i < x + width; i++) {
+            if (i < 0 || i > video_xres - 1 || j < 0 || j > video_yres - 1) {
+                continue;
+            }
+            uint8_t *v = video_buffer + video_xbytes * j + i * 3;
+            v[2] = buffer[buf_ix].r;
+            v[1] = buffer[buf_ix].g;
+            v[0] = buffer[buf_ix].b;
+            buf_ix++;
+            if (buf_ix >= buf_size) {
+                return;
+            }
+        }
+    }
+}
+
+void graphics_copy_to_color_buffer(int x, int y, int width, int height, struct graphics_color *buffer, int buf_size) {
+    int i, j;
+    int buf_ix = 0;
+    // copy video buffer into color buffer
+    for (j = y; j < y + height; j++) {
+        for (i = x; i < x + width; i++) {
+            if (i < 0 || i > video_xres - 1 || j < 0 || j > video_yres - 1) {
+                continue;
+            }
+            uint8_t *v = video_buffer + video_xbytes * j + i * 3;
+            buffer[buf_ix].r = v[2];
+            buffer[buf_ix].g = v[1];
+            buffer[buf_ix].b = v[0];
+            buf_ix++;
+            if (buf_ix >= buf_size) {
+                return;
+            }
+        }
+    }
+}
+
+// Can't use graphics_line since it uses plot pixel.
+// It does mouse region checking, which draws into the mouse buffer.
+// It would then just draw into the mouse buffer, defeating the purpose of the mouse buffer.
+void graphics_draw_mouse() {
+    int i;
+    uint8_t *v;
+    int start_x = (mouse_x - MOUSE_SIDE_2 + 1) < 0 ? 0 : mouse_x - MOUSE_SIDE_2 + 1;
+    int end_x = (mouse_x + MOUSE_SIDE_2) > video_xres ? video_xres : mouse_x + MOUSE_SIDE_2;
+    // horizontal line
+    for (i = start_x; i < end_x; i++) {
+        v = video_buffer + video_xbytes * mouse_y + i * 3;
+        v[2] = mouse_fg_color.r;
+        v[1] = mouse_fg_color.g;
+        v[0] = mouse_fg_color.b;
+    }
+
+    int start_y = (mouse_y - MOUSE_SIDE_2 + 1) < 0 ? 0 : mouse_y - MOUSE_SIDE_2 + 1;
+    int end_y = (mouse_y + MOUSE_SIDE_2) > video_yres ? video_yres : mouse_y + MOUSE_SIDE_2;
+    // vertical line
+    for (i = start_y; i < end_y; i++) {
+        v = video_buffer + video_xbytes * i + mouse_x * 3;
+        v[2] = mouse_fg_color.r;
+        v[1] = mouse_fg_color.g;
+        v[0] = mouse_fg_color.b;
+    }
+}
+
+void graphics_mouse() {
+    // copy mouse buffer into video buf
+    graphics_copy_from_color_buffer(old_mouse_x - MOUSE_SIDE_2 + 1, old_mouse_y - MOUSE_SIDE_2 + 1, MOUSE_SIDE - 1, MOUSE_SIDE - 1, mouse_draw_buffer, (MOUSE_SIDE - 1) * (MOUSE_SIDE - 1));
+    // copy mouse region of video buf into mouse buffer
+    graphics_copy_to_color_buffer(mouse_x - MOUSE_SIDE_2 + 1, mouse_y - MOUSE_SIDE_2 + 1, MOUSE_SIDE - 1, MOUSE_SIDE - 1, mouse_draw_buffer, (MOUSE_SIDE - 1) * (MOUSE_SIDE - 1));
+    // actually draw mouse
+    graphics_draw_mouse();
+}
+

@@ -10,6 +10,7 @@ See the file LICENSE for details.
 #include "ascii.h"
 #include "process.h"
 #include "kernelcore.h"
+#include "ps2.h"
 
 #define KEY_INVALID 0127
 
@@ -18,7 +19,6 @@ See the file LICENSE for details.
 #define SPECIAL_CTRL  3
 #define SPECIAL_SHIFTLOCK 4
 
-#define KEYBOARD_PORT_A     0x60
 #define KEYBOARD_PORT_B     0x61
 #define KEYBOARD_ACK    0x80
 
@@ -47,7 +47,7 @@ static int keyboard_scan() {
     int code;
     int ack;
 
-    code = inb(KEYBOARD_PORT_A);
+    code = inb(PS2_DATA_PORT);
     iowait();
     ack = inb(KEYBOARD_PORT_B);
     iowait();
