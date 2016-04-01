@@ -66,6 +66,7 @@ static inline void plot_pixel(int x, int y, struct graphics_color c) {
         mouse_draw_buffer[index].r = c.r;
         mouse_draw_buffer[index].g = c.g;
         mouse_draw_buffer[index].b = c.b;
+        graphics_draw_mouse();
     }
 }
 
@@ -202,7 +203,7 @@ void graphics_copy_from_color_buffer(int x, int y, int width, int height, struct
             v[2] = buffer[buf_ix].r;
             v[1] = buffer[buf_ix].g;
             v[0] = buffer[buf_ix].b;
-			buf_ix++;
+            buf_ix++;
             if (buf_ix >= buf_size) {
                 return;
             }
@@ -223,7 +224,7 @@ void graphics_copy_to_color_buffer(int x, int y, int width, int height, struct g
             buffer[buf_ix].r = v[2];
             buffer[buf_ix].g = v[1];
             buffer[buf_ix].b = v[0];
-			buf_ix++;
+            buf_ix++;
             if (buf_ix >= buf_size) {
                 return;
             }
