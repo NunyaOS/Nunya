@@ -4,10 +4,6 @@ This software is distributed under the GNU General Public License.
 See the file LICENSE for details.
 */
 
-/*
- * disk.h
- */
-
 #ifndef DISK_H
 #define DISK_H
 
