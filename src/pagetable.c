@@ -252,10 +252,20 @@ void exception_handle_pagefault(int intr, int code) {
             interrupt_dump_process();
         }
 
-        // Currently we give it as much memory as we could
-        pagetable_alloc(current->pagetable, vaddr, PAGE_SIZE,
+        int number_of_pages_left = current->permissions->max_number_of_pages - current->number_of_pages_using;
+        // check the permissions of the process
+        if(number_of_pages_left > 0) {
+            // allocate the page
+            pagetable_alloc(current->pagetable, vaddr, PAGE_SIZE,
             // TODO(SL): figure out if these flags are correct
             PAGE_FLAG_READWRITE | PAGE_FLAG_USER | PAGE_FLAG_ALLOC);
+
+            // increment the process' counter
+            current->number_of_pages_using++;
+        } else {
+            console_printf("Error: process exceeded page limit\n");
+            interrupt_dump_process();
+        }
     }
 }
 
