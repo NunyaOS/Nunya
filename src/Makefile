@@ -10,18 +10,18 @@ DEBUG_OBJS=debug_kernel.o
 KERNEL_CCFLAGS=-Wall -c -ffreestanding -m32 -march=i386
 KERNEL_LDFLAGS=-m elf_i386
 
-all: basekernel.iso
+all: nunya.iso
 
 debug: KERNEL_CCFLAGS += -DNUNYA_KDEBUG
-debug: basekernel.iso
+debug: nunya.iso
 
-basekernel.iso: basekernel.img
-	genisoimage -J -R -o basekernel.iso -b basekernel.img basekernel.img
-	rm basekernel.img
+nunya.iso: nunya.img
+	genisoimage -J -R -o nunya.iso -b nunya.img nunya.img
+	rm nunya.img
 
-basekernel.img: bootblock kernel
-	cat bootblock kernel > basekernel.img
-	truncate basekernel.img --size 1474560
+nunya.img: bootblock kernel
+	cat bootblock kernel > nunya.img
+	truncate nunya.img --size 1474560
 
 bootblock: bootblock.o
 	ld ${KERNEL_LDFLAGS} -Ttext 0 -s --oformat binary $< -o $@
@@ -39,4 +39,4 @@ kernel: ${OBJECTS}
 	gcc -Wall -S -ffreestanding -m32 -march=i386 $< -o $@
 
 clean:
-	rm -rf basekernel.iso basekernel.img bootblock kernel *.o
+	rm -rf nunya.iso nunya.img bootblock kernel *.o
