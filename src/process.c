@@ -33,6 +33,13 @@ void process_init() {
 
     current->state = PROCESS_STATE_READY;
 
+    // establish initial permissions
+    struct process_permissions initial_permissions;
+    initial_permissions.max_number_of_pages = memory_pages_total();
+    // initial_permissions.max_number_of_pages = 50; // test
+    console_printf("total pages: %d\n", memory_pages_total());
+    current->permissions = initial_permissions;
+
     console_printf("process: ready\n");
 }
 
@@ -143,6 +150,7 @@ void process_exit(int code) {
     console_printf("process exiting with status %d...\n", code);
     current->exitcode = code;
     process_switch(PROCESS_STATE_GRAVE);
+    // todo: kill the process' children
 }
 
 void process_wait(struct list *q) {
@@ -165,6 +173,10 @@ void process_wakeup_all(struct list *q) {
         p->state = PROCESS_STATE_READY;
         list_push_tail(&ready_list, &p->node);
     }
+}
+
+void add_process_to_ready_queue(struct process *p) {
+    list_push_tail(&ready_list, &p->node);
 }
 
 void process_dump(struct process *p) {

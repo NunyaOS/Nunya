@@ -12,23 +12,13 @@ See the file LICENSE for details.
 #include "pagetable.h"
 #include "x86.h"
 #include "memory.h"
+#include "global_structs.h"
 
 #define PROCESS_STATE_CRADLE  0
 #define PROCESS_STATE_READY   1
 #define PROCESS_STATE_RUNNING 2
 #define PROCESS_STATE_BLOCKED 3
 #define PROCESS_STATE_GRAVE   4
-
-struct process {
-    struct list_node node;
-    int state;
-    int exitcode;
-    struct pagetable *pagetable;
-    char *kstack;
-    char *kstack_top;
-    char *stack_ptr;
-    uint32_t entry;
-};
 
 void process_init();
 
@@ -41,6 +31,9 @@ void process_dump(struct process *p);
 void process_wait(struct list *q);
 void process_wakeup(struct list *q);
 void process_wakeup_all(struct list *q);
+
+void add_process_to_ready_queue(struct process *p);
+
 
 extern struct process *current;
 
