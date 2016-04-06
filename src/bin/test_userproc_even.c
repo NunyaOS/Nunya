@@ -12,7 +12,7 @@ int main() {
     while(1) {
         int i = 0;
         for(i = 0; i < 10; i+=2) {
-            testcall(i);
+            debug_print(i);
             int j;
             for(j = 0; j < 100000000; j++) {} // busywait
         }

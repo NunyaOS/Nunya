@@ -167,6 +167,10 @@ void process_wakeup_all(struct list *q) {
     }
 }
 
+void add_process_to_ready_queue(struct process *p) {
+    list_push_tail(&ready_list, &p->node);
+}
+
 void process_dump(struct process *p) {
     console_printf("last interrupt: %d\n", last_interrupt);
     struct x86_stack *s =
