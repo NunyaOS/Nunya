@@ -59,7 +59,7 @@ uint32_t sys_run(char *process_path, struct process_permissions *child_permissio
     uint32_t real_addr;
     if (!pagetable_getmap(child_proc->pagetable, PROCESS_ENTRY_POINT, &real_addr)) {
         console_printf("Unable to get physical address of 0x80000000\n");
-        halt(); // todo: end more cleanly
+        sys_exit(-1); // todo: end more cleanly
     }
 
     // Copy data
@@ -76,13 +76,13 @@ uint32_t sys_run(char *process_path, struct process_permissions *child_permissio
     // check if we've exceeded the parent's allocation
     if (current->number_of_pages_using > current->permissions.max_number_of_pages) {
         console_printf("current process exceeded limit: %d > %d\n", current->number_of_pages_using, current->permissions.max_number_of_pages);
-        halt();
+        sys_exit(-1);
     }
 
     // check if we've exceeded the child's allocation
     if (child_proc->number_of_pages_using > child_proc->permissions.max_number_of_pages) {
         console_printf("child process exceeded limit\n");
-        halt();
+        sys_exit(-1);
     }
 
     // free the intermediary memory we used

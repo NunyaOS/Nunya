@@ -150,6 +150,7 @@ void process_exit(int code) {
     console_printf("process exiting with status %d...\n", code);
     current->exitcode = code;
     process_switch(PROCESS_STATE_GRAVE);
+    // todo: kill the process' children
 }
 
 void process_wait(struct list *q) {

@@ -50,4 +50,4 @@ bin/%.o: bin/%.c
 	gcc -Wall -S -ffreestanding -m32 -march=i386 $< -o $@
 
 clean:
-	rm -rf basekernel.iso basekernel.img bootblock kernel *.o files.iso *.nun
+	rm -rf basekernel.iso basekernel.img bootblock kernel *.o ../files.iso *.nun
