@@ -28,8 +28,12 @@ struct process {
     char *kstack_top;
     char *stack_ptr;
     uint32_t entry;
+
+    struct process *parent;
+    struct list children;
+
     int number_of_pages_using;
-    struct process_permissions *permissions;
+    struct process_permissions permissions;
 };
 
 #endif

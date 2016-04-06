@@ -33,6 +33,13 @@ void process_init() {
 
     current->state = PROCESS_STATE_READY;
 
+    // establish initial permissions
+    struct process_permissions initial_permissions;
+    initial_permissions.max_number_of_pages = memory_pages_total();
+    // initial_permissions.max_number_of_pages = 50; // test
+    console_printf("total pages: %d\n", memory_pages_total());
+    current->permissions = initial_permissions;
+
     console_printf("process: ready\n");
 }
 

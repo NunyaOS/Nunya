@@ -53,6 +53,7 @@ void cmd_line_attempt(const char *line) {
         cmd_line_cat(the_rest);
     } else if (strcmp("process", first_word) == 0) { // temporary, for debugging
         struct process_permissions test_permissions;
+        test_permissions.max_number_of_pages = 10;
 
         run("/BIN/TEST_USE.NUN", &test_permissions);
     } else if (strcmp("help", first_word) == 0) {   // Leave this as the last case

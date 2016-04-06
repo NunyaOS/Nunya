@@ -13,14 +13,14 @@ See the file LICENSE for details.
 #include "kernelcore.h"
 #include "pagetable.h"
 
-static uint32_t pages_free = 0;
-static uint32_t pages_total = 0;
-
 static uint32_t *freemap = 0;
 static uint32_t freemap_bits = 0;
 static uint32_t freemap_bytes = 0;
 static uint32_t freemap_cells = 0;
 static uint32_t freemap_pages = 0;
+
+static uint32_t pages_free = 0;
+static uint32_t pages_total = 0;
 
 static void *alloc_memory_start = (void *)ALLOC_MEMORY_START;
 
