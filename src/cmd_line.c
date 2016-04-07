@@ -63,10 +63,6 @@ void cmd_line_attempt(const char *line) {
     } else if (strcmp("read_file", first_word) == 0) {
         cmd_line_run_proc("/READ_FIL.");
     }
-    /*else if () {
-     *...
-     *}
-     */
     else {
         console_printf("%s: command not found\n", first_word);
     }
