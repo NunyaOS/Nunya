@@ -6,6 +6,7 @@ See the file LICENSE for details.
 
 #include "window.h"
 #include "memory.h"
+#include "window_manager.h"
 
 #define CHARACTER_W 8
 #define CHARACTER_H 8
@@ -60,10 +61,14 @@ struct window *window_create(int x, int y, int width, int height, struct window 
     w->width = width;
     w->height = height;
     w->parent = parent;
+    struct list l = {0, 0};
+    w->event_queue = l;
 
     // Draw the border
     struct graphics_color bc = {128,128,128};
     window_set_border_color(w, bc);
+
+    active_window = w;
 
     return w;
 }

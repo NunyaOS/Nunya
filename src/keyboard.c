@@ -11,6 +11,7 @@ See the file LICENSE for details.
 #include "process.h"
 #include "kernelcore.h"
 #include "ps2.h"
+#include "window_manager.h"
 
 #define KEY_INVALID 0036
 
@@ -130,9 +131,16 @@ void keyboard_interrupt(int i, int code) {
     if ((buffer_write + 1) == (buffer_read % KEYBOARD_BUFFER_SIZE)) {
         return;
     }
-    buffer[buffer_write] = c;
-    buffer_write = (buffer_write + 1) % KEYBOARD_BUFFER_SIZE;
-    process_wakeup(&queue);
+    if (active_window) {
+        send_event_keyboard_press(c);
+    } else {
+        if ((buffer_write + 1) == (buffer_read % KEYBOARD_BUFFER_SIZE)) {
+            return;
+        }
+        buffer[buffer_write] = c;
+        buffer_write = (buffer_write + 1) % KEYBOARD_BUFFER_SIZE;
+        process_wakeup(&queue);
+    }
 }
 
 char keyboard_read() {

@@ -8,6 +8,7 @@ See the file LICENSE for details.
 #define WINDOW_H
 
 #include "graphics.h"
+#include "list.h"
 
 struct window {
     struct window *parent;
@@ -17,6 +18,7 @@ struct window {
     int height;
     struct graphics_color border_color;
     struct graphics_color background_color;
+    struct list event_queue;
 };
 
 /**
