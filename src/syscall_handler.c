@@ -25,7 +25,7 @@ int32_t syscall_handler(uint32_t n, uint32_t a, uint32_t b, uint32_t c,
         case SYSCALL_yield:
             return sys_yield();
         case SYSCALL_run:
-            return sys_run((char *)a, (struct process_permissions *)b);
+            return sys_run((char *)a, (struct process_permissions *)b, current);
         case SYSCALL_debug_print:
             return sys_debug_print(a); // for debugging
         default:

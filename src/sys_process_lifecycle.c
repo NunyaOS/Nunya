@@ -20,7 +20,7 @@ uint32_t sys_yield() {
     return 0;
 }
 
-uint32_t sys_run(char *process_path, struct process_permissions *child_permissions) {
+uint32_t sys_run(char *process_path, struct process_permissions *child_permissions, struct process *parent) {
     if (child_permissions == 0) {
         return -1;
     }
@@ -47,13 +47,13 @@ uint32_t sys_run(char *process_path, struct process_permissions *child_permissio
     }
 
     // store the current number of pages used, so we can see how many the child uses
-    int page_count_before_child = current->number_of_pages_using;
+    int page_count_before_child = parent->number_of_pages_using;
 
     // Create a new process(page, page)
     struct process *child_proc = process_create(PAGE_SIZE, PAGE_SIZE);
     child_proc->permissions = *child_permissions; // store as value, but we needed to pass as reference because syscall
-    child_proc->parent = current; // store the child's parent
-    list_push_tail(&current->children, &child_proc->node); // add child to parent's list
+    child_proc->parent = parent; // store the child's parent
+    list_push_tail(&parent->children, &child_proc->node); // add child to parent's list
 
     // Load the code into the proper page
     uint32_t real_addr;
@@ -66,16 +66,19 @@ uint32_t sys_run(char *process_path, struct process_permissions *child_permissio
     memcpy((void *)real_addr, (void *)process_data, proc_file->data_length);
 
     // transfer pages used count to child
-    int child_pages_used = current->number_of_pages_using - page_count_before_child;
+    int child_pages_used = parent->number_of_pages_using - page_count_before_child;
     child_proc->number_of_pages_using += child_pages_used;
-    current->number_of_pages_using = page_count_before_child;
+    parent->number_of_pages_using = page_count_before_child;
 
     // add the max number of pages child could use to parent's usage
-    current->number_of_pages_using += child_proc->permissions.max_number_of_pages;
+    parent->number_of_pages_using += child_proc->permissions.max_number_of_pages;
+
+    // free the intermediary memory we used
+    kfree(process_data);
 
     // check if we've exceeded the parent's allocation
-    if (current->number_of_pages_using > current->permissions.max_number_of_pages) {
-        console_printf("current process exceeded limit: %d > %d\n", current->number_of_pages_using, current->permissions.max_number_of_pages);
+    if (parent->number_of_pages_using > parent->permissions.max_number_of_pages) {
+        console_printf("current process exceeded limit: %d > %d\n", parent->number_of_pages_using, parent->permissions.max_number_of_pages);
         sys_exit(-1);
     }
 
@@ -84,9 +87,6 @@ uint32_t sys_run(char *process_path, struct process_permissions *child_permissio
         console_printf("child process exceeded limit\n");
         sys_exit(-1);
     }
-
-    // free the intermediary memory we used
-    kfree(process_data);
 
     // Push the new process onto the ready list
     add_process_to_ready_queue(child_proc);

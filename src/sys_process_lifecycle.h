@@ -11,6 +11,6 @@ See the file LICENSE for details.
 
 uint32_t sys_exit(uint32_t code);
 uint32_t sys_yield();
-uint32_t sys_run(char *process_path, struct process_permissions *child_permissions);
+uint32_t sys_run(char *process_path, struct process_permissions *child_permissions, struct process *parent);
 
 #endif

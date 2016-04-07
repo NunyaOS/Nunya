@@ -81,7 +81,7 @@ static inline int32_t yield() {
  *          and then begins execution of that process. The current process
  *          yields and is placed at the end of the ready queue.
  *
- * @param   process_path The filesystem path of the process, which should be
+ * @param   process_path The filesystem path of the process executable, which should be
  *          a .nun executable.
  *
  * @param   child_permissions The set of permissions to be passed to the child,

@@ -3,3 +3,4 @@ bootblock
 kernel
 basekernel.img
 basekernel.iso
+files.iso
