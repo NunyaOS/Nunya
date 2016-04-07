@@ -281,7 +281,7 @@ bool fs_sys_owner_check(const char *path) {
 /**
 * Truncate a copy of the given path to match the length
 * of the allowed->path. If these match and it's an allow_below
-* allowance, give permission. If it's not an allow_below 
+* allowance, give permission. If it's not an allow_below
 
 * allowance, only return 1 on exact match.
 */
@@ -333,3 +333,4 @@ uint32_t fs_sys_security_check(const char *path) {
     }
     return 1;
 }
+

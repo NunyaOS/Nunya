@@ -40,10 +40,11 @@ void process_yield();
 void process_preempt();
 void process_exit(int code);
 void process_dump(struct process *p);
+
 void process_wait(struct list *q);
 void process_wakeup(struct list *q);
 void process_wakeup_all(struct list *q);
-void __process_set_initial_process_ready(struct process *p);
+
 extern struct process *current;
 
 #endif

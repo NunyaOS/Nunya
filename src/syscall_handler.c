@@ -4,7 +4,6 @@ This software is distributed under the GNU General Public License.
 See the file LICENSE for details.
 */
 
-#include "interrupt.h"
 #include "syscall.h"
 #include "console.h"
 #include "process.h"

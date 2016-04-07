@@ -12,11 +12,6 @@ See the file LICENSE for details.
 #include "window.h"
 #include "graphics.h"
 
-#include "iso.h"
-#include "memorylayout.h"
-#include "process.h"
-#include "kernelcore.h"
-
 #define KEYBOARD_BUFFER_SIZE 256
 
 void print_all_functions();
@@ -60,6 +55,10 @@ void cmd_line_attempt(const char *line) {
         console_printf("\f");
         window_hierarchy_test();
     }
+    /*else if () {
+     *...
+     *}
+     */
     else {
         console_printf("%s: command not found\n", first_word);
     }
