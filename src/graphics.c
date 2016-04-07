@@ -74,7 +74,7 @@ static inline void plot_pixel(int x, int y, struct graphics_color c) {
 }
 
 // like plot_pixel, but does not do mouse erasing and redrawing or bounds checking
-static inline void draw_pixel(int x, int y, struct graphics_color c) {
+static inline void plot_pixel_no_check(int x, int y, struct graphics_color c) {
     if (x < 0 || x > video_xres - 1 || y < 0 || y > video_yres - 1) {
         return;
     }
@@ -139,7 +139,7 @@ void graphics_line(int x1, int y1, int x2, int y2, struct graphics_color c, bool
         int i;
         for (i = y1; i <= y2; i++) {
             if (mouse_draw) {
-                draw_pixel(x1, i, c);
+                plot_pixel_no_check(x1, i, c);
             }
             else {
                 plot_pixel(x1, i, c);
@@ -164,7 +164,7 @@ void graphics_line(int x1, int y1, int x2, int y2, struct graphics_color c, bool
         for (x = x1; x <= x2; x++) {
             // check to see if drawing mouse or not
             if (mouse_draw) {
-                draw_pixel(x, y, c);
+                plot_pixel_no_check(x, y, c);
             }
             else {
                 plot_pixel(x, y, c);
@@ -173,7 +173,7 @@ void graphics_line(int x1, int y1, int x2, int y2, struct graphics_color c, bool
             error = error + deltaerr;
             while (error >= 0.5) {
                 if (mouse_draw) {
-                    draw_pixel(x, y, c);
+                    plot_pixel_no_check(x, y, c);
                 }
                 else {
                     plot_pixel(x, y, c);
@@ -230,7 +230,7 @@ void graphics_copy_from_color_buffer(int x, int y, int width, int height, struct
         for (i = x; i < x + width; i++) {
             if (i >= 0 && i < video_xres && j >= 0 && j < video_yres ) {
                 //draw pixel does bounds checking
-                draw_pixel(i, j, buffer[buf_ix]);
+                plot_pixel_no_check(i, j, buffer[buf_ix]);
             }
 
             buf_ix++;
