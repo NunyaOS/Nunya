@@ -54,16 +54,10 @@ void cmd_line_attempt(const char *line) {
         cmd_line_ls(the_rest);
     } else if (strcmp("cat", first_word) == 0) {
         cmd_line_cat(the_rest);
-    } else if (strcmp("read_file", first_word) == 0) {
-        cmd_line_run_proc("/READ_FIL.");
     } else if (strcmp("window_test", first_word) == 0) {
         console_printf("\f");
         window_hierarchy_test();
     }
-    /*else if () {
-     *...
-     *}
-     */
     else {
         console_printf("%s: command not found\n", first_word);
     }

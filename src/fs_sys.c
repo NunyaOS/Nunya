@@ -4,13 +4,18 @@
 #include "process.h"
 #include "iso.h"
 #include "console.h"
+#include "fs_sys_err.h"
 
 #define READ 4
 #define WRITE 2
 #define APPEND 1
 
+uint32_t fs_sys_security_check(const char *path);
+
+/*
+ * A dummy function to help us in our debugging
+ */
 void fs_print_allowances() {
-    console_printf("fs_print_allowances: ");
     struct fs_allowance *iterator = current->fs_allowances_head;
     while (iterator) {
         console_printf("%s -> ", iterator->path);
@@ -42,33 +47,47 @@ void fs_sys_init_security(struct process *p) {
 
 // Look at the OS's table of open files to see if read write conflicts
 // might be occurring amongst many processes if you allow it to be opened
-bool fs_sys_check_openability(const char *path, const char *mode) {
+bool fs_sys_check_open_conflict(const char *path, const char *mode) {
     return 1;
 }
 
 int map_media_to_driver_id(int media) {
-    return 1; //ISO for now is the only thing
+    return ISO;
 }
 
 int mode_str_to_int(const char *mode) {
-    if (strcmp(mode, "a") == 0) { return APPEND; }
-    if (strcmp(mode, "w") == 0) { return WRITE; }
-    if (strcmp(mode, "r") == 0) { return READ; }
-    if (strcmp(mode, "ar") == 0) { return READ | APPEND; }
-    if (strcmp(mode, "ra") == 0) { return READ | APPEND; }
-    if (strcmp(mode, "rw") == 0) { return READ | WRITE; }
-    if (strcmp(mode, "wr") == 0) { return READ | WRITE; }
+    if (strcmp(mode, "a") == 0) {
+        return APPEND;
+    }
+    if (strcmp(mode, "w") == 0) {
+        return WRITE;
+    }
+    if (strcmp(mode, "r") == 0) {
+        return READ;
+    }
+    if (strcmp(mode, "ar") == 0) {
+        return READ | APPEND;
+    }
+    if (strcmp(mode, "ra") == 0) {
+        return READ | APPEND;
+    }
+    if (strcmp(mode, "rw") == 0) {
+        return READ | WRITE;
+    }
+    if (strcmp(mode, "wr") == 0) {
+        return READ | WRITE;
+    }
     return 0;
 }
 
-struct fs_agnostic_file *create_fs_agnostic_file(uint8_t ata_type, uint8_t ata_unit, const char *path, uint8_t mode) {
+struct fs_agnostic_file *create_fs_agnostic_file(enum ata_kind ata_type, uint8_t ata_unit, const char *path, uint8_t mode) {
     struct fs_agnostic_file *new_file = kmalloc(sizeof(*new_file));
     new_file->ata_unit = ata_unit;
     new_file->ata_type = ata_type;
     new_file->mode = mode;
     strcpy(new_file->path, path);
-    switch(ata_type) {
-        case 1:   //ISO
+    switch (ata_type) {
+        case ISO:
             new_file->filep = (void *)iso_fopen(path, ata_unit);
             break;
         default:
@@ -83,39 +102,32 @@ struct fs_agnostic_file *create_fs_agnostic_file(uint8_t ata_type, uint8_t ata_u
     return new_file;
 }
 
-// Requires absolute path with /media_letter/first_level_dir/second_level_dir/file_name
-//-1 means file does not exist
-//-2 means illegal allowances
-//-3 means wrong owner permission
-//-4 means open by another process for writing, or open for reading and you want to write
-//-5 means too many files opened
-//-6 means illegal mode
 uint32_t fs_sys_open(const char *path, const char *mode) {
     //checks both owner permissions (dummy true) and process permissions
-    int success = fs_sys_security_check(path);
+    uint32_t success = fs_sys_security_check(path);
     if (success < 1) {
         return success;
     }
-    if (!fs_sys_check_openability(path, mode)) {
-        return -4;
+    if (!fs_sys_check_open_conflict(path, mode)) {
+        return ERR_OPEN_CONFLICT;
     }
     if (current->files->num_open >= PROCESS_MAX_OPEN_FILES) {
-        return -5;
+        return ERR_FDS_EXCEEDED;
     }
     int imode = mode_str_to_int(mode);
     if (imode == 0) {
-        return -6;
+        return ERR_BAD_MODE;
     }
 
     //strip path name for media
     if (path[0] != '/') {
-        return -1;
+        return ERR_BAD_PATH;
     }
     if (path[1] != '0' && path[1] != '1' && path[1] != '2' && path[1] != '3') {
-        return -1;
+        return ERR_BAD_PATH;
     }
     if (path[2] != '/') {
-        return -1;
+        return ERR_BAD_PATH;
     }
 
     char media_path[strlen(path) - 1];   //Two fewer than whole path length, + 1 for null terminator
@@ -123,7 +135,7 @@ uint32_t fs_sys_open(const char *path, const char *mode) {
 
     int ata_unit = path[1] - 48; //48 is ascii for 0
 
-    int ata_type = map_media_to_driver_id(ata_unit);
+    enum ata_kind ata_type = map_media_to_driver_id(ata_unit);
 
     int next_fd;
     //find current's next available fd by 'files' member
@@ -142,7 +154,7 @@ uint32_t fs_sys_open(const char *path, const char *mode) {
                 current->files->num_open += 1;
                 break;
             } else {
-                return -1;
+                return ERR_KERNEL_OPEN_FAIL;
             }
         }
     }
@@ -152,10 +164,9 @@ uint32_t fs_sys_open(const char *path, const char *mode) {
     return next_fd;
 }
 
-// -1 means the fd was not an open file
 uint32_t fs_sys_close(uint32_t fd) {
     if (fd >= PROCESS_MAX_OPEN_FILES) {
-        return -1;
+        return ERR_FD_OOR;
     }
 
     struct fs_agnostic_file *fp = current->files->open_files[fd];
@@ -172,44 +183,44 @@ uint32_t fs_sys_close(uint32_t fd) {
         current->files->num_open -= 1;
         // TODO: decrement OS open files table
             //if count is 0, remove from OS open files table
-        return 0;
+        return 1;
     } else {
-        return -1;
+        return ERR_WAS_NOT_OPEN;
     }
 }
 
-// -1 fd is not for an open file
-// -2 illegal allowances
 uint32_t fs_sys_read(char *dest, uint32_t bytes, uint32_t fd) {
     int bytes_read = 0;
     if (fd >= PROCESS_MAX_OPEN_FILES) {
-        return -1;
+        return ERR_FD_OOR;
     }
+
     struct fs_agnostic_file *fp = current->files->open_files[fd];
-    if(!fp) {
-        return -1;
+    if (!fp) {
+        return ERR_WAS_NOT_OPEN;
     }
     //must be okay with security and be allowed to read
-    if (fs_sys_security_check(fp->path) && (fp->mode & READ)) {
-        switch (fp->ata_type) {
-            case 1:  //ISO
-                bytes_read = iso_fread(dest, 1, bytes, (struct iso_file *)fp->filep);
-                fp->at_EOF = ((struct iso_file *)fp->filep)->at_EOF;
-                break;
-            default:
-                return -2;
-        }
-    } else {
-        return -1;
+    if (!fs_sys_security_check(fp->path)) {
+        return ERR_NO_ALLOWANCE;
+    }
+    if (!(fp->mode & READ)) {
+        return ERR_BAD_ACCESS_MODE;
+    }
+    switch (fp->ata_type) {
+        case ISO:  //ISO
+            bytes_read = iso_fread(dest, 1, bytes, (struct iso_file *)fp->filep);
+            fp->at_EOF = ((struct iso_file *)fp->filep)->at_EOF;
+            break;
+        default:
+            return ERR_BAD_ATA_KIND;
     }
 
     return bytes_read;
 }
 
 uint32_t fs_sys_write(const char *src, uint32_t bytes, uint32_t fd) {
-    int bytes_written = -1;
     // TODO: we'll need a writable system.
-    return bytes_written;
+    return ERR_BAD_ACCESS_MODE;
 }
 
 uint32_t fs_sys_add_allowance(const char *path, bool do_allow_below) {
@@ -239,14 +250,14 @@ uint32_t fs_sys_add_allowance(const char *path, bool do_allow_below) {
 uint32_t fs_sys_remove_allowance(const char *path) {
     //does not recursively remove allowances from fs
     //should recursively remove allowances from processes,
-    //but we can't, because we don't have pointers to our children
+    //but we can't yet, because we don't have pointers to our children
     struct fs_allowance *iterator;
     struct fs_allowance *trailing_iterator = 0;
 
     for(iterator = current->fs_allowances_head; iterator != 0; iterator = iterator->next) {
         if (strcmp(iterator->path, path) == 0) {
             //Found it! Remove it from the linked list
-            if(trailing_iterator) {
+            if (trailing_iterator) {
                 //patch linked list
                 trailing_iterator->next = iterator->next;
             } else {
@@ -280,7 +291,7 @@ bool path_permitted_by_allowance(const char *path, struct fs_allowance *allowed)
         char truncated_path[allowed_path_len + 1];
         memcpy(truncated_path, path, allowed_path_len);
         truncated_path[allowed_path_len] = '\0';
-        if(strcmp(allowed->path, truncated_path) == 0) {
+        if (strcmp(allowed->path, truncated_path) == 0) {
             // The allowance is above the requested path
             return 1;
         } else {
@@ -313,12 +324,12 @@ bool fs_sys_allowance_check(const char *path) {
 }
 
 uint32_t fs_sys_security_check(const char *path) {
-    if(!fs_sys_owner_check(path)) {
-        return -3;
+    if (!fs_sys_owner_check(path)) {
+        return ERR_NOT_OWNER;
     }
 
-    if(!fs_sys_allowance_check(path)) {
-        return -2;
+    if (!fs_sys_allowance_check(path)) {
+        return ERR_NO_ALLOWANCE;
     }
     return 1;
 }
