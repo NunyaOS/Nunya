@@ -13,7 +13,7 @@ See the file LICENSE for details.
 #define SYSCALL_testcall 2
 #define SYSCALL_yield    3
 
-#define SYSCALL_open     601 
+#define SYSCALL_open     601
 #define SYSCALL_close    602
 #define SYSCALL_read     603
 #define SYSCALL_write    604

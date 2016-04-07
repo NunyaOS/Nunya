@@ -10,7 +10,7 @@ DEBUG_OBJS=debug_kernel.o
 KERNEL_CCFLAGS=-Wall -c -ffreestanding -m32 -march=i386
 KERNEL_LDFLAGS=-m elf_i386
 
-all: basekernel.iso test_iso.iso
+all: basekernel.iso
 
 debug: KERNEL_CCFLAGS += -DNUNYA_KDEBUG
 debug: basekernel.iso
@@ -29,12 +29,6 @@ bootblock: bootblock.o
 kernel: ${OBJECTS}
 	ld ${KERNEL_LDFLAGS} -Ttext 0x10000 -s --oformat binary ${OBJECTS} -o $@
 
-test_iso.iso: read_file
-	mkdir ./test_iso && mv ./read_file ./test_iso/read_file && cp ./gettysbu.txt ./test_iso/gettysbu.txt && genisoimage -o ../test_iso.iso ./test_iso/ && rm -r ./test_iso
-
-read_file: read_file.o syscall.h syscall.o
-	ld ${KERNEL_LDFLAGS} -Ttext 0x80000000 -s --oformat binary read_file.o syscall.o -o $@
-
 %.o: %.c
 	gcc ${KERNEL_CCFLAGS} $< -o $@
 
@@ -45,4 +39,4 @@ read_file: read_file.o syscall.h syscall.o
 	gcc -Wall -S -ffreestanding -m32 -march=i386 $< -o $@
 
 clean:
-	rm -rf basekernel.iso basekernel.img bootblock userproc kernel ./test_iso *.o
+	rm -rf basekernel.iso basekernel.img bootblock kernel *.o
