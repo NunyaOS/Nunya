@@ -95,9 +95,19 @@ static char keyboard_map(int code) {
             return KEY_INVALID;
         } else if (shiftlock_mode) {
             if (shift_mode) {
-                return keymap[code].normal;
+                if (keymap[code].normal >= 97 && keymap[code].normal <= 122) {
+                    return keymap[code].normal;
+                }
+                else {
+                    return keymap[code].shifted;
+                }
             } else {
-                return keymap[code].shifted;
+                if (keymap[code].normal >= 97 && keymap[code].normal <= 122) {
+                    return keymap[code].shifted;
+                }
+                else {
+                    return keymap[code].normal;
+                }
             }
         } else if (shift_mode) {
             return keymap[code].shifted;
