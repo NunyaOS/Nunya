@@ -60,10 +60,6 @@ void cmd_line_attempt(const char *line) {
         console_printf("\f");
         window_hierarchy_test();
     }
-    /*else if () {
-     *...
-     *}
-     */
     else {
         console_printf("%s: command not found\n", first_word);
     }
