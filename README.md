@@ -20,9 +20,9 @@ cd src
 make debug
 ```
 
-That will create `basekernel.iso`, which is an image of an optical disk that can be mounted in a virtual machine.  Next, set up a virtual machine system
+That will create `nunya.iso`, which is an image of an optical disk that can be mounted in a virtual machine.  Next, set up a virtual machine system
 like VMWare, VirtualBox, or Bochs, and direct it to use that image. In VirtualBox, for example, you can select `Type > Linux` and `Version > Other Linux (32-bit)`
-Finally, point the virtual machine to `src > basekernel.iso`
+Finally, point the virtual machine to `src > nunya.iso`
 
 You should see something like this:
 
