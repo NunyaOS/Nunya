@@ -15,7 +15,8 @@ See the file LICENSE for details.
 
 static int bounds_x_1, bounds_x_2, bounds_y_1, bounds_y_2;
 
-void graphics_draw_mouse();
+void graphics_draw_cross_mouse();
+void graphics_draw_pointer_mouse();
 
 int graphics_width() {
     return video_xres;
@@ -68,8 +69,19 @@ static inline void plot_pixel(int x, int y, struct graphics_color c) {
         mouse_draw_buffer[index].r = c.r;
         mouse_draw_buffer[index].g = c.g;
         mouse_draw_buffer[index].b = c.b;
-        graphics_draw_mouse();
+        graphics_draw_pointer_mouse();
     }
+}
+
+// like plot_pixel, but does not do mouse erasing and redrawing or bounds checking
+static inline void plot_pixel_no_check(int x, int y, struct graphics_color c) {
+    if (x < 0 || x > video_xres - 1 || y < 0 || y > video_yres - 1) {
+        return;
+    }
+    uint8_t *v = video_buffer + video_xbytes * y + x * 3;
+    v[2] = c.r;
+    v[1] = c.g;
+    v[0] = c.b;
 }
 
 void graphics_arc(int x, int y, double r, double start_theta, double end_theta, struct graphics_color c) {
@@ -100,7 +112,7 @@ void graphics_rect(int x, int y, int w, int h, struct graphics_color c) {
     }
 }
 
-void graphics_line(int x1, int y1, int x2, int y2, struct graphics_color c) {
+void graphics_line(int x1, int y1, int x2, int y2, struct graphics_color c, bool mouse_draw) {
 
     int tmp;
     // flip points if x2 is less than x1
@@ -126,7 +138,12 @@ void graphics_line(int x1, int y1, int x2, int y2, struct graphics_color c) {
         }
         int i;
         for (i = y1; i <= y2; i++) {
-            plot_pixel(x1, i, c);
+            if (mouse_draw) {
+                plot_pixel_no_check(x1, i, c);
+            }
+            else {
+                plot_pixel(x1, i, c);
+            }
         }
     }
     else {
@@ -145,10 +162,23 @@ void graphics_line(int x1, int y1, int x2, int y2, struct graphics_color c) {
         }
 
         for (x = x1; x <= x2; x++) {
-            plot_pixel(x, y, c);
+            // check to see if drawing mouse or not
+            if (mouse_draw) {
+                plot_pixel_no_check(x, y, c);
+            }
+            else {
+                plot_pixel(x, y, c);
+            }
+
             error = error + deltaerr;
             while (error >= 0.5) {
-                plot_pixel(x, y, c);
+                if (mouse_draw) {
+                    plot_pixel_no_check(x, y, c);
+                }
+                else {
+                    plot_pixel(x, y, c);
+                }
+
                 y = y + sign;
                 error = error - 1.0;
             }
@@ -198,13 +228,11 @@ void graphics_copy_from_color_buffer(int x, int y, int width, int height, struct
     // copy old buffer into video buffer
     for (j = y; j < y + height; j++) {
         for (i = x; i < x + width; i++) {
-            if (i < 0 || i > video_xres - 1 || j < 0 || j > video_yres - 1) {
-                continue;
+            if (i >= 0 && i < video_xres && j >= 0 && j < video_yres ) {
+                //draw pixel does bounds checking
+                plot_pixel_no_check(i, j, buffer[buf_ix]);
             }
-            uint8_t *v = video_buffer + video_xbytes * j + i * 3;
-            v[2] = buffer[buf_ix].r;
-            v[1] = buffer[buf_ix].g;
-            v[0] = buffer[buf_ix].b;
+
             buf_ix++;
             if (buf_ix >= buf_size) {
                 return;
@@ -219,13 +247,13 @@ void graphics_copy_to_color_buffer(int x, int y, int width, int height, struct g
     // copy video buffer into color buffer
     for (j = y; j < y + height; j++) {
         for (i = x; i < x + width; i++) {
-            if (i < 0 || i > video_xres - 1 || j < 0 || j > video_yres - 1) {
-                continue;
+            if (i >= 0 && i < video_xres && j >= 0 && j < video_yres ) {
+                uint8_t *v = video_buffer + video_xbytes * j + i * 3;
+                buffer[buf_ix].r = v[2];
+                buffer[buf_ix].g = v[1];
+                buffer[buf_ix].b = v[0];
             }
-            uint8_t *v = video_buffer + video_xbytes * j + i * 3;
-            buffer[buf_ix].r = v[2];
-            buffer[buf_ix].g = v[1];
-            buffer[buf_ix].b = v[0];
+
             buf_ix++;
             if (buf_ix >= buf_size) {
                 return;
@@ -237,28 +265,34 @@ void graphics_copy_to_color_buffer(int x, int y, int width, int height, struct g
 // Can't use graphics_line since it uses plot pixel.
 // It does mouse region checking, which draws into the mouse buffer.
 // It would then just draw into the mouse buffer, defeating the purpose of the mouse buffer.
-void graphics_draw_mouse() {
-    int i;
-    uint8_t *v;
+void graphics_draw_cross_mouse() {
+    // horizontal line
     int start_x = (mouse_x - MOUSE_SIDE_2 + 1) < 0 ? 0 : mouse_x - MOUSE_SIDE_2 + 1;
     int end_x = (mouse_x + MOUSE_SIDE_2) > video_xres ? video_xres : mouse_x + MOUSE_SIDE_2;
-    // horizontal line
-    for (i = start_x; i < end_x; i++) {
-        v = video_buffer + video_xbytes * mouse_y + i * 3;
-        v[2] = mouse_fg_color.r;
-        v[1] = mouse_fg_color.g;
-        v[0] = mouse_fg_color.b;
-    }
+    graphics_line(start_x, mouse_y, end_x - 1, mouse_y, mouse_fg_color, 1);
 
+    // vertical line
     int start_y = (mouse_y - MOUSE_SIDE_2 + 1) < 0 ? 0 : mouse_y - MOUSE_SIDE_2 + 1;
     int end_y = (mouse_y + MOUSE_SIDE_2) > video_yres ? video_yres : mouse_y + MOUSE_SIDE_2;
-    // vertical line
-    for (i = start_y; i < end_y; i++) {
-        v = video_buffer + video_xbytes * i + mouse_x * 3;
-        v[2] = mouse_fg_color.r;
-        v[1] = mouse_fg_color.g;
-        v[0] = mouse_fg_color.b;
-    }
+    graphics_line(mouse_x, start_y, mouse_x, end_y - 1, mouse_fg_color, 1);
+}
+
+// draws a standard pointer mouse
+void graphics_draw_pointer_mouse() {
+    // long pointer lines
+    // TODO: why does MOUSE_SIDE_2 - 3 work but not MOUSE_SIDE_2 - 1 not work (only draw line issue)
+    graphics_line(mouse_x, mouse_y, mouse_x + (MOUSE_SIDE_2 / 3), mouse_y + MOUSE_SIDE_2 - 3, mouse_fg_color, 1);
+    graphics_line(mouse_x, mouse_y, mouse_x + MOUSE_SIDE_2 - 1, mouse_y + (MOUSE_SIDE_2 / 3), mouse_fg_color, 1);
+
+    // base of pointer
+    graphics_line(mouse_x + (MOUSE_SIDE_2 / 3), mouse_y + MOUSE_SIDE_2 - 1, mouse_x + (MOUSE_SIDE_2 / 2), mouse_y + (2 * MOUSE_SIDE_2 / 3), mouse_fg_color, 1);
+    graphics_line(mouse_x + MOUSE_SIDE_2 - 1, mouse_y + (MOUSE_SIDE_2 / 3), mouse_x + (2 * MOUSE_SIDE_2 / 3), mouse_y + (MOUSE_SIDE_2 / 2), mouse_fg_color, 1);
+
+    // tail of pointer
+    graphics_line(mouse_x + (MOUSE_SIDE_2 / 2), mouse_y + (2 * MOUSE_SIDE_2 / 3), mouse_x + (2 * MOUSE_SIDE_2 / 3), mouse_y + MOUSE_SIDE_2 - 1, mouse_fg_color, 1);
+    graphics_line(mouse_x + (2 * MOUSE_SIDE_2 / 3), mouse_y + (MOUSE_SIDE_2 / 2), mouse_x + MOUSE_SIDE_2 - 1, mouse_y + (2 * MOUSE_SIDE_2 / 3), mouse_fg_color, 1);
+    // connecting line
+    graphics_line(mouse_x + (2 * MOUSE_SIDE_2 / 3), mouse_y + MOUSE_SIDE_2 - 1, mouse_x + MOUSE_SIDE_2 - 1, mouse_y + (2 * MOUSE_SIDE_2 / 3), mouse_fg_color, 1);
 }
 
 void graphics_mouse() {
@@ -267,6 +301,6 @@ void graphics_mouse() {
     // copy mouse region of video buf into mouse buffer
     graphics_copy_to_color_buffer(mouse_x - MOUSE_SIDE_2 + 1, mouse_y - MOUSE_SIDE_2 + 1, MOUSE_SIDE - 1, MOUSE_SIDE - 1, mouse_draw_buffer, (MOUSE_SIDE - 1) * (MOUSE_SIDE - 1));
     // actually draw mouse
-    graphics_draw_mouse();
+    graphics_draw_pointer_mouse();
 }
 

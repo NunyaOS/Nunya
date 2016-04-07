@@ -84,7 +84,7 @@ void window_draw_line(struct window *w, int x1, int y1, int x2, int y2, struct g
     y1 += y_offset;
     x2 += x_offset;
     y2 += y_offset;
-    graphics_line(x1, y1, x2, y2, color);
+    graphics_line(x1, y1, x2, y2, color, 0);
     window_end_draw();
 }
 
