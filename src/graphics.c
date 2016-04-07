@@ -69,7 +69,7 @@ static inline void plot_pixel(int x, int y, struct graphics_color c) {
         mouse_draw_buffer[index].r = c.r;
         mouse_draw_buffer[index].g = c.g;
         mouse_draw_buffer[index].b = c.b;
-        graphics_draw_cross_mouse();
+        graphics_draw_pointer_mouse();
     }
 }
 
@@ -266,24 +266,6 @@ void graphics_copy_to_color_buffer(int x, int y, int width, int height, struct g
 // It does mouse region checking, which draws into the mouse buffer.
 // It would then just draw into the mouse buffer, defeating the purpose of the mouse buffer.
 void graphics_draw_cross_mouse() {
-    int i;
-    int start_x = (mouse_x - MOUSE_SIDE_2 + 1) < 0 ? 0 : mouse_x - MOUSE_SIDE_2 + 1;
-    int end_x = (mouse_x + MOUSE_SIDE_2) > video_xres ? video_xres : mouse_x + MOUSE_SIDE_2;
-    // horizontal line
-    for (i = start_x; i < end_x; i++) {
-        draw_pixel(i, mouse_y, mouse_fg_color);
-    }
-
-    int start_y = (mouse_y - MOUSE_SIDE_2 + 1) < 0 ? 0 : mouse_y - MOUSE_SIDE_2 + 1;
-    int end_y = (mouse_y + MOUSE_SIDE_2) > video_yres ? video_yres : mouse_y + MOUSE_SIDE_2;
-    // vertical line
-    for (i = start_y; i < end_y; i++) {
-        draw_pixel(mouse_x, i, mouse_fg_color);
-    }
-}
-
-// draws a standard pointer mouse
-void graphics_draw_pointer_mouse() {
     // horizontal line
     int start_x = (mouse_x - MOUSE_SIDE_2 + 1) < 0 ? 0 : mouse_x - MOUSE_SIDE_2 + 1;
     int end_x = (mouse_x + MOUSE_SIDE_2) > video_xres ? video_xres : mouse_x + MOUSE_SIDE_2;
@@ -295,12 +277,30 @@ void graphics_draw_pointer_mouse() {
     graphics_line(mouse_x, start_y, mouse_x, end_y - 1, mouse_fg_color, 1);
 }
 
+// draws a standard pointer mouse
+void graphics_draw_pointer_mouse() {
+    // long pointer lines
+    // TODO: why does MOUSE_SIDE_2 - 3 work but not MOUSE_SIDE_2 - 1 not work (only draw line issue)
+    graphics_line(mouse_x, mouse_y, mouse_x + (MOUSE_SIDE_2 / 3), mouse_y + MOUSE_SIDE_2 - 3, mouse_fg_color, 1);
+    graphics_line(mouse_x, mouse_y, mouse_x + MOUSE_SIDE_2 - 1, mouse_y + (MOUSE_SIDE_2 / 3), mouse_fg_color, 1);
+
+    // base of pointer
+    graphics_line(mouse_x + (MOUSE_SIDE_2 / 3), mouse_y + MOUSE_SIDE_2 - 1, mouse_x + (MOUSE_SIDE_2 / 2), mouse_y + (2 * MOUSE_SIDE_2 / 3), mouse_fg_color, 1);
+    graphics_line(mouse_x + MOUSE_SIDE_2 - 1, mouse_y + (MOUSE_SIDE_2 / 3), mouse_x + (2 * MOUSE_SIDE_2 / 3), mouse_y + (MOUSE_SIDE_2 / 2), mouse_fg_color, 1);
+
+    // tail of pointer
+    graphics_line(mouse_x + (MOUSE_SIDE_2 / 2), mouse_y + (2 * MOUSE_SIDE_2 / 3), mouse_x + (2 * MOUSE_SIDE_2 / 3), mouse_y + MOUSE_SIDE_2 - 1, mouse_fg_color, 1);
+    graphics_line(mouse_x + (2 * MOUSE_SIDE_2 / 3), mouse_y + (MOUSE_SIDE_2 / 2), mouse_x + MOUSE_SIDE_2 - 1, mouse_y + (2 * MOUSE_SIDE_2 / 3), mouse_fg_color, 1);
+    // connecting line
+    graphics_line(mouse_x + (2 * MOUSE_SIDE_2 / 3), mouse_y + MOUSE_SIDE_2 - 1, mouse_x + MOUSE_SIDE_2 - 1, mouse_y + (2 * MOUSE_SIDE_2 / 3), mouse_fg_color, 1);
+}
+
 void graphics_mouse() {
     // copy mouse buffer into video buf
     graphics_copy_from_color_buffer(old_mouse_x - MOUSE_SIDE_2 + 1, old_mouse_y - MOUSE_SIDE_2 + 1, MOUSE_SIDE - 1, MOUSE_SIDE - 1, mouse_draw_buffer, (MOUSE_SIDE - 1) * (MOUSE_SIDE - 1));
     // copy mouse region of video buf into mouse buffer
     graphics_copy_to_color_buffer(mouse_x - MOUSE_SIDE_2 + 1, mouse_y - MOUSE_SIDE_2 + 1, MOUSE_SIDE - 1, MOUSE_SIDE - 1, mouse_draw_buffer, (MOUSE_SIDE - 1) * (MOUSE_SIDE - 1));
     // actually draw mouse
-    graphics_draw_cross_mouse();
+    graphics_draw_pointer_mouse();
 }
 
