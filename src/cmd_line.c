@@ -12,11 +12,6 @@ See the file LICENSE for details.
 #include "window.h"
 #include "graphics.h"
 
-#include "iso.h"
-#include "memorylayout.h"
-#include "process.h"
-#include "kernelcore.h"
-
 #define KEYBOARD_BUFFER_SIZE 256
 
 void print_all_functions();
@@ -63,6 +58,10 @@ void cmd_line_attempt(const char *line) {
     } else if (strcmp("read_file", first_word) == 0) {
         cmd_line_run_proc("/READ_FIL.");
     }
+    /*else if () {
+     *...
+     *}
+     */
     else {
         console_printf("%s: command not found\n", first_word);
     }

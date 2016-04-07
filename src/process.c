@@ -186,7 +186,3 @@ void process_dump(struct process *p) {
     console_printf("esp: %x\n", s->esp);
     console_printf("eip: %x\n", s->eip);
 }
-
-void __process_set_initial_process_ready(struct process *p) {
-    list_push_tail(&ready_list, &p->node);
-}

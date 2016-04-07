@@ -29,12 +29,6 @@ bootblock: bootblock.o
 kernel: ${OBJECTS}
 	ld ${KERNEL_LDFLAGS} -Ttext 0x10000 -s --oformat binary ${OBJECTS} -o $@
 
-test_iso.iso: read_file
-	mkdir ./test_iso && mv ./read_file ./test_iso/read_file && cp ./gettysbu.txt ./test_iso/gettysbu.txt && genisoimage -o ../test_iso.iso ./test_iso/ && rm -r ./test_iso
-
-read_file: read_file.o syscall.h syscall.o
-	ld ${KERNEL_LDFLAGS} -Ttext 0x80000000 -s --oformat binary read_file.o syscall.o -o $@
-
 %.o: %.c
 	gcc ${KERNEL_CCFLAGS} $< -o $@
 
