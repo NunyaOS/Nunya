@@ -53,9 +53,10 @@ void graphics_clear_bounds();
  * @param x2
  * @param y2
  * @param c: color of line
+ * @param mouse_draw: bool that sets whether the mouse is drawing (basically, whether to use plot_pixel or not)
  * @return
  */
-void graphics_line(int x1, int y1, int x2, int y2, struct graphics_color c);
+void graphics_line(int x1, int y1, int x2, int y2, struct graphics_color c, bool mouse_draw);
 /**
  * @brief Draws a curve with given radius and range
  * @details This draws a curve from start_t to end_t with
