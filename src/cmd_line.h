@@ -14,7 +14,7 @@ See the file LICENSE for details.
 * @param line The string typed in at the prompt.
 * @return void
 */
-void cmd_line_attempt(const char * line);
+void cmd_line_attempt(const char *line);
 
 /**
  * @brief Initialize the command line
@@ -27,5 +27,10 @@ void cmd_line_init();
  * to the terminal screen
  */
 void cmd_line_show_prompt();
+
+/**
+ * @brief Give help to user on terminal usage
+ */
+void cmd_line_help(const char *args);
 
 #endif

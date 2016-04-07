@@ -1,6 +1,8 @@
 OBJECTS=kernelcore.o main.o console.o $(MEMORY_OBJS) keyboard.o clock.o interrupt.o pic.o ata.o string.o graphics.o font.o fs_sys.o syscall.o syscall_handler.o process.o mutex.o list.o pagetable.o rtc.o disk.o math.o window.o cmd_line.o $(TEST_OBJS) iso.o fs_terminal_commands.o
 OBJECTS+=$(DEBUG_OBJS)
+OBJECTS+=$(MOUSE_OBJS)
 
+MOUSE_OBJS = mouse.o ps2.o
 MEMORY_OBJS=memory_raw.o kmalloc.o
 TEST_OBJS=module_tests.o testing.o tests.o
 DEBUG_OBJS=debug_kernel.o

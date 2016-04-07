@@ -21,6 +21,8 @@ See the file LICENSE for details.
 
 void cmd_line_run_proc(char *proc_path);
 
+void print_all_functions();
+
 void cmd_line_init() {
     set_cur_path(ROOT);
 }
@@ -49,11 +51,13 @@ void cmd_line_attempt(const char *line) {
     } else if (strcmp("cd", first_word) == 0) {
         cmd_line_cd(the_rest);
     } else if (strcmp("pwd", first_word) == 0) {
-        cmd_line_pwd();
+        cmd_line_pwd(the_rest);
     } else if (strcmp("ls", first_word) == 0) {
         cmd_line_ls(the_rest);
     } else if (strcmp("cat", first_word) == 0) {
         cmd_line_cat(the_rest);
+    } else if (strcmp("help", first_word) == 0) {   // Leave this as the last case
+        cmd_line_help(the_rest);
     } else if (strcmp("window_test", first_word) == 0) {
         console_printf("\f");
         window_hierarchy_test();
@@ -92,4 +96,24 @@ void cmd_line_run_proc(char *proc_path) {
     console_printf("Enter user mode\n");
     process_yield();
     // process_exit(0);
+}
+
+void cmd_line_help(const char *args) {
+    console_printf("help:\nAvailable terminal commands:\n");
+    print_all_functions();
+    console_printf("\nFor help with a specific command, type \"<command> --help\"\n");
+}
+
+/**
+ * @brief Print name of all functions available in terminal
+ */
+void print_all_functions() {
+    console_printf("cat\n"
+            "cd\n"
+            "echo\n"
+            "help\n"
+            "ls\n"
+            "pwd\n"
+            "test\n"
+    );
 }
