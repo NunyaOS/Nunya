@@ -50,7 +50,7 @@ int kernel_main() {
     mouse_init();
     ata_init();
 
-    console_printf("\nBASEKERNEL READY:\n");
+    console_printf("\nNUNYA READY:\n");
 
     cmd_line_init();
 
