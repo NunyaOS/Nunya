@@ -97,15 +97,13 @@ static char keyboard_map(int code) {
             if (shift_mode) {
                 if (keymap[code].normal >= 97 && keymap[code].normal <= 122) {
                     return keymap[code].normal;
-                }
-                else {
+                } else {
                     return keymap[code].shifted;
                 }
             } else {
                 if (keymap[code].normal >= 97 && keymap[code].normal <= 122) {
                     return keymap[code].shifted;
-                }
-                else {
+                } else {
                     return keymap[code].normal;
                 }
             }
