@@ -53,9 +53,10 @@ void graphics_clear_bounds();
  * @param x2
  * @param y2
  * @param c: color of line
+ * @param mouse_draw: bool that sets whether the mouse is drawing (basically, whether to use plot_pixel or not)
  * @return
  */
-void graphics_line(int x1, int y1, int x2, int y2, struct graphics_color c);
+void graphics_line(int x1, int y1, int x2, int y2, struct graphics_color c, bool mouse_draw);
 /**
  * @brief Draws a curve with given radius and range
  * @details This draws a curve from start_t to end_t with
@@ -91,4 +92,37 @@ void graphics_bitmap(int x, int y, int width, int height, uint8_t * data,
                      struct graphics_color fgcolor,
                      struct graphics_color bgcolor);
 
+/**
+ * @brief Copies part of video buffer into a color buffer.
+ * @details Copies a rectangular region of the video into a buffer of graphics_color. It does checking for the region size exceeding the buffer size (provided as a param).
+ *
+ * @param x Starting x coordinate.
+ * @param y Starting y coordinate.
+ * @param width Width of the region.
+ * @param height Height of the region.
+ * @param buffer Pointer to a struct graphics_color buffer.
+ * @param buf_size Size of the buffer.
+ */
+void graphics_copy_to_color_buffer(int x, int y, int width, int height, struct graphics_color *buffer, int buf_size);
+
+/**
+ * @brief Copies a color buffer into the video buffer.
+ * @details Copies a buffer of graphics_color into a rectangular region of the video. It does checking for the region size exceeding the buffer size (provided as a param).
+ *
+ * @param x Starting x coordinate.
+ * @param y Starting y coordinate.
+ * @param width Width of the region.
+ * @param height Height of the region.
+ * @param buffer Pointer to a struct graphics_color buffer.
+ * @param buf_size Size of the buffer.
+ */
+void graphics_copy_from_color_buffer(int x, int y, int width, int height, struct graphics_color *buffer, int buf_size);
+
+/**
+ * @brief Draws the mouse on the screen
+ * @details This copies the old mouse_draw_buffer back into the video buffer and then copies the new mouse region from the video buffer into mouse_draw_buffer. It then draws the mouse (a cross) on the screen. graphics_mouse does not use plot_pixel because of mouse_buffer checking. This should be used only when the mouse position changes. Otherwise, it wastes computation.
+ */
+void graphics_mouse();
+
 #endif
+

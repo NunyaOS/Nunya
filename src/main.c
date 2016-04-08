@@ -10,6 +10,7 @@ See the file LICENSE for details.
 #include "process.h"
 #include "interrupt.h"
 #include "keyboard.h"
+#include "mouse.h"
 #include "clock.h"
 #include "ata.h"
 #include "string.h"
@@ -46,12 +47,10 @@ int kernel_main() {
     */
     process_init();
 
+    mouse_init();
     ata_init();
 
-    console_printf("\nBASEKERNEL READY:\n");
-
-    //change text color to white after bootup
-    console_set_fgcolor(255, 255, 255);
+    console_printf("\nNUNYA READY:\n");
 
     cmd_line_init();
 
@@ -62,3 +61,4 @@ int kernel_main() {
 
     return 0;
 }
+

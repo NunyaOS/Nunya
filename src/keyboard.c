@@ -10,15 +10,15 @@ See the file LICENSE for details.
 #include "ascii.h"
 #include "process.h"
 #include "kernelcore.h"
+#include "ps2.h"
 
-#define KEY_INVALID 0127
+#define KEY_INVALID 0036
 
 #define SPECIAL_SHIFT 1
 #define SPECIAL_ALT   2
 #define SPECIAL_CTRL  3
 #define SPECIAL_SHIFTLOCK 4
 
-#define KEYBOARD_PORT_A     0x60
 #define KEYBOARD_PORT_B     0x61
 #define KEYBOARD_ACK    0x80
 
@@ -47,7 +47,7 @@ static int keyboard_scan() {
     int code;
     int ack;
 
-    code = inb(KEYBOARD_PORT_A);
+    code = inb(PS2_DATA_PORT);
     iowait();
     ack = inb(KEYBOARD_PORT_B);
     iowait();
@@ -95,9 +95,17 @@ static char keyboard_map(int code) {
             return KEY_INVALID;
         } else if (shiftlock_mode) {
             if (shift_mode) {
-                return keymap[code].normal;
+                if (keymap[code].normal >= 97 && keymap[code].normal <= 122) {
+                    return keymap[code].normal;
+                } else {
+                    return keymap[code].shifted;
+                }
             } else {
-                return keymap[code].shifted;
+                if (keymap[code].normal >= 97 && keymap[code].normal <= 122) {
+                    return keymap[code].shifted;
+                } else {
+                    return keymap[code].normal;
+                }
             }
         } else if (shift_mode) {
             return keymap[code].shifted;
@@ -114,9 +122,11 @@ static char keyboard_map(int code) {
 void keyboard_interrupt(int i, int code) {
     char c;
     c = keyboard_map(keyboard_scan());
+
     if (c == KEY_INVALID) {
         return;
     }
+
     if ((buffer_write + 1) == (buffer_read % KEYBOARD_BUFFER_SIZE)) {
         return;
     }

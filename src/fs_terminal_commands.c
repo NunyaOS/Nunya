@@ -175,6 +175,10 @@ void process_path_part(const char *dname, char *abs_path) {
 }
 
 void cmd_line_cat(const char *arg_line) {
+    if(strcmp(arg_line, "--HELP") == 0) {
+        console_printf("Print contents of a file to screen\nusage: cat <file1, file2, ...>\n");
+        return;
+    }
     char arg_line_copy[256];
     strcpy(arg_line_copy, arg_line);
     char *fname = arg_line_copy;
@@ -190,6 +194,10 @@ void cmd_line_cat(const char *arg_line) {
 }
 
 void cmd_line_cd(const char *arg_line) {
+    if(strcmp(arg_line, "--HELP") == 0) {
+        console_printf("Change the current working directory\nusage: cd <directory path>\n");
+        return;
+    }
     char line_copy[strlen(arg_line) + 1];
     strcpy(line_copy, arg_line);
     char *first_word = strtok(line_copy, " ");
@@ -217,11 +225,20 @@ void cmd_line_cd(const char *arg_line) {
 }
 
 void cmd_line_echo(const char *arg_line) {
+    if(strcmp(arg_line, "--HELP") == 0) {
+        console_printf("Print contents of argument to screen\nusage: echo <buffer to print>\n");
+        return;
+    }
     console_printf("%s\n", arg_line);
     return;
 }
 
 void cmd_line_ls(const char *arg_line) {
+    if(strcmp(arg_line, "--HELP") == 0) {
+        console_printf("List the contents of a directory (default is current working directory\n");
+        console_printf("usage: ls <directory path>\n");
+        return;
+    }
     if (strlen(arg_line) > 0) {
         char arg_line_copy[256];
         strcpy(arg_line_copy, arg_line);
@@ -242,7 +259,11 @@ void cmd_line_ls(const char *arg_line) {
     }
 }
 
-void cmd_line_pwd() {
+void cmd_line_pwd(const char *arg_line) {
+    if(strcmp(arg_line, "--HELP") == 0) {
+        console_printf("Print the current working directory\nusage: pwd\n");
+        return;
+    }
     console_printf("%s\n", cur_path);
 }
 
