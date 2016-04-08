@@ -22,9 +22,9 @@ uint32_t fs_sys_security_check(const char *path);
  * A dummy function to help us in our debugging
  */
 void fs_print_allowances() {
-    struct fs_allowance *iterator = current->fs_allowances_head;
+    struct list_node *iterator = current->fs_allowances_list.head;
     while (iterator) {
-        console_printf("%s -> ", iterator->path);
+        console_printf("%s -> ", ((struct fs_allowance *)iterator)->path);
         iterator = iterator->next;
     }
     console_printf("\n");
@@ -43,12 +43,12 @@ void fs_sys_init_security(struct process *p) {
     p->files->num_open = 0;
 
     //Allowances alloc'ing.
-    p->fs_allowances_head = kmalloc(sizeof(*(p->fs_allowances_head)));
+    struct fs_allowance *allowance = kmalloc(sizeof(*allowance));
+    strcpy(allowance->path, "/");
+    allowance->do_allow_below = 1;
 
     //Set the lone permission in the list to root (that is all of the fs)
-    p->fs_allowances_head->next = 0;
-    strcpy(p->fs_allowances_head->path, "/");
-    p->fs_allowances_head->do_allow_below = 1;
+    list_push_head(&(p->fs_allowances_list), (struct list_node *)allowance);
 }
 
 // Look at the OS's table of open files to see if read write conflicts
@@ -139,7 +139,7 @@ uint32_t fs_sys_open(const char *path, const char *mode) {
     char media_path[strlen(path) - 1];   //Two fewer than whole path length, + 1 for null terminator
     strcpy(media_path, path+2);
 
-    int ata_unit = path[1] - 48; //48 is ascii for 0
+    int ata_unit = path[1] - '0';
 
     enum ata_kind ata_type = map_media_to_driver_id(ata_unit);
 
@@ -182,7 +182,7 @@ uint32_t fs_sys_close(uint32_t fd) {
                 iso_fclose((struct iso_file *)fp);
                 break;
             default:
-                break;
+                return ERR_BAD_ATA_KIND;
         }
         kfree(fp);
         current->files->open_files[fd] = 0;
@@ -232,22 +232,22 @@ uint32_t fs_sys_write(const char *src, uint32_t bytes, uint32_t fd) {
 uint32_t fs_sys_add_allowance(const char *path, bool do_allow_below) {
     //must be under current paths with is_just_dir = 0;
     if (fs_sys_security_check(path)) {
-        struct fs_allowance *iterator;
-        for (iterator = current->fs_allowances_head; iterator != 0; iterator = iterator->next) {
-            if (strcmp(iterator->path, path) == 0) {
+        struct list_node *iterator;
+        for (iterator = current->fs_allowances_list.head; iterator != 0; iterator = iterator->next) {
+            if (strcmp(((struct fs_allowance *)iterator)->path, path) == 0) {
                 //duplicate entry, do not actually add.
                 return 1;
             }
         }
 
         struct fs_allowance *new = kmalloc(sizeof(*new));
-        //insert at head of list
-        new->next = current->fs_allowances_head;
-        current->fs_allowances_head = new;
-
         //set other needed values
         strcpy(new->path, path);
         new->do_allow_below = do_allow_below;
+
+        //insert at head of list
+        list_push_head(&(current->fs_allowances_list), (struct list_node *) new);
+
         return 1;
     }
     return 0;
@@ -257,23 +257,13 @@ uint32_t fs_sys_remove_allowance(const char *path) {
     //does not recursively remove allowances from fs
     //should recursively remove allowances from processes,
     //but we can't yet, because we don't have pointers to our children
-    struct fs_allowance *iterator;
-    struct fs_allowance *trailing_iterator = 0;
+    struct list_node *iterator;
 
-    for(iterator = current->fs_allowances_head; iterator != 0; iterator = iterator->next) {
-        if (strcmp(iterator->path, path) == 0) {
-            //Found it! Remove it from the linked list
-            if (trailing_iterator) {
-                //patch linked list
-                trailing_iterator->next = iterator->next;
-            } else {
-                //first item, must update head ptr
-                current->fs_allowances_head = iterator->next;
-            }
+    for(iterator = current->fs_allowances_list.head; iterator != 0; iterator = iterator->next) {
+        if (strcmp(((struct fs_allowance *)iterator)->path, path) == 0) {
+            list_remove(iterator);
             kfree(iterator);
             return 1;
-        } else {
-            trailing_iterator = iterator;
         }
     }
     return 0;
@@ -316,11 +306,11 @@ bool path_permitted_by_allowance(const char *path, struct fs_allowance *allowed)
 }
 
 bool fs_sys_allowance_check(const char *path) {
-    struct fs_allowance *iterator = current->fs_allowances_head;
+    struct list_node *iterator = current->fs_allowances_list.head;
     //iterate over list of allowances until we reach
     //an acceptable one. otherwise return 0;
     while (iterator) {
-        if (path_permitted_by_allowance(path, iterator)) {
+        if (path_permitted_by_allowance(path, (struct fs_allowance *)iterator)) {
             return 1;
         } else {
             iterator = iterator->next;

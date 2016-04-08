@@ -35,26 +35,44 @@ static inline int32_t yield() {
     return syscall(SYSCALL_yield, 0, 0, 0, 0, 0);
 }
 
+/*
+ * Routes to fs_sys_open() in fs_sys.h
+ */
 static inline int32_t open(const char *path, const char *mode) {
     return syscall(SYSCALL_open, (uint32_t)path, (uint32_t)mode, 0, 0, 0);
 }
 
+/*
+ * Routes to fs_sys_close() in fs_sys.h
+ */
 static inline int32_t close(uint32_t fd) {
     return syscall(SYSCALL_close, fd, 0, 0, 0, 0);
 }
 
+/*
+ * Routes to fs_sys_read() in fs_sys.h
+ */
 static inline int32_t read(char *dest, uint32_t bytes, uint32_t fd) {
     return syscall(SYSCALL_read, (uint32_t)dest, bytes, fd, 0, 0);
 }
 
+/*
+ * Routes to fs_sys_write() in fs_sys.h
+ */
 static inline int32_t write(char *src, uint32_t bytes, uint32_t fd) {
     return syscall(SYSCALL_write, (uint32_t)src, bytes, fd, 0, 0);
 }
 
+/*
+ * Routes to fs_sys_add_allowance()in fs_sys.h
+ */
 static inline int32_t add_fs_allow(const char *path, bool do_allow_below) {
     return syscall(SYSCALL_add_fs_allow, (uint32_t)path, do_allow_below, 0, 0, 0);
 }
 
+/*
+ * Routes to fs_sys_remove_allowance() in fs_sys.h
+ */
 static inline int32_t remove_fs_allow(const char *path) {
     return syscall(SYSCALL_remove_fs_allow, (uint32_t)path, 0, 0, 0, 0);
 }

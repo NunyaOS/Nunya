@@ -74,6 +74,9 @@ struct process *process_create(unsigned code_size, unsigned stack_size) {
     p->kstack = memory_alloc_page(1);
     p->entry = PROCESS_ENTRY_POINT;
 
+    struct list l = LIST_INIT;
+    p->fs_allowances_list = l;
+
     fs_sys_init_security(p);
 
     process_stack_init(p);

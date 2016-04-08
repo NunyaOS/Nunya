@@ -10,7 +10,7 @@ struct process_files {
 };
 
 struct fs_allowance {
-    struct fs_allowance *next;
+    struct list_node node;
     char path[MAX_PATH_LENGTH + 1];  //null terminated, NO FOLLOWING forward slash... i.e. /a/home/dir_a
     bool do_allow_below;
 };

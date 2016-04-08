@@ -30,7 +30,7 @@ struct process {
     char *stack_ptr;
     uint32_t entry;
     struct process_files *files;
-    struct fs_allowance *fs_allowances_head;
+    struct list fs_allowances_list;
 };
 
 void process_init();
