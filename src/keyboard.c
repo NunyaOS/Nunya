@@ -12,9 +12,7 @@ See the file LICENSE for details.
 #include "kernelcore.h"
 #include "ps2.h"
 
-#define KEY_INVALID 0127
-
-#define W_SUBSTITUTE -1
+#define KEY_INVALID 0036
 
 #define SPECIAL_SHIFT 1
 #define SPECIAL_ALT   2
@@ -105,24 +103,14 @@ static char keyboard_map(int code) {
                 }
             } else {
                 if (keymap[code].normal >= 97 && keymap[code].normal <= 122) {
-                    if (keymap[code].shifted == 87) {
-                        return W_SUBSTITUTE;
-                    }
-                    else {
-                        return keymap[code].shifted;
-                    }
+                    return keymap[code].shifted;
                 }
                 else {
                     return keymap[code].normal;
                 }
             }
         } else if (shift_mode) {
-            if (keymap[code].shifted == 87) {
-                return W_SUBSTITUTE;
-            }
-            else {
-                return keymap[code].shifted;
-            }
+            return keymap[code].shifted;
         } else if (ctrl_mode) {
             return keymap[code].ctrled;
         } else {
@@ -136,13 +124,11 @@ static char keyboard_map(int code) {
 void keyboard_interrupt(int i, int code) {
     char c;
     c = keyboard_map(keyboard_scan());
+
     if (c == KEY_INVALID) {
         return;
     }
 
-    if (c == W_SUBSTITUTE) {
-        c = ASCII_W;
-    }
     if ((buffer_write + 1) == (buffer_read % KEYBOARD_BUFFER_SIZE)) {
         return;
     }
