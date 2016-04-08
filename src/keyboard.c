@@ -12,7 +12,7 @@ See the file LICENSE for details.
 #include "kernelcore.h"
 #include "ps2.h"
 
-#define KEY_INVALID 0127
+#define KEY_INVALID 0036
 
 #define SPECIAL_SHIFT 1
 #define SPECIAL_ALT   2
@@ -122,9 +122,11 @@ static char keyboard_map(int code) {
 void keyboard_interrupt(int i, int code) {
     char c;
     c = keyboard_map(keyboard_scan());
+
     if (c == KEY_INVALID) {
         return;
     }
+
     if ((buffer_write + 1) == (buffer_read % KEYBOARD_BUFFER_SIZE)) {
         return;
     }
