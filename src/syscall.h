@@ -34,7 +34,7 @@ See the file LICENSE for details.
  *
  * @return  The code indicating success or failure of the syscall.
  */
-uint32_t syscall(uint32_t n, uint32_t a, uint32_t b, uint32_t c, uint32_t d,
+int32_t syscall(uint32_t n, uint32_t a, uint32_t b, uint32_t c, uint32_t d,
                  uint32_t e);
 
 // TEMPORARY FOR DEBUGGING

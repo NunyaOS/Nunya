@@ -254,7 +254,7 @@ void exception_handle_pagefault(int intr, int code) {
 
         int number_of_pages_left = current->permissions->max_number_of_pages - current->number_of_pages_using;
         // check the permissions of the process
-        if(number_of_pages_left > 0) {
+        if (number_of_pages_left > 0) {
             // allocate the page
             pagetable_alloc(current->pagetable, vaddr, PAGE_SIZE,
             // TODO(SL): figure out if these flags are correct

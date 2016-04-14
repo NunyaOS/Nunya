@@ -39,11 +39,13 @@ void process_init() {
     // establish initial permissions
     struct process_permissions *initial_permissions = kmalloc(sizeof(struct process_permissions));
     initial_permissions->max_number_of_pages = memory_pages_total();
-    // initial_permissions.directories =
     initial_permissions->max_width = graphics_width();
     initial_permissions->max_height = graphics_height();
     initial_permissions->offset_x = 0;
     initial_permissions->offset_y = 0;
+
+    // todo: the rest of the permissions
+
     console_printf("total pages: %d\n", memory_pages_total());
     current->permissions = initial_permissions;
 

@@ -9,7 +9,7 @@ See the file LICENSE for details.
 
 #include "kerneltypes.h"
 
-uint32_t sys_template_create();
+int32_t sys_template_create();
 void sys_template_delete(uint32_t identifier);
 
 

@@ -6,8 +6,9 @@ See the file LICENSE for details.
 
 #include "kerneltypes.h"
 #include "permissions_template.h"
+#include "syscall_handler_permissions.h"
 
-uint32_t sys_template_create() {
+int32_t sys_template_create() {
     return create_permissions_template();
 }
 

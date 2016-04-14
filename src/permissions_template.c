@@ -11,6 +11,7 @@ See the file LICENSE for details.
 #include "console.h"
 
 #define MAX_NUMBER_OF_PERMISSIONS 169 // temporary, for now they'll be statically allocated
+#define DEFAULT_FRACTION_OF_MEMORY 3
 
 static struct permissions_template* permissions_table[MAX_NUMBER_OF_PERMISSIONS]; // statically allocated array of templates
 
@@ -25,7 +26,7 @@ uint32_t generate_new_identifier() {
     return 0;
 }
 
-struct process_permissions* permissions_from_template(struct permissions_template *template) {
+struct process_permissions *permissions_from_template(struct permissions_template *template) {
 
     if (template == 0) {
         console_printf("Error: invalid template\n");
@@ -56,7 +57,7 @@ struct permissions_template *template_for_identifier(uint32_t identifier) {
     return permissions_table[identifier];
 }
 
-struct process_permissions* permissions_from_identifier(uint32_t identifier) {
+struct process_permissions *permissions_from_identifier(uint32_t identifier) {
     struct permissions_template *template = template_for_identifier(identifier);
     struct process_permissions *permissions = permissions_from_template(template);
     return permissions;
@@ -92,20 +93,22 @@ uint32_t create_permissions_template() {
 
     // set default values to be related to parents
     new_template->directories = current->permissions->directories;
-    new_template->max_number_of_pages = current->permissions->max_number_of_pages / 3;
+    new_template->max_number_of_pages = current->permissions->max_number_of_pages / DEFAULT_FRACTION_OF_MEMORY;
     new_template->max_width = current->permissions->max_width;
     new_template->max_height = current->permissions->max_height;
     new_template->offset_x = 0;
     new_template->offset_y = 0;
-    return identifier;
 
+    // todo: the rest of the permissions
+
+    return identifier;
 }
 
 void delete_templates_owned_by_process(struct process *p) {
     int i;
     for (i = 1; i < MAX_NUMBER_OF_PERMISSIONS; i++) {
         struct permissions_template *t = template_for_identifier(i);
-        if (t->owner == p) {
+        if (t != 0 && t->owner == p) {
             delete_permissions_template(i);
         }
     }
@@ -113,9 +116,6 @@ void delete_templates_owned_by_process(struct process *p) {
 
 void delete_permissions_template(uint32_t identifier) {
     struct permissions_template *template = template_for_identifier(identifier);
+    permissions_table[identifier] = 0; // clear out of the table
     kfree(template);
 }
-
-// void initialize_permissions_table() {
-//     permissions_table = kmalloc(MAX_NUMBER_OF_PERMISSIONS * sizeof())
-// }

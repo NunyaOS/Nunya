@@ -10,17 +10,17 @@ See the file LICENSE for details.
 #include "memorylayout.h" // PROCESS_ENTRY_POINT
 #include "permissions_template.h"
 
-uint32_t sys_exit(uint32_t code) {
-    process_exit(code);
+int32_t sys_exit(uint32_t code) {
+    process_exit((int32_t)code);
     return 0;
 }
 
-uint32_t sys_yield() {
+int32_t sys_yield() {
     process_yield();
     return 0;
 }
 
-uint32_t sys_run(const char *process_path, const uint32_t permissions_identifier, struct process *parent) {
+int32_t sys_run(const char *process_path, const uint32_t permissions_identifier, struct process *parent) {
 
     // Get the template
     if (template_owned_by_process(permissions_identifier, current) != 1) {

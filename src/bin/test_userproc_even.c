@@ -9,12 +9,12 @@ int _start() {
 
 int main() {
     int has_spawned = 0;
-    while(1) {
+    while (1) {
         int i = 0;
-        for(i = 0; i < 10; i+=2) {
+        for (i = 0; i < 10; i+=2) {
             debug_print(i);
             int j;
-            for(j = 0; j < 100000000; j++) {} // busywait
+            for (j = 0; j < 100000000; j++) {} // busywait
         }
         if (!has_spawned) {
             // runproc_odd();

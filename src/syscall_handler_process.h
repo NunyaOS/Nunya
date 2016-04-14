@@ -9,8 +9,8 @@ See the file LICENSE for details.
 #ifndef SYSCALL_HANDLER_PROCESS_H
 #define SYSCALL_HANDLER_PROCESS_H
 
-uint32_t sys_exit(uint32_t code);
-uint32_t sys_yield();
-uint32_t sys_run(const char *process_path, const uint32_t permissions_identifier, struct process *parent);
+int32_t sys_exit(uint32_t code);
+int32_t sys_yield();
+int32_t sys_run(const char *process_path, const uint32_t permissions_identifier, struct process *parent);
 
 #endif

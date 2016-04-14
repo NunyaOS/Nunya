@@ -17,9 +17,9 @@ See the file LICENSE for details.
  *          when no longer needed so as to stop counting toward the process'
  *          memory allocation.
  *
- * @return  The identifier of the newly created process identifier.
+ * @return  The identifier of the newly created process template.
  */
-static inline uint32_t permissions_template_create() {
+static inline int32_t permissions_template_create() {
     return syscall(SYSCALL_template_create, 0, 0, 0, 0, 0);
 }
 

@@ -65,7 +65,7 @@ void delete_templates_owned_by_process(struct process *p);
  *          creation.
  * @return  The process_permissions struct with the necessary information.
  */
-struct process_permissions* permissions_from_identifier(uint32_t identifier);
+struct process_permissions *permissions_from_identifier(uint32_t identifier);
 
 /**
  * @brief   Returns the template associated with the given identifier
@@ -78,7 +78,7 @@ struct process_permissions* permissions_from_identifier(uint32_t identifier);
  * @param   identifier The identifier for the template to return.
  * @return  A pointer to the desired template, or 0 if not found.
  */
-struct permissions_template* template_for_identifier(uint32_t identifier);
+struct permissions_template *template_for_identifier(uint32_t identifier);
 
 /**
  * @brief   Checks if a template is owned by a process.
@@ -91,7 +91,5 @@ struct permissions_template* template_for_identifier(uint32_t identifier);
  * @return  1 if the process owns the template and 0 otherwise.
  */
 int template_owned_by_process(uint32_t identifier, struct process *p);
-
-// void initialize_permissions_table();
 
 #endif

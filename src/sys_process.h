@@ -19,7 +19,7 @@ See the file LICENSE for details.
  *
  * @return  The code indicating success or failure of the syscall.
  */
-static inline int32_t exit(uint32_t status) {
+static inline int32_t exit(int32_t status) {
     return syscall(SYSCALL_exit, status, 0, 0, 0, 0);
 }
 
@@ -44,10 +44,9 @@ static inline int32_t yield() {
  * @param   process_path The filesystem path of the process executable, which should be
  *          a .nun executable.
  *
- * @param   child_permissions The set of permissions to be passed to the child,
- *          including memory limits, filesystem access, and window management.
- *          These permissions cannot exceed that of the parent and count toward
- *          the parent's allocation. They also cannot be null.
+ * @param   permissions_identifier The identifier of the permissions template containing
+ *          the desired permissions for the process. Create a template using the permissions
+ *          syscalls and pass its identifier here.
  *
  * @return  The code indicating success or failure of the syscall.
  */

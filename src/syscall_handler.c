@@ -13,7 +13,7 @@ See the file LICENSE for details.
 
 
 
-uint32_t sys_debug_print(uint32_t a) {
+int32_t sys_debug_print(uint32_t a) {
     console_printf(" testing: %d\n", a);
     return 0;
 }
