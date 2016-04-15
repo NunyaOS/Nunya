@@ -12,6 +12,10 @@ See the file LICENSE for details.
 #define SYSCALL_exit     1
 #define SYSCALL_testcall 2
 #define SYSCALL_yield    3
+// TODO: change these syscall numbers
+#define SYSCALL_clock_read 4
+#define SYSCALL_sleep 5
+#define SYSCALL_rtc_read 6
 
 #define SYSCALL_window_create 200
 #define SYSCALL_window_set_border_color 201
@@ -39,5 +43,7 @@ static inline int32_t yield() {
 // MARK Module System call includes
 
 #include "sys_window.h"
+#include "sys_clock.h"
+#include "sys_rtc.h"
 
 #endif
