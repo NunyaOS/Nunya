@@ -83,6 +83,30 @@ int mode_str_to_int(const char *mode) {
     if (strcmp(mode, "wr") == 0) {
         return READ | WRITE;
     }
+    if (strcmp(mode, "aw") == 0) {
+        return APPEND | WRITE;
+    }
+    if (strcmp(mode, "wa") == 0) {
+        return WRITE | APPEND;
+    }
+    if (strcmp(mode, "rwa") == 0) {
+        return READ | WRITE | APPEND;
+    }
+    if (strcmp(mode, "raw") == 0) {
+        return READ | APPEND | WRITE;
+    }
+    if (strcmp(mode, "wra") == 0) {
+        return WRITE | READ | APPEND;
+    }
+    if (strcmp(mode, "war") == 0) {
+        return WRITE | APPEND | READ;
+    }
+    if (strcmp(mode, "arw") == 0) {
+        return APPEND | READ | WRITE;
+    }
+    if (strcmp(mode, "awr") == 0) {
+        return APPEND | WRITE |READ;
+    }
     return 0;
 }
 
