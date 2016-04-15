@@ -22,10 +22,10 @@ void clock_wait(uint32_t millis);
 /**
  * @brief Compares two times
  * @details This is a comparison function to the relation between two times
- * 
+ *
  * @param a The first time
  * @param b The second time
- * 
+ *
  * @return Returns -1 if a is smaller, 0 if they are the same, and 1 if a is bigger
  */
 int clock_compare(clock_t a, clock_t b);

@@ -9,7 +9,7 @@ See the file LICENSE for details.
 
 /**
 * @brief Attempt to run the command given with its arguments
-* @detail Splits the line on whitespace, taking the first as the command and the rest as arguments. Will print "command not found" message if command is not found.
+* @details Splits the line on whitespace, taking the first as the command and the rest as arguments. Will print "command not found" message if command is not found.
 *
 * @param line The string typed in at the prompt.
 * @return void
