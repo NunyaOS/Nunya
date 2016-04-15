@@ -29,7 +29,7 @@ struct process {
     char *kstack_top;
     char *stack_ptr;
     uint32_t entry;
-    struct process_files *files;
+    struct fd fd_table[PROCESS_MAX_OPEN_FILES];
     struct list fs_allowances_list;
 };
 
