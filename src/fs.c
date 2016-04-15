@@ -130,9 +130,6 @@ int32_t fs_open(const char *path, const char *mode) {
     if (!fs_check_open_conflict(path, mode)) {
         return ERR_OPEN_CONFLICT;
     }
-//    if (current->files->num_open >= PROCESS_MAX_OPEN_FILES) {
-//        return ERR_FDS_EXCEEDED;
-//    }
     int imode = mode_str_to_int(mode);
     if (imode == 0) {
         return ERR_BAD_MODE;
@@ -161,7 +158,6 @@ int32_t fs_open(const char *path, const char *mode) {
     //add to process file->file table
     bool opened = 0;
     for (next_fd = 0; opened == 0 && next_fd < PROCESS_MAX_OPEN_FILES; next_fd++) {
-//        if (current->files->open_files[next_fd] == 0) {
         // See if the process's file descriptor table has an unopen slot
         if (!current->fd_table[next_fd].is_open) {
             //make new sys level file
@@ -177,10 +173,10 @@ int32_t fs_open(const char *path, const char *mode) {
             } else {
                 return ERR_KERNEL_OPEN_FAIL;
             }
+        } else if (next_fd == PROCESS_MAX_OPEN_FILES - 1) {
+            return ERR_FDS_EXCEEDED;
         }
     }
-
-    // TODO: keep on OS's open file table
 
     return next_fd;
 }
@@ -190,7 +186,6 @@ int32_t fs_close(uint32_t fd) {
         return ERR_FD_OOR;
     }
 
-//    struct fs_agnostic_file *fp = current->files->open_files[fd];
     struct fs_agnostic_file *fp = current->fd_table[fd].ptr;
     if (fp) {
         switch (fp->ata_type) {
