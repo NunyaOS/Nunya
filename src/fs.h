@@ -4,10 +4,25 @@ This software is distributed under the GNU General Public License.
 See the file LICENSE for details.
 */
 
-#ifndef SYS_FS_H
-#define SYS_FS_H
+#ifndef FS_H
+#define FS_H
 
 #include "kerneltypes.h"
+#include "process.h"
+#include "sys_fs_structs.h"
+
+enum ata_kind {
+    ISO = 1,
+};
+
+struct fs_agnostic_file {
+    uint8_t ata_unit;
+    uint8_t mode;  //out of 7, r=4, w=2, a=1
+    enum ata_kind ata_type;
+    bool at_EOF;
+    void *filep;
+    char path[256];
+};
 
 /**
  * @brief Closes a file
@@ -18,9 +33,7 @@ See the file LICENSE for details.
  * return 1 if the file was open and is now closed, otherwise an integer code
  * matching a descriptive error in an enumeration in sys_fs_err.h
  */
-static inline int32_t close(uint32_t fd) {
-    return syscall(SYSCALL_close, fd, 0, 0, 0, 0);
-}
+int32_t fs_close(uint32_t fd);
 
 /**
  * @brief Read from a file into a buffer
@@ -33,9 +46,7 @@ static inline int32_t close(uint32_t fd) {
  * @return On success the number of bytes read, otherwise an integer code
  * matching a descriptive error in enumeration in sys_fs_err.h
  */
-static inline int32_t read(char *dest, uint32_t bytes, uint32_t fd) {
-    return syscall(SYSCALL_read, (uint32_t)dest, bytes, fd, 0, 0);
-}
+int32_t fs_read(char *dest, uint32_t bytes, uint32_t fd);
 
 /**
  * @brief Opens a file
@@ -46,12 +57,10 @@ static inline int32_t read(char *dest, uint32_t bytes, uint32_t fd) {
  * @param mode The mode the file is to be opened in. Acceptable modes are "a",
  * "r", "w", "ar", "ra", "rw", and "wr" with 'a' meaning append, 'r' meaning
  * read, and 'w' meaning write.
- * @return An integer file descriptor on success. Otherwise, an integer code
- *  matching a descriptive error in an enumeration in sys_fs_err.h.
+ * @return An integer file descriptor on success. Otherwise, a very high
+ * integer code matching a descriptive error in an enumeration in sys_fs_err.h.
  */
-static inline int32_t open(const char *path, const char *mode) {
-    return syscall(SYSCALL_open, (uint32_t)path, (uint32_t)mode, 0, 0, 0);
-}
+int32_t fs_open(const char *path, const char *mode);
 
 /**
  * @brief Writes to a file
@@ -61,11 +70,18 @@ static inline int32_t open(const char *path, const char *mode) {
  * @param bytes The number of bytes from the start of the buffer to be written
  * to the file.
  * @param fd The file descriptor which the buffer should be written to
- * @return On success the number of bytes written. Otherwise, an
+ * @return On success the number of bytes written. Otherwise, a very high
  * integer code matching a descriptive error in an enumeration in sys_fs_err.h.
  */
-static inline int32_t write(const char *src, uint32_t bytes,  uint32_t fd) {
-    return syscall(SYSCALL_write, (uint32_t)src, bytes, fd, 0, 0);
-}
+int32_t fs_write(const char *src, uint32_t bytes,  uint32_t fd);
+
+/**
+ * @brief Initializes security aspects for file system regarding a process
+ * @details Creates a process's list of security allowances (currently default
+ * root access) and an empty open files table.
+ *
+ * @param p A process which the initialization should occur on.
+ */
+void fs_init_security(struct process *p);
 
 #endif

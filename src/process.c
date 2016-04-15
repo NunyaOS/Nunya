@@ -14,7 +14,7 @@ See the file LICENSE for details.
 #include "memorylayout.h"
 #include "kernelcore.h"
 
-#include "sys_fs.h" //struct process->files
+#include "fs.h" //struct process->files
 #include "memory_raw.h" // memory_alloc_page, memory_free_page
 
 struct process *current = 0;
@@ -77,7 +77,7 @@ struct process *process_create(unsigned code_size, unsigned stack_size) {
     struct list l = LIST_INIT;
     p->fs_allowances_list = l;
 
-    sys_fs_init_security(p);
+    fs_init_security(p);
 
     process_stack_init(p);
 
