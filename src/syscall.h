@@ -13,9 +13,8 @@ See the file LICENSE for details.
 #define SYSCALL_yield    2
 #define SYSCALL_run      3
 
-#define SYSCALL_template_create 50
-#define SYSCALL_template_delete 51
-// #define SYSCALL_template_lookup 52
+#define SYSCALL_capability_create 50
+#define SYSCALL_capability_delete 51
 
 #define SYSCALL_open     601
 #define SYSCALL_close    602

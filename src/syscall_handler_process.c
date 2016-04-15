@@ -8,7 +8,7 @@ See the file LICENSE for details.
 #include "console.h"
 #include "iso.h"
 #include "memorylayout.h" // PROCESS_ENTRY_POINT
-#include "permissions_template.h"
+#include "permissions_capabilities.h"
 
 int32_t sys_exit(uint32_t code) {
     process_exit((int32_t)code);
@@ -22,9 +22,9 @@ int32_t sys_yield() {
 
 int32_t sys_run(const char *process_path, const uint32_t permissions_identifier, struct process *parent) {
 
-    // Get the template
-    if (template_owned_by_process(permissions_identifier, current) != 1) {
-        console_printf("Error: could not get permissions template\n");
+    // Get the capability
+    if (capability_owned_by_process(permissions_identifier, current) != 1) {
+        console_printf("Error: could not get permissions capability\n");
         return -1;
     }
 

@@ -9,8 +9,8 @@ See the file LICENSE for details.
 
 #include "kerneltypes.h"
 
-int32_t sys_template_create();
-void sys_template_delete(uint32_t identifier);
+int32_t sys_capability_create();
+void sys_capability_delete(uint32_t identifier);
 
 
 #endif

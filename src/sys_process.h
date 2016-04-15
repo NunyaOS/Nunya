@@ -44,8 +44,8 @@ static inline int32_t yield() {
  * @param   process_path The filesystem path of the process executable, which should be
  *          a .nun executable.
  *
- * @param   permissions_identifier The identifier of the permissions template containing
- *          the desired permissions for the process. Create a template using the permissions
+ * @param   permissions_identifier The identifier of the permissions capability containing
+ *          the desired permissions for the process. Create a capability using the permissions
  *          syscalls and pass its identifier here.
  *
  * @return  The code indicating success or failure of the syscall.

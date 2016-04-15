@@ -30,10 +30,10 @@ int32_t syscall_handler(uint32_t n, uint32_t a, uint32_t b, uint32_t c,
             return sys_yield();
         case SYSCALL_run:
             return sys_run((char *)a, b, current);
-        case SYSCALL_template_create:
-            return sys_template_create();
-        case SYSCALL_template_delete:
-            sys_template_delete(a);
+        case SYSCALL_capability_create:
+            return sys_capability_create();
+        case SYSCALL_capability_delete:
+            sys_capability_delete(a);
             return 0;
         case SYSCALL_open:
             return sys_fs_open((const char *)a, (const char *)b);

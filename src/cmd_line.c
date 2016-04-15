@@ -51,10 +51,10 @@ void cmd_line_attempt(const char *line) {
     } else if (strcmp("cat", first_word) == 0) {
         cmd_line_cat(the_rest);
     } else if (strcmp("process", first_word) == 0) { // temporary, for debugging
-        uint32_t identifier = permissions_template_create();
+        uint32_t identifier = permissions_capability_create();
         run("/BIN/TEST_USE.NUN", identifier);
         run("/BIN/TEST_USE.NUN", identifier);
-        permissions_template_delete(identifier);
+        permissions_capability_delete(identifier);
     } else if (strcmp("help", first_word) == 0) {   // Leave this as the last case
         cmd_line_help(the_rest);
     } else if (strcmp("window_test", first_word) == 0) {

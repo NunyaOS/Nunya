@@ -18,7 +18,7 @@ See the file LICENSE for details.
 #include "fs.h" //struct process->files
 #include "memory_raw.h" // memory_alloc_page, memory_free_page
 
-#include "permissions_template.h"
+#include "permissions_capabilities.h"
 
 struct process *current = 0;
 struct list ready_list = { 0, 0 };
@@ -171,7 +171,7 @@ void process_exit(int code) {
 
     current->exitcode = code;
     kfree(current->permissions);
-    delete_templates_owned_by_process(current);
+    delete_capabilities_owned_by_process(current);
 
     // todo: kill the process' children
 

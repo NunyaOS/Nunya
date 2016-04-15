@@ -21,9 +21,6 @@ See the file LICENSE for details.
 #define PROCESS_STATE_GRAVE   4
 
 struct process_permissions {
-    // File permissions
-    struct list *directories;
-
     // Memory permissions
     int max_number_of_pages;
 
