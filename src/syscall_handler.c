@@ -9,6 +9,7 @@ See the file LICENSE for details.
 #include "process.h"
 #include "syscall_handler_window.h"
 #include "syscall_handler_clock.h"
+#include "syscall_handler_rtc.h"
 
 uint32_t sys_exit(uint32_t code) {
     process_exit(code);

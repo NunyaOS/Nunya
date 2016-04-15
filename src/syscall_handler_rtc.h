@@ -4,8 +4,8 @@ This software is distributed under the GNU General Public License.
 See the file LICENSE for details.
 */
 
-#ifndef SYSCALL_HANDLER_CLOCK_H
-#define SYSCALL_HANDLER_CLOCK_H
+#ifndef SYSCALL_HANDLER_RTC_H
+#define SYSCALL_HANDLER_RTC_H
 
 #include "kerneltypes.h"
 #include "rtc.h"

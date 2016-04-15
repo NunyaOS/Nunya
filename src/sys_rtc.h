@@ -5,8 +5,9 @@ See the file LICENSE for details.
 */
 
 #include "kerneltypes.h"
+#include "rtc.h"
 
-static inline int32_t rtc_read(struct rtc_time *t) {
+static inline int32_t read_rtc(struct rtc_time *t) {
     return syscall(SYSCALL_rtc_read, (uint32_t)t, 0, 0, 0, 0);
 }
 

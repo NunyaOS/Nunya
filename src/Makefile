@@ -2,13 +2,14 @@ OBJECTS=kernelcore.o main.o console.o $(MEMORY_OBJS) keyboard.o clock.o interrup
 OBJECTS+=$(DEBUG_OBJS)
 OBJECTS+=$(MOUSE_OBJS)
 OBJECTS+=$(WINDOW_OBJS)
-
+OBJECTS+=$(CLOCK_OBJS)
 
 MOUSE_OBJS = mouse.o ps2.o
 MEMORY_OBJS=memory_raw.o kmalloc.o
 TEST_OBJS=module_tests.o testing.o tests.o
 DEBUG_OBJS=debug_kernel.o
 WINDOW_OBJS=window.o graphics.o syscall_handler_window.o
+CLOCK_OBJS=syscall_handler_clock.o syscall_handler_rtc.o
 
 KERNEL_CCFLAGS=-Wall -c -ffreestanding -m32 -march=i386
 KERNEL_LDFLAGS=-m elf_i386
