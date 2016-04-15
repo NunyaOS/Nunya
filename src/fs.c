@@ -189,7 +189,7 @@ int32_t fs_close(uint32_t fd) {
         current->files->num_open -= 1;
         // TODO: decrement OS open files table
             //if count is 0, remove from OS open files table
-        return 1;
+        return 0;
     } else {
         return ERR_WAS_NOT_OPEN;
     }
