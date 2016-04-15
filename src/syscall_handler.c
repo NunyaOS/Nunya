@@ -7,7 +7,7 @@ See the file LICENSE for details.
 #include "syscall.h"
 #include "console.h"
 #include "process.h"
-#include "fs_sys.h"
+#include "sys_fs.h"
 
 uint32_t sys_exit(uint32_t code) {
     process_exit(code);
@@ -25,28 +25,20 @@ uint32_t sys_testcall(uint32_t code) {
 }
 
 uint32_t sys_open(uint32_t path_intptr, uint32_t mode_intptr) {
-    return fs_sys_open((const char *)path_intptr, (const char *)mode_intptr);
+    return sys_fs_open((const char *)path_intptr, (const char *)mode_intptr);
 }
 
 uint32_t sys_close(uint32_t fd) {
-    fs_sys_close(fd);
+    sys_fs_close(fd);
     return 0;
 }
 
 uint32_t sys_read(uint32_t dest_intptr, uint32_t bytes, uint32_t fd) {
-    return fs_sys_read((char *)dest_intptr, bytes, fd);
+    return sys_fs_read((char *)dest_intptr, bytes, fd);
 }
 
 uint32_t sys_write(uint32_t src_intptr, uint32_t bytes, uint32_t fd) {
-    return fs_sys_write((const char *)src_intptr, bytes, fd);
-}
-
-uint32_t sys_add_fs_allow(uint32_t path_intptr, uint32_t do_allow_below) {
-    return fs_sys_add_allowance((const char *)path_intptr,  (bool)do_allow_below);
-}
-
-uint32_t sys_remove_fs_allow(uint32_t path_intptr) {
-    return fs_sys_remove_allowance((const char *)path_intptr);
+    return sys_fs_write((const char *)src_intptr, bytes, fd);
 }
 
 int32_t syscall_handler(uint32_t n, uint32_t a, uint32_t b, uint32_t c,
@@ -66,10 +58,6 @@ int32_t syscall_handler(uint32_t n, uint32_t a, uint32_t b, uint32_t c,
             return sys_read(a, b, c);
         case SYSCALL_write:
             return sys_write(a, b, c);
-        case SYSCALL_add_fs_allow:
-            return sys_add_fs_allow(a, b);
-        case SYSCALL_remove_fs_allow:
-            return sys_remove_fs_allow(a);
         default:
             return -1;
     }

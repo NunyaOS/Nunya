@@ -17,8 +17,6 @@ See the file LICENSE for details.
 #define SYSCALL_close    602
 #define SYSCALL_read     603
 #define SYSCALL_write    604
-#define SYSCALL_add_fs_allow 605
-#define SYSCALL_remove_fs_allow 606
 
 uint32_t syscall(uint32_t n, uint32_t a, uint32_t b, uint32_t c, uint32_t d,
                  uint32_t e);
@@ -63,17 +61,4 @@ static inline int32_t write(char *src, uint32_t bytes, uint32_t fd) {
     return syscall(SYSCALL_write, (uint32_t)src, bytes, fd, 0, 0);
 }
 
-/*
- * Routes to fs_sys_add_allowance()in fs_sys.h
- */
-static inline int32_t add_fs_allow(const char *path, bool do_allow_below) {
-    return syscall(SYSCALL_add_fs_allow, (uint32_t)path, do_allow_below, 0, 0, 0);
-}
-
-/*
- * Routes to fs_sys_remove_allowance() in fs_sys.h
- */
-static inline int32_t remove_fs_allow(const char *path) {
-    return syscall(SYSCALL_remove_fs_allow, (uint32_t)path, 0, 0, 0, 0);
-}
 #endif

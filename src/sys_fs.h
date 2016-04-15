@@ -4,12 +4,12 @@ This software is distributed under the GNU General Public License.
 See the file LICENSE for details.
 */
 
-#ifndef FS_SYS_H
-#define FS_SYS_H
+#ifndef SYS_FS_H
+#define SYS_FS_H
 
 #include "kerneltypes.h"
 #include "process.h"
-#include "fs_sys_structs.h"
+#include "sys_fs_structs.h"
 
 enum ata_kind {
     ISO = 1,
@@ -25,40 +25,15 @@ struct fs_agnostic_file {
 };
 
 /**
- * @brief Add a duplicate allowance that is lower on the file tree than a
- * current fs allowance
- * @details Ensures that the allowances being added are within current
- * allowances before adding a new fs_allowance to the current process's list
- * of fs_allowances
- *
- * @param path The path to add as an allowance for this process.
- * @param do_allow_below bool to represent whether access should be granted
- * just at this path or to everything below this path
- * @return 1 if allowance is present in the list of allowances after the call, 0 if not
- */
-uint32_t fs_sys_add_allowance(const char *path, bool do_allow_below);
-
-/**
- * @brief Remove allowance from fs allowance list
- * @details Search the allowances list for an exact match of the path and
- * remove if found
- *
- * @param path The exact path of the allowance which should be removed.
- * @return 1 if the path was removed from allowances, 0 if the path was not
- * found on the list.
- */
-uint32_t fs_sys_remove_allowance(const char *path);
-
-/**
  * @brief Closes a file
  * @details Closes and frees the resources associated with the given file
  * descriptor
  *
  * @param fd The file descriptor of the file to be closed.
  * return 1 if the file was open and is now closed, otherwise an integer code
- * matching a descriptive error in an enumeration in fs_sys_err.h
+ * matching a descriptive error in an enumeration in sys_fs_err.h
  */
-uint32_t fs_sys_close(uint32_t fd);
+uint32_t sys_fs_close(uint32_t fd);
 
 /**
  * @brief Read from a file into a buffer
@@ -69,9 +44,9 @@ uint32_t fs_sys_close(uint32_t fd);
  * @param bytes The maximum number of bytes to be read from the file
  * @param fd The file descriptor for the file which is to be read from
  * @return On success the number of bytes read, otherwise an integer code
- * matching a descriptive error in enumeration in fs_sys_err.h
+ * matching a descriptive error in enumeration in sys_fs_err.h
  */
-uint32_t fs_sys_read(char *dest, uint32_t bytes, uint32_t fd);
+uint32_t sys_fs_read(char *dest, uint32_t bytes, uint32_t fd);
 
 /**
  * @brief Opens a file
@@ -83,9 +58,9 @@ uint32_t fs_sys_read(char *dest, uint32_t bytes, uint32_t fd);
  * "r", "w", "ar", "ra", "rw", and "wr" with 'a' meaning append, 'r' meaning
  * read, and 'w' meaning write.
  * @return An integer file descriptor on success. Otherwise, a very high
- * integer code matching a descriptive error in an enumeration in fs_sys_err.h.
+ * integer code matching a descriptive error in an enumeration in sys_fs_err.h.
  */
-uint32_t fs_sys_open(const char *path, const char *mode);
+uint32_t sys_fs_open(const char *path, const char *mode);
 
 /**
  * @brief Writes to a file
@@ -96,9 +71,9 @@ uint32_t fs_sys_open(const char *path, const char *mode);
  * to the file.
  * @param fd The file descriptor which the buffer should be written to
  * @return On success the number of bytes written. Otherwise, a very high
- * integer code matching a descriptive error in an enumeration in fs_sys_err.h.
+ * integer code matching a descriptive error in an enumeration in sys_fs_err.h.
  */
-uint32_t fs_sys_write(const char *src, uint32_t bytes,  uint32_t fd);
+uint32_t sys_fs_write(const char *src, uint32_t bytes,  uint32_t fd);
 
 /**
  * @brief Initializes security aspects for file system regarding a process
@@ -107,6 +82,6 @@ uint32_t fs_sys_write(const char *src, uint32_t bytes,  uint32_t fd);
  *
  * @param p A process which the initialization should occur on.
  */
-void fs_sys_init_security(struct process *p);
+void sys_fs_init_security(struct process *p);
 
 #endif

@@ -4,19 +4,19 @@ This software is distributed under the GNU General Public License.
 See the file LICENSE for details.
 */
 
-#include "fs_sys.h"
+#include "sys_fs.h"
 #include "string.h"
 #include "kerneltypes.h"
 #include "process.h"
 #include "iso.h"
 #include "console.h"
-#include "fs_sys_err.h"
+#include "sys_fs_err.h"
 
 #define READ 4
 #define WRITE 2
 #define APPEND 1
 
-uint32_t fs_sys_security_check(const char *path);
+uint32_t sys_fs_security_check(const char *path);
 
 /*
  * A dummy function to help us in our debugging
@@ -30,7 +30,7 @@ void fs_print_allowances() {
     console_printf("\n");
 }
 
-void fs_sys_init_security(struct process *p) {
+void sys_fs_init_security(struct process *p) {
     //Open files table
     p->files = kmalloc(sizeof(*(p->files)));
     int i;
@@ -53,7 +53,7 @@ void fs_sys_init_security(struct process *p) {
 
 // Look at the OS's table of open files to see if read write conflicts
 // might be occurring amongst many processes if you allow it to be opened
-bool fs_sys_check_open_conflict(const char *path, const char *mode) {
+bool sys_fs_check_open_conflict(const char *path, const char *mode) {
     return 1;
 }
 
@@ -108,13 +108,13 @@ struct fs_agnostic_file *create_fs_agnostic_file(enum ata_kind ata_type, uint8_t
     return new_file;
 }
 
-uint32_t fs_sys_open(const char *path, const char *mode) {
+uint32_t sys_fs_open(const char *path, const char *mode) {
     //checks both owner permissions (dummy true) and process permissions
-    uint32_t success = fs_sys_security_check(path);
+    uint32_t success = sys_fs_security_check(path);
     if (success < 1) {
         return success;
     }
-    if (!fs_sys_check_open_conflict(path, mode)) {
+    if (!sys_fs_check_open_conflict(path, mode)) {
         return ERR_OPEN_CONFLICT;
     }
     if (current->files->num_open >= PROCESS_MAX_OPEN_FILES) {
@@ -170,7 +170,7 @@ uint32_t fs_sys_open(const char *path, const char *mode) {
     return next_fd;
 }
 
-uint32_t fs_sys_close(uint32_t fd) {
+uint32_t sys_fs_close(uint32_t fd) {
     if (fd >= PROCESS_MAX_OPEN_FILES) {
         return ERR_FD_OOR;
     }
@@ -195,7 +195,7 @@ uint32_t fs_sys_close(uint32_t fd) {
     }
 }
 
-uint32_t fs_sys_read(char *dest, uint32_t bytes, uint32_t fd) {
+uint32_t sys_fs_read(char *dest, uint32_t bytes, uint32_t fd) {
     int bytes_read = 0;
     if (fd >= PROCESS_MAX_OPEN_FILES) {
         return ERR_FD_OOR;
@@ -206,7 +206,7 @@ uint32_t fs_sys_read(char *dest, uint32_t bytes, uint32_t fd) {
         return ERR_WAS_NOT_OPEN;
     }
     //must be okay with security and be allowed to read
-    if (!fs_sys_security_check(fp->path)) {
+    if (!sys_fs_security_check(fp->path)) {
         return ERR_NO_ALLOWANCE;
     }
     if (!(fp->mode & READ)) {
@@ -224,52 +224,12 @@ uint32_t fs_sys_read(char *dest, uint32_t bytes, uint32_t fd) {
     return bytes_read;
 }
 
-uint32_t fs_sys_write(const char *src, uint32_t bytes, uint32_t fd) {
+uint32_t sys_fs_write(const char *src, uint32_t bytes, uint32_t fd) {
     // TODO: we'll need a writable system.
     return ERR_BAD_ACCESS_MODE;
 }
 
-uint32_t fs_sys_add_allowance(const char *path, bool do_allow_below) {
-    //must be under current paths with is_just_dir = 0;
-    if (fs_sys_security_check(path)) {
-        struct list_node *iterator;
-        for (iterator = current->fs_allowances_list.head; iterator != 0; iterator = iterator->next) {
-            if (strcmp(((struct fs_allowance *)iterator)->path, path) == 0) {
-                //duplicate entry, do not actually add.
-                return 1;
-            }
-        }
-
-        struct fs_allowance *new = kmalloc(sizeof(*new));
-        //set other needed values
-        strcpy(new->path, path);
-        new->do_allow_below = do_allow_below;
-
-        //insert at head of list
-        list_push_head(&(current->fs_allowances_list), (struct list_node *) new);
-
-        return 1;
-    }
-    return 0;
-}
-
-uint32_t fs_sys_remove_allowance(const char *path) {
-    //does not recursively remove allowances from fs
-    //should recursively remove allowances from processes,
-    //but we can't yet, because we don't have pointers to our children
-    struct list_node *iterator;
-
-    for(iterator = current->fs_allowances_list.head; iterator != 0; iterator = iterator->next) {
-        if (strcmp(((struct fs_allowance *)iterator)->path, path) == 0) {
-            list_remove(iterator);
-            kfree(iterator);
-            return 1;
-        }
-    }
-    return 0;
-}
-
-bool fs_sys_owner_check(const char *path) {
+bool sys_fs_owner_check(const char *path) {
     // TODO: This
     return 1;
 }
@@ -287,7 +247,9 @@ bool path_permitted_by_allowance(const char *path, struct fs_allowance *allowed)
         char truncated_path[allowed_path_len + 1];
         memcpy(truncated_path, path, allowed_path_len);
         truncated_path[allowed_path_len] = '\0';
-        if (strcmp(allowed->path, truncated_path) == 0) {
+        if (strcmp(allowed->path, truncated_path) == 0 &&
+           (path[allowed_path_len] == '/' || path[allowed_path_len] == 0)
+           ) {
             // The allowance is above the requested path
             return 1;
         } else {
@@ -305,7 +267,7 @@ bool path_permitted_by_allowance(const char *path, struct fs_allowance *allowed)
     return 0;
 }
 
-bool fs_sys_allowance_check(const char *path) {
+bool sys_fs_allowance_check(const char *path) {
     struct list_node *iterator = current->fs_allowances_list.head;
     //iterate over list of allowances until we reach
     //an acceptable one. otherwise return 0;
@@ -319,12 +281,12 @@ bool fs_sys_allowance_check(const char *path) {
     return 0;
 }
 
-uint32_t fs_sys_security_check(const char *path) {
-    if (!fs_sys_owner_check(path)) {
+uint32_t sys_fs_security_check(const char *path) {
+    if (!sys_fs_owner_check(path)) {
         return ERR_NOT_OWNER;
     }
 
-    if (!fs_sys_allowance_check(path)) {
+    if (!sys_fs_allowance_check(path)) {
         return ERR_NO_ALLOWANCE;
     }
     return 1;

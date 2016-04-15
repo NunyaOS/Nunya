@@ -7,7 +7,7 @@ MOUSE_OBJS = mouse.o ps2.o
 MEMORY_OBJS=memory_raw.o kmalloc.o
 TEST_OBJS=module_tests.o testing.o tests.o
 DEBUG_OBJS=debug_kernel.o
-FS_OBJS = fs_sys.o
+FS_OBJS = sys_fs.o
 
 KERNEL_CCFLAGS=-Wall -c -ffreestanding -m32 -march=i386
 KERNEL_LDFLAGS=-m elf_i386
