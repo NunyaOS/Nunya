@@ -16,7 +16,7 @@ See the file LICENSE for details.
 #define WRITE 2
 #define APPEND 1
 
-uint32_t fs_security_check(const char *path);
+int32_t fs_security_check(const char *path);
 
 /*
  * A dummy function to help us in our debugging
@@ -134,7 +134,7 @@ struct fs_agnostic_file *create_fs_agnostic_file(enum ata_kind ata_type, uint8_t
 
 int32_t fs_open(const char *path, const char *mode) {
     //checks both owner permissions (dummy true) and process permissions
-    uint32_t success = fs_security_check(path);
+    int32_t success = fs_security_check(path);
     if (success < 1) {
         return success;
     }
@@ -305,7 +305,7 @@ bool fs_allowance_check(const char *path) {
     return 0;
 }
 
-uint32_t fs_security_check(const char *path) {
+int32_t fs_security_check(const char *path) {
     if (!fs_owner_check(path)) {
         return ERR_NOT_OWNER;
     }
