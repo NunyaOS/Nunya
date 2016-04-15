@@ -16,7 +16,7 @@ See the file LICENSE for details.
 #define WRITE 2
 #define APPEND 1
 
-uint32_t fs_security_check(const char *path);
+int32_t fs_security_check(const char *path);
 
 #define MAX_OS_OPEN_FILES 1024
 
@@ -90,6 +90,30 @@ int mode_str_to_int(const char *mode) {
     if (strcmp(mode, "wr") == 0) {
         return READ | WRITE;
     }
+    if (strcmp(mode, "aw") == 0) {
+        return APPEND | WRITE;
+    }
+    if (strcmp(mode, "wa") == 0) {
+        return WRITE | APPEND;
+    }
+    if (strcmp(mode, "rwa") == 0) {
+        return READ | WRITE | APPEND;
+    }
+    if (strcmp(mode, "raw") == 0) {
+        return READ | APPEND | WRITE;
+    }
+    if (strcmp(mode, "wra") == 0) {
+        return WRITE | READ | APPEND;
+    }
+    if (strcmp(mode, "war") == 0) {
+        return WRITE | APPEND | READ;
+    }
+    if (strcmp(mode, "arw") == 0) {
+        return APPEND | READ | WRITE;
+    }
+    if (strcmp(mode, "awr") == 0) {
+        return APPEND | WRITE |READ;
+    }
     return 0;
 }
 
@@ -123,7 +147,7 @@ struct fs_agnostic_file *create_fs_agnostic_file(enum ata_kind ata_type, uint8_t
 
 int32_t fs_open(const char *path, const char *mode) {
     //checks both owner permissions (dummy true) and process permissions
-    uint32_t success = fs_security_check(path);
+    int32_t success = fs_security_check(path);
     if (success < 1) {
         return success;
     }
@@ -198,7 +222,7 @@ int32_t fs_close(uint32_t fd) {
         fp->filep = 0;
         current->fd_table[fd].ptr = 0;
         current->fd_table[fd].is_open = 0;
-        return 1;
+        return 0;
     } else {
         return ERR_WAS_NOT_OPEN;
     }
@@ -290,7 +314,7 @@ bool fs_allowance_check(const char *path) {
     return 0;
 }
 
-uint32_t fs_security_check(const char *path) {
+int32_t fs_security_check(const char *path) {
     if (!fs_owner_check(path)) {
         return ERR_NOT_OWNER;
     }

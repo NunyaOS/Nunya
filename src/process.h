@@ -31,6 +31,7 @@ struct process {
     uint32_t entry;
     struct fd fd_table[PROCESS_MAX_OPEN_FILES];
     struct list fs_allowances_list;
+    struct window *window;
 };
 
 void process_init();

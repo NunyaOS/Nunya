@@ -15,7 +15,7 @@ See the file LICENSE for details.
  * descriptor
  *
  * @param fd The file descriptor of the file to be closed.
- * return 1 if the file was open and is now closed, otherwise an integer code
+ * return 0 if the file was open and is now closed, otherwise an integer code
  * matching a descriptive error in an enumeration in sys_fs_err.h
  */
 static inline int32_t close(uint32_t fd) {
