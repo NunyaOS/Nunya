@@ -31,6 +31,7 @@ struct process {
     uint32_t entry;
     struct process_files *files;
     struct list fs_allowances_list;
+    struct window *window;
 };
 
 void process_init();
