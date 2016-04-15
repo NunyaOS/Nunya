@@ -8,12 +8,8 @@ See the file LICENSE for details.
 #define GRAPHICS_H
 
 #include "kerneltypes.h"
+#include "sys_window_struct.h"
 
-struct graphics_color {
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
-};
 
 int graphics_width();
 int graphics_height();
