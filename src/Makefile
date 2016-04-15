@@ -1,13 +1,17 @@
-OBJECTS = kernelcore.o main.o console.o $(MEMORY_OBJS) keyboard.o clock.o interrupt.o pic.o ata.o string.o graphics.o font.o syscall.o syscall_handler.o process.o mutex.o list.o pagetable.o rtc.o disk.o math.o window.o cmd_line.o $(TEST_OBJS) iso.o fs_terminal_commands.o permissions_template.o
+OBJECTS = kernelcore.o main.o console.o $(MEMORY_OBJS) keyboard.o clock.o interrupt.o pic.o ata.o string.o font.o syscall.o syscall_handler.o mutex.o list.o pagetable.o rtc.o disk.o math.o cmd_line.o $(TEST_OBJS) iso.o fs_terminal_commands.o
 OBJECTS += $(DEBUG_OBJS)
 OBJECTS += $(MOUSE_OBJS)
-OBJECTS += $(SYSCALL_OBJS)
+OBJECTS += $(FS_OBJS)
+OBJECTS += $(WINDOW_OBJS)
+OBJECTS += $(PROCESS_OBJS)
 
 MOUSE_OBJS = mouse.o ps2.o
 MEMORY_OBJS = memory_raw.o kmalloc.o
 TEST_OBJS = module_tests.o testing.o tests.o
-SYSCALL_OBJS = syscall_handler_process.o syscall_handler_permissions.o
 DEBUG_OBJS = debug_kernel.o
+FS_OBJS = fs.o syscall_handler_fs.o
+WINDOW_OBJS = window.o graphics.o syscall_handler_window.o
+PROCESS_OBJS = syscall_handler_process.o syscall_handler_permissions.o process.o permissions_template.o
 
 BINARIES = bin/test_userproc_even.nun
 

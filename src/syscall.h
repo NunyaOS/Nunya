@@ -17,6 +17,24 @@ See the file LICENSE for details.
 #define SYSCALL_template_delete 51
 // #define SYSCALL_template_lookup 52
 
+#define SYSCALL_open     601
+#define SYSCALL_close    602
+#define SYSCALL_read     603
+#define SYSCALL_write    604
+
+#define SYSCALL_window_create 200
+#define SYSCALL_window_set_border_color 201
+#define SYSCALL_window_draw_line 202
+#define SYSCALL_window_draw_arc 203
+#define SYSCALL_window_draw_circle 204
+#define SYSCALL_window_draw_char 205
+#define SYSCALL_window_draw_string 206
+
+#define SYSCALL_open     601
+#define SYSCALL_close    602
+#define SYSCALL_read     603
+#define SYSCALL_write    604
+
 #define SYSCALL_debug_print 9000 // for debugging
 
 /**
@@ -46,5 +64,7 @@ static inline int32_t debug_print(uint32_t input) {
 
 #include "sys_process.h"
 #include "sys_permissions.h"
+#include "sys_fs.h"
+#include "sys_window.h"
 
 #endif
