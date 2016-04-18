@@ -27,7 +27,7 @@ int32_t syscall_handler(uint32_t n, uint32_t a, uint32_t b, uint32_t c,
         case SYSCALL_yield:
             return sys_yield();
         case SYSCALL_exit:
-             return sys_exit(a);
+            return sys_exit(a);
         case SYSCALL_clock_read:
             return sys_clock_read((clock_t *)a);
         case SYSCALL_sleep:
