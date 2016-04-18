@@ -9,7 +9,9 @@ See the file LICENSE for details.
 #define CHECK_PROC_WINDOW() if(current->window == 0) return -1
 
 int32_t sys_window_create(int x, int y, int width, int height) {
-    CHECK_PROC_WINDOW();
+    if (current->window != 0) {
+        return -1;
+    }
     struct window *win = window_create(x, y, width, height, 0);
     current->window = win;
     return win != 0;

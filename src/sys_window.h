@@ -28,12 +28,12 @@ struct arc_info {
  * @brief Creates a window for the process
  * @details Invokes the window_create function with given parameters and assigns
  * the resulting window to calling process
- * 
+ *
  * @param x The x position of the window, relative to its parent
  * @param y The y position of the window, relative to its parent
  * @param width The width of the window
  * @param height The height of the window
- * @return 0 if a window was created, otherwise error
+ * @return 0 if a window was created, -1 if the process already has a widnow, otherwise error
  */
 static inline int32_t create_window(int x, int y, uint32_t width, uint32_t height) {
 	return syscall(SYSCALL_window_create, x, y, width, height, 0);
@@ -42,7 +42,7 @@ static inline int32_t create_window(int x, int y, uint32_t width, uint32_t heigh
 /**
  * @brief Sets the border color of the process' window
  * @details Invokes the window_set_border_color function to change window color
- * 
+ *
  * @param graphics_color The color to set the border to
  * @return 0 on success, or -1 if the calling process has no window
  */
@@ -53,7 +53,7 @@ static inline int32_t set_border_color(const struct graphics_color *border_color
 /**
  * @brief Draws a line in the current process' window
  * @details Invokes the window_draw_line function to draw into the current window
- * 
+ *
  * @param x1 The x position of the first point in the line
  * @param y1 The y position of the first point in the line
  * @param x2 The x position of the second point in the line
@@ -68,12 +68,10 @@ static inline int32_t draw_line(int x1, int y1, int x2, int y2, const struct gra
 /**
  * @brief Draws an arc in the current process' window
  * @details Invokes the window_draw_arc function to draw into the current window
- * 
+ *
  * @param x The x position of the center of the arc
  * @param y The y position of the center of the arc
- * @param r The radius of the arc
- * @param start_theta The starting angle of the arc, between 0 and 2*PI. See sin/cos
- * @param end_theta The ending angle of the arc, between 0 and 2*PI. See sin/cos
+ * @param arc The arc_info describing the arc length and radius
  * @param color The color to draw in
  * @return 0 on success, or -1 if the calling process has no window
  */
@@ -84,11 +82,11 @@ static inline int32_t draw_arc(int x, int y, const struct arc_info *arc, const s
 /**
  * @brief Draws a circle in the current process' window
  * @details Invokes the window_draw_circle function to draw into the current window
- * 
+ *
  * @param x The x position of the center of the circle, relative to the window
  * @param y The y position of the center of the circle, relative to the window
  * @param r The radius of the circle
- * @param color The color to draw in
+ * @param c The color to draw in
  * @return 0 on success, or -1 if the calling process has no window
  */
 static inline int32_t draw_circle(int x, int y, const double *r, const struct graphics_color *c) {
@@ -98,10 +96,10 @@ static inline int32_t draw_circle(int x, int y, const double *r, const struct gr
 /**
  * @brief Draws a character in the current process' window
  * @details Invokes the window_draw_char function to draw into the current window
- * 
+ *
  * @param x The x position of the top left corner of the char
  * @param y The y position of the top left corner of the char
- * @param ch The character to draw
+ * @param c The character to draw
  * @param fgcolor The color to draw the character
  * @param bgcolor The color to draw the negative space
  * @return 0 on success, or -1 if the calling process has no window
@@ -113,12 +111,12 @@ static inline int32_t draw_char(int x, int y, char c, const struct graphics_colo
 /**
  * @brief Draws a string in the current process' window
  * @details Invokes the window_draw_string function to draw into the current window
- * 
+ *
  * @param x The x position of the top left corner of the first character
  * @param y The y position of the top right corner of the first character
  * @param str The text to be drawn, null terminated
- * @param graphics_color The color to draw the characters
- * @param graphics_color The color to draw the negative space
+ * @param fgcolor The color to draw the characters
+ * @param bgcolor The color to draw the negative space
  * @return 0 on success, or -1 if the calling process has no window
  */
 static inline int32_t draw_string(int x, int y, const char *str, const struct graphics_color *fgcolor,

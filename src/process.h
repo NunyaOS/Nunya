@@ -12,6 +12,7 @@ See the file LICENSE for details.
 #include "pagetable.h"
 #include "x86.h"
 #include "memory.h"
+#include "sys_fs_structs.h"
 
 #define PROCESS_STATE_CRADLE  0
 #define PROCESS_STATE_READY   1
@@ -28,6 +29,8 @@ struct process {
     char *kstack_top;
     char *stack_ptr;
     uint32_t entry;
+    struct process_files *files;
+    struct list fs_allowances_list;
     struct window *window;
 };
 
