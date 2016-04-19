@@ -5,7 +5,7 @@ int _start() {
     // invoke system call that kills the process
 }
 
-#include "../syscall.h"
+#include "syscall.h"
 
 int main() {
     int has_spawned = 0;

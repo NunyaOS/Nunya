@@ -7,7 +7,7 @@ See the file LICENSE for details.
 #ifndef SYSCALL_H
 #define SYSCALL_H
 
-#include "kerneltypes.h"
+#include "../kerneltypes.h"
 
 #define SYSCALL_exit     1
 #define SYSCALL_yield    2
@@ -15,11 +15,6 @@ See the file LICENSE for details.
 
 #define SYSCALL_capability_create 50
 #define SYSCALL_capability_delete 51
-
-#define SYSCALL_open     601
-#define SYSCALL_close    602
-#define SYSCALL_read     603
-#define SYSCALL_write    604
 
 #define SYSCALL_window_create 200
 #define SYSCALL_window_set_border_color 201
@@ -60,10 +55,12 @@ static inline int32_t debug_print(uint32_t input) {
 }
 
 // ------- Include module-level headers here -------
+// Reference them using the relative path structure
+// The Makefile will put the syscalls in user programs' compiling environment
 
-#include "sys_process.h"
-#include "sys_permissions.h"
-#include "sys_fs.h"
-#include "sys_window.h"
+#include "../sys_process.h"
+#include "../sys_permissions.h"
+#include "../sys_fs.h"
+#include "../sys_window.h"
 
 #endif

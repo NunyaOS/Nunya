@@ -14,6 +14,7 @@ WINDOW_OBJS = window.o graphics.o syscall_handler_window.o
 PROCESS_OBJS = syscall_handler_process.o syscall_handler_permissions.o process.o permissions_capabilities.o
 
 BINARIES = bin/test_userproc_even.nun
+LIB_INCLUDE_PATH = ./include
 
 KERNEL_CCFLAGS = -Wall -c -ffreestanding -m32 -march=i386
 KERNEL_LDFLAGS = -m elf_i386
@@ -38,13 +39,13 @@ kernel: ${OBJECTS}
 	ld ${KERNEL_LDFLAGS} -Ttext 0x10000 -s --oformat binary ${OBJECTS} -o $@
 
 %.o: %.c
-	gcc ${KERNEL_CCFLAGS} $< -o $@
+	gcc ${KERNEL_CCFLAGS} -I ${LIB_INCLUDE_PATH} $< -o $@
 
 %.o: %.S
 	gcc ${KERNEL_CCFLAGS} $< -o $@
 
 %.s: %.c
-	gcc -Wall -S -ffreestanding -m32 -march=i386 $< -o $@
+	gcc -Wall -S -ffreestanding -m32 -march=i386 -I ${LIB_INCLUDE_PATH} $< -o $@
 
 files.iso: ${BINARIES}
 	mv $^ ../files/bin/ && genisoimage -o ../files.iso ../files/
@@ -53,7 +54,7 @@ bin/%.nun: bin/%.o
 	ld ${KERNEL_LDFLAGS} -Ttext 0x80000000 -s --oformat binary $< syscall.o -o $@
 
 bin/%.o: bin/%.c
-	gcc ${KERNEL_CCFLAGS} $< -o $@
+	gcc ${KERNEL_CCFLAGS} -I ${LIB_INCLUDE_PATH} $< -o $@
 
 clean:
 	rm -rf nunya.iso nunya.img bootblock kernel *.o ../files.iso *.nun
