@@ -1,2 +1,10 @@
+*.o
+bootblock
+kernel
+basekernel.img
+basekernel.iso
+nunya.iso
+files.iso
 doc/html
 doc/latex
+files/bin/*.nun
