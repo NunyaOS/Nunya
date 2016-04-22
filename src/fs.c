@@ -42,13 +42,16 @@ void fs_init_security(struct process *p) {
 
     p->files->num_open = 0;
 
-    //Allowances alloc'ing.
-    struct fs_allowance *allowance = kmalloc(sizeof(*allowance));
-    strcpy(allowance->path, "/");
-    allowance->do_allow_below = 1;
+    //Temporarily copy the entire list so that the in place checks work out
+    fs_copy_allowances_list(&(p->fs_allowances_list), &(p->permissions->fs_allowances));
 
-    //Set the lone permission in the list to root (that is all of the fs)
-    list_push_head(&(p->fs_allowances_list), (struct list_node *)allowance);
+//    //Allowances alloc'ing.
+//    struct fs_allowance *allowance = kmalloc(sizeof(*allowance));
+//    strcpy(allowance->path, "/");
+//    allowance->do_allow_below = 1;
+//
+//    //Set the lone permission in the list to root (that is all of the fs)
+//    list_push_head(&(p->fs_allowances_list), (struct list_node *)allowance);
 }
 
 // Look at the OS's table of open files to see if read write conflicts
@@ -316,3 +319,27 @@ int32_t fs_security_check(const char *path) {
     return 1;
 }
 
+void copy_fs_allowance(struct fs_allowance *to, const struct fs_allowance *from) {
+    to->do_allow_below = from->do_allow_below;
+    strcpy(to->path, from->path);
+    // DO NOT copy the struct list_node info... this would make this fs_allowance
+    // behave as if it is in the linked list of allowances that the argument from
+    // is in.
+}
+
+void fs_copy_allowances_list(struct list *to, struct list *from) {
+    struct list_node *iterator;
+    for (iterator = from->head; iterator != 0; iterator = iterator->next) {
+        struct fs_allowance *new_allowance = kmalloc(sizeof(*new_allowance));
+        copy_fs_allowance(new_allowance, (struct fs_allowance *)iterator);
+        list_push_head(to, (struct list_node *)new_allowance);
+    }
+}
+
+void fs_free_allowances_list(struct list *to_free) {
+    struct list_node *n;
+    while (to_free->head != 0) {
+        n = list_pop_head(to_free);
+        kfree((struct fs_allowance *) n);
+    }
+}

@@ -9,6 +9,7 @@ See the file LICENSE for details.
 #include "kmalloc.h"
 #include "permissions_capabilities.h"
 #include "console.h"
+#include "fs.h"
 
 #define MAX_NUMBER_OF_PERMISSIONS 169 // temporary, for now they'll be statically allocated
 #define DEFAULT_FRACTION_OF_MEMORY 3
@@ -44,7 +45,10 @@ struct process_permissions *permissions_from_capability(struct permissions_capab
     new_permissions->offset_x = capability->offset_x;
     new_permissions->offset_y = capability->offset_y;
 
-    // todo: the rest of the permissions
+    // copy allowances list into newly allocated memory
+    struct list l = LIST_INIT;
+    new_permissions->fs_allowances = l;
+    fs_copy_allowances_list(&(new_permissions->fs_allowances), &(capability->fs_allowances));
 
     return new_permissions;
 }
@@ -98,7 +102,8 @@ uint32_t create_permissions_capability() {
     new_capability->offset_x = 0;
     new_capability->offset_y = 0;
 
-    // todo: the rest of the permissions
+    struct list l = LIST_INIT;
+    new_capability->fs_allowances = l;
 
     return identifier;
 }
@@ -116,5 +121,9 @@ void delete_capabilities_owned_by_process(struct process *p) {
 void delete_permissions_capability(uint32_t identifier) {
     struct permissions_capability *capability = capability_for_identifier(identifier);
     permissions_table[identifier] = 0; // clear out of the table
+
+    // don't leak here with fs_allowances
+    fs_free_allowances_list(&(capability->fs_allowances));
+
     kfree(capability);
 }

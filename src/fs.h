@@ -84,4 +84,22 @@ int32_t fs_write(const char *src, uint32_t bytes,  uint32_t fd);
  */
 void fs_init_security(struct process *p);
 
+/**
+ * @brief Copies a list of fs_allowances
+ * @details Allocates new space for each node and copies each node element for
+ * element
+ *
+ * @param to Pointer to the list to copy in to.
+ * @param from Pointer to the list to copy from.
+ */
+void fs_copy_allowances_list(struct list *to, struct list *from);
+
+/**
+ * @brief Frees allocated nodes of the list of allowances
+ * @details Iterates through the list and frees each dynamically allocated node
+ *
+ * @param to_free Pointer to the list to free
+ */
+void fs_free_allowances_list(struct list *to_free);
+
 #endif
