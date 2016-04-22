@@ -10,10 +10,10 @@ MEMORY_OBJS = memory_raw.o kmalloc.o
 TEST_OBJS = module_tests.o testing.o tests.o
 DEBUG_OBJS = debug_kernel.o
 FS_OBJS = fs.o syscall_handler_fs.o
-WINDOW_OBJS = window.o graphics.o syscall_handler_window.o
+WINDOW_OBJS = window.o graphics.o syscall_handler_window.o window_manager.o
 PROCESS_OBJS = syscall_handler_process.o syscall_handler_permissions.o process.o permissions_capabilities.o
 
-BINARIES = bin/test_userproc_even.nun
+BINARIES = bin/test_userproc_even.nun bin/test_window.nun
 LIB_INCLUDE_PATH = ./include
 
 KERNEL_CCFLAGS = -Wall -c -ffreestanding -m32 -march=i386

@@ -15,7 +15,6 @@ See the file LICENSE for details.
 #include "process.h"
 #include "syscall_handler_window.h"
 
-
 int32_t sys_debug_print(uint32_t a) {
     console_printf(" testing: %d\n", a);
     return 0;
@@ -57,6 +56,8 @@ int32_t syscall_handler(uint32_t n, uint32_t a, uint32_t b, uint32_t c,
             return sys_draw_char(a, b, (char)c, (const struct graphics_color *)d, (const struct graphics_color *)e);
         case SYSCALL_window_draw_string:
             return sys_draw_string(a, b, (const char *)c, (const struct graphics_color *)d, (const struct graphics_color *)e);
+        case SYSCALL_window_get_event:
+            return sys_get_event((struct event *)a);
         case SYSCALL_debug_print:
             return sys_debug_print(a); // for debugging
         default:
