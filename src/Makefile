@@ -6,7 +6,7 @@ OBJECTS += $(WINDOW_OBJS)
 OBJECTS += $(PROCESS_OBJS)
 
 MOUSE_OBJS = mouse.o ps2.o
-MEMORY_OBJS = memory_raw.o kmalloc.o
+MEMORY_OBJS = memory_raw.o kmalloc.o syscall_handler_memory.o
 TEST_OBJS = module_tests.o testing.o tests.o
 DEBUG_OBJS = debug_kernel.o
 FS_OBJS = fs.o syscall_handler_fs.o
@@ -48,7 +48,7 @@ kernel: ${OBJECTS}
 	gcc -Wall -S -ffreestanding -m32 -march=i386 -I ${LIB_INCLUDE_PATH} $< -o $@
 
 files.iso: ${BINARIES}
-	mv $^ ../files/bin/ && genisoimage -o ../files.iso ../files/
+	mv -f $^ ../files/bin/ && genisoimage -o ../files.iso ../files/
 
 bin/%.nun: bin/%.o
 	ld ${KERNEL_LDFLAGS} -Ttext 0x80000000 -s --oformat binary $< syscall.o -o $@

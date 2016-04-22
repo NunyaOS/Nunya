@@ -36,9 +36,4 @@ static inline void permissions_capability_delete(uint32_t identifier) {
     syscall(SYSCALL_capability_delete, identifier, 0, 0, 0, 0);
 }
 
-// todo: how to share with the user what's inside the permissions struct without returning it?
-// Or is it write-only?
-
-
-
 #endif

@@ -34,11 +34,13 @@ int32_t sys_run(const char *process_path, const uint32_t permissions_identifier,
         console_printf("Error accessing binary\n");
         return -1;
     }
+
     struct iso_file *proc_file = iso_fopen(process_path, root_dir->ata_unit);
     if (proc_file == 0) {
         console_printf("Error accessing binary\n");
         return -1;
     }
+
     uint8_t *process_data = kmalloc(proc_file->data_length);
     if (process_data == 0) {
         // free the intermediary memory we used
@@ -46,6 +48,7 @@ int32_t sys_run(const char *process_path, const uint32_t permissions_identifier,
         console_printf("Error accessing binary\n");
         return -1;
     }
+
     int num_read = iso_fread(process_data, proc_file->data_length, 1, proc_file);
     if (num_read == 0) {
         // free the intermediary memory we used
@@ -102,13 +105,13 @@ int32_t sys_run(const char *process_path, const uint32_t permissions_identifier,
 
     // check if we've exceeded the parent's allocation
     if (parent->number_of_pages_using > parent->permissions->max_number_of_pages) {
-        console_printf("Error: current process exceeded limit: %d > %d\n", parent->number_of_pages_using, parent->permissions->max_number_of_pages);
+        console_printf("Error: attempt to create a process without available memory: %d > %d\n", parent->number_of_pages_using, parent->permissions->max_number_of_pages);
         sys_exit(-1);
     }
 
     // check if we've exceeded the child's allocation
     if (child_proc->number_of_pages_using > child_proc->permissions->max_number_of_pages) {
-        console_printf("Error: child process exceeded limit\n");
+        console_printf("Error: child process exceeded its limit\n");
         sys_exit(-1);
     }
 
