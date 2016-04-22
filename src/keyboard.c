@@ -128,9 +128,6 @@ void keyboard_interrupt(int i, int code) {
         return;
     }
 
-    if ((buffer_write + 1) == (buffer_read % KEYBOARD_BUFFER_SIZE)) {
-        return;
-    }
     if (active_window) {
         send_event_keyboard_press(c);
     } else {

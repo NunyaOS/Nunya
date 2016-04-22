@@ -124,8 +124,16 @@ static inline int32_t draw_string(int x, int y, const char *str, const struct gr
 	return syscall(SYSCALL_window_draw_string, x, y, (int)str, (int)fgcolor, (int)bgcolor);
 }
 
+/**
+ * @brief Get the event at the front of the event queue
+ * @details This will check if there is an event in the event queue
+ * for this window, and if so it will fill e with that information
+ * 
+ * @param e An event struct to be filled with information of the event
+ * @return 0 if an event was found and filled, 2 if there is no waiting event
+ */
 static inline int32_t get_event(struct event *e) {
-	return syscall(SYSCALL_window_get_event, (int)e, 0, 0, 0, 0);
+	return syscall(SYSCALL_window_get_event, (uint32_t)e, 0, 0, 0, 0);
 }
 
 #endif
