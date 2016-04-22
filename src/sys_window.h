@@ -124,5 +124,8 @@ static inline int32_t draw_string(int x, int y, const char *str, const struct gr
 	return syscall(SYSCALL_window_draw_string, x, y, (int)str, (int)fgcolor, (int)bgcolor);
 }
 
+static inline int32_t get_event(struct event *e) {
+	return syscall(SYSCALL_window_get_event, (int)e, 0, 0, 0, 0);
+}
 
 #endif
