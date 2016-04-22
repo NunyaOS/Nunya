@@ -11,6 +11,7 @@
 #include "ioports.h"
 #include "graphics.h"
 #include "console.h"
+#include "window_manager.h"
 
 static uint8_t mouse_cycle = 0;
 static uint8_t mouse_byte[3];
@@ -125,6 +126,9 @@ void mouse_interrupt() {
             mouse_cycle = 0;
             if (mouse_enabled && mouse_map()) {
                 graphics_mouse();
+                //TODO: Filter out mouse events that happen
+                // outside the current window
+                send_event_mouse_move();
             }
             break;
     }

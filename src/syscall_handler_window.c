@@ -5,6 +5,7 @@ See the file LICENSE for details.
 */
 #include "syscall_handler_window.h"
 #include "process.h"
+#include "string.h"
 
 #define CHECK_PROC_WINDOW() if(current->window == 0) return -1
 
@@ -51,5 +52,18 @@ int32_t sys_draw_string(int x, int y, const char *str, const struct graphics_col
     const struct graphics_color *bgcolor) {
     CHECK_PROC_WINDOW();
     window_draw_string(current->window, x, y, str, *fgcolor, *bgcolor);
+    return 0;
+}
+
+int32_t sys_get_event(struct event *e) {
+    CHECK_PROC_WINDOW();
+    struct list *list = &(current->window->event_queue);
+    struct event *last_event = (struct event *)list_pop_tail(list);
+    if (last_event == 0) {
+        return 2;
+    }
+
+    memcpy(e, last_event, sizeof(struct event));
+
     return 0;
 }
