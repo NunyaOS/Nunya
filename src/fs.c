@@ -49,8 +49,6 @@ void fs_init_security(struct process *p) {
         p->fd_table[i].ptr = 0;
     }
 
-    p->files->num_open = 0;
-
     //Temporarily copy the entire list so that the in place checks work out
     fs_copy_allowances_list(&(p->fs_allowances_list), &(p->permissions->fs_allowances));
 
