@@ -45,13 +45,6 @@ void fs_init_security(struct process *p) {
     //Temporarily copy the entire list so that the in place checks work out
     fs_copy_allowances_list(&(p->fs_allowances_list), &(p->permissions->fs_allowances));
 
-//    //Allowances alloc'ing.
-//    struct fs_allowance *allowance = kmalloc(sizeof(*allowance));
-//    strcpy(allowance->path, "/");
-//    allowance->do_allow_below = 1;
-//
-//    //Set the lone permission in the list to root (that is all of the fs)
-//    list_push_head(&(p->fs_allowances_list), (struct list_node *)allowance);
 }
 
 // Look at the OS's table of open files to see if read write conflicts
@@ -319,6 +312,7 @@ int32_t fs_security_check(const char *path) {
     return 1;
 }
 
+// Copies one fs allowance to another piece by piece
 void copy_fs_allowance(struct fs_allowance *to, const struct fs_allowance *from) {
     to->do_allow_below = from->do_allow_below;
     strcpy(to->path, from->path);

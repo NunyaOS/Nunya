@@ -45,7 +45,6 @@ struct process_permissions *permissions_from_capability(struct permissions_capab
     new_permissions->offset_x = capability->offset_x;
     new_permissions->offset_y = capability->offset_y;
 
-    // copy allowances list into newly allocated memory
     struct list l = LIST_INIT;
     new_permissions->fs_allowances = l;
     fs_copy_allowances_list(&(new_permissions->fs_allowances), &(capability->fs_allowances));
