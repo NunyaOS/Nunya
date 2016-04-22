@@ -13,9 +13,12 @@ See the file LICENSE for details.
 #include "interrupt.h"
 #include "memorylayout.h"
 #include "kernelcore.h"
+#include "graphics.h"
 
 #include "fs.h" //struct process->files
 #include "memory_raw.h" // memory_alloc_page, memory_free_page
+
+#include "permissions_capabilities.h"
 
 struct process *current = 0;
 struct list ready_list = { 0, 0 };
@@ -33,6 +36,19 @@ void process_init() {
     pagetable_enable();
 
     current->state = PROCESS_STATE_READY;
+
+    // establish initial permissions
+    struct process_permissions *initial_permissions = kmalloc(sizeof(struct process_permissions));
+    initial_permissions->max_number_of_pages = memory_pages_total();
+    initial_permissions->max_width = graphics_width();
+    initial_permissions->max_height = graphics_height();
+    initial_permissions->offset_x = 0;
+    initial_permissions->offset_y = 0;
+
+    // todo: the rest of the permissions
+
+    console_printf("total pages: %d\n", memory_pages_total());
+    current->permissions = initial_permissions;
 
     console_printf("process: ready\n");
 }
@@ -135,7 +151,7 @@ static void process_switch(int newstate) {
     interrupt_unblock();
 }
 
-int allow_preempt = 0;
+int allow_preempt = 1;
 
 void process_preempt() {
     if (allow_preempt && current && ready_list.head) {
@@ -148,8 +164,17 @@ void process_yield() {
 }
 
 void process_exit(int code) {
-    console_printf("process exiting with status %d...\n", code);
+    console_printf("Process exiting with status: %d...\n", code);
+
+    // return memory to parent
+    current->parent->number_of_pages_using -= current->permissions->max_number_of_pages;
+
     current->exitcode = code;
+    kfree(current->permissions);
+    delete_capabilities_owned_by_process(current);
+
+    // todo: kill the process' children
+
     process_switch(PROCESS_STATE_GRAVE);
 }
 
@@ -173,6 +198,10 @@ void process_wakeup_all(struct list *q) {
         p->state = PROCESS_STATE_READY;
         list_push_tail(&ready_list, &p->node);
     }
+}
+
+void add_process_to_ready_queue(struct process *p) {
+    list_push_tail(&ready_list, &p->node);
 }
 
 void process_dump(struct process *p) {
