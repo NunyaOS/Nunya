@@ -20,6 +20,17 @@ See the file LICENSE for details.
 #define PROCESS_STATE_BLOCKED 3
 #define PROCESS_STATE_GRAVE   4
 
+struct process_permissions {
+    // Memory permissions
+    int max_number_of_pages;
+
+    // Window permissions, to override parents'
+    int max_width;
+    int max_height;
+    int offset_x;
+    int offset_y;
+};
+
 struct process {
     struct list_node node;
     int state;
@@ -29,6 +40,11 @@ struct process {
     char *kstack_top;
     char *stack_ptr;
     uint32_t entry;
+    struct fd fd_table[PROCESS_MAX_OPEN_FILES];
+    struct process *parent;
+    struct list children;
+    int number_of_pages_using;
+    struct process_permissions *permissions;
     struct process_files *files;
     struct list fs_allowances_list;
     struct window *window;
@@ -45,6 +61,9 @@ void process_dump(struct process *p);
 void process_wait(struct list *q);
 void process_wakeup(struct list *q);
 void process_wakeup_all(struct list *q);
+
+void add_process_to_ready_queue(struct process *p);
+
 
 extern struct process *current;
 

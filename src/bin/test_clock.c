@@ -5,7 +5,7 @@ int _start() {
     // invoke system call that kills the process
 }
 
-#include "../syscall.h"
+#include "syscall.h"
 #include "../clock.h"
 #include "../rtc.h"
 #define CHAR_SIZE 8
