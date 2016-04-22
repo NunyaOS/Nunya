@@ -18,6 +18,10 @@ See the file LICENSE for details.
 
 int32_t fs_security_check(const char *path);
 
+#define MAX_OS_OPEN_FILES 1024
+
+struct fs_agnostic_file open_files_table[MAX_OS_OPEN_FILES];
+
 /*
  * A dummy function to help us in our debugging
  */
@@ -30,14 +34,19 @@ void fs_print_allowances() {
     console_printf("\n");
 }
 
-void fs_init_security(struct process *p) {
-    //Open files table
-    p->files = kmalloc(sizeof(*(p->files)));
+void fs_sys_init_open_files_table() {
     int i;
+    for (i = 0; i < MAX_OS_OPEN_FILES; i++) {
+        open_files_table[i].filep = 0;  // Set each file pointer to null
+    }
+}
 
-    //set all open file pointers to null
+void fs_init_security(struct process *p) {
+    // Initialize all file descriptor slots to 0
+    int i;
     for (i = 0; i < PROCESS_MAX_OPEN_FILES; i++) {
-        p->files->open_files[i] = 0;
+        p->fd_table[i].is_open = 0;
+        p->fd_table[i].ptr = 0;
     }
 
     p->files->num_open = 0;
@@ -107,7 +116,13 @@ int mode_str_to_int(const char *mode) {
 }
 
 struct fs_agnostic_file *create_fs_agnostic_file(enum ata_kind ata_type, uint8_t ata_unit, const char *path, uint8_t mode) {
-    struct fs_agnostic_file *new_file = kmalloc(sizeof(*new_file));
+    int next_open_slot;
+    for (next_open_slot = 0; next_open_slot < MAX_OS_OPEN_FILES; next_open_slot++) {
+        if (!open_files_table[next_open_slot].filep) {  // If the file pointer hasn't been assigned, this is an unused file slot
+            break;
+        }
+    }
+    struct fs_agnostic_file *new_file = &(open_files_table[next_open_slot]);
     new_file->ata_unit = ata_unit;
     new_file->ata_type = ata_type;
     new_file->mode = mode;
@@ -137,9 +152,6 @@ int32_t fs_open(const char *path, const char *mode) {
     if (!fs_check_open_conflict(path, mode)) {
         return ERR_OPEN_CONFLICT;
     }
-    if (current->files->num_open >= PROCESS_MAX_OPEN_FILES) {
-        return ERR_FDS_EXCEEDED;
-    }
     int imode = mode_str_to_int(mode);
     if (imode == 0) {
         return ERR_BAD_MODE;
@@ -168,24 +180,25 @@ int32_t fs_open(const char *path, const char *mode) {
     //add to process file->file table
     bool opened = 0;
     for (next_fd = 0; opened == 0 && next_fd < PROCESS_MAX_OPEN_FILES; next_fd++) {
-        if (current->files->open_files[next_fd] == 0) {
+        // See if the process's file descriptor table has an unopen slot
+        if (!current->fd_table[next_fd].is_open) {
             //make new sys level file
             //mark it with the ata type
             //the ata unit
             //and a pointer to the union of below
             //sys level file types
-            current->files->open_files[next_fd] = create_fs_agnostic_file(ata_type, ata_unit, media_path, imode);
-            if (current->files->open_files[next_fd]) {
-                opened = 1;
-                current->files->num_open += 1;
-                break;
+
+            // Create a fs_agnostic_file and give its reference to the process fd_table
+            current->fd_table[next_fd].ptr = create_fs_agnostic_file(ata_type, ata_unit, media_path, imode);
+            if (current->fd_table[next_fd].ptr) {
+                current->fd_table[next_fd].is_open = 1;
             } else {
                 return ERR_KERNEL_OPEN_FAIL;
             }
+        } else if (next_fd == PROCESS_MAX_OPEN_FILES - 1) {
+            return ERR_FDS_EXCEEDED;
         }
     }
-
-    // TODO: keep on OS's open file table
 
     return next_fd;
 }
@@ -195,7 +208,7 @@ int32_t fs_close(uint32_t fd) {
         return ERR_FD_OOR;
     }
 
-    struct fs_agnostic_file *fp = current->files->open_files[fd];
+    struct fs_agnostic_file *fp = current->fd_table[fd].ptr;
     if (fp) {
         switch (fp->ata_type) {
             case 1:  //ISO
@@ -204,11 +217,9 @@ int32_t fs_close(uint32_t fd) {
             default:
                 return ERR_BAD_ATA_KIND;
         }
-        kfree(fp);
-        current->files->open_files[fd] = 0;
-        current->files->num_open -= 1;
-        // TODO: decrement OS open files table
-            //if count is 0, remove from OS open files table
+        fp->filep = 0;
+        current->fd_table[fd].ptr = 0;
+        current->fd_table[fd].is_open = 0;
         return 0;
     } else {
         return ERR_WAS_NOT_OPEN;
@@ -221,8 +232,8 @@ int32_t fs_read(char *dest, uint32_t bytes, uint32_t fd) {
         return ERR_FD_OOR;
     }
 
-    struct fs_agnostic_file *fp = current->files->open_files[fd];
-    if (!fp) {
+    struct fs_agnostic_file *fp = current->fd_table[fd].ptr;
+    if (!fp || current->fd_table[fd].is_open == 0) {
         return ERR_WAS_NOT_OPEN;
     }
     //must be okay with security and be allowed to read

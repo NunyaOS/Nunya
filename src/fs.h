@@ -102,4 +102,10 @@ void fs_copy_allowances_list(struct list *to, struct list *from);
  */
 void fs_free_allowances_list(struct list *to_free);
 
+/** 
+* @brief Initialize the open file table for the kernel
+ * @details Initialize each fs_agnostic file to reflect an unopened file
+ */
+void fs_sys_init_open_file_table();
+
 #endif
