@@ -84,4 +84,10 @@ int32_t fs_write(const char *src, uint32_t bytes,  uint32_t fd);
  */
 void fs_init_security(struct process *p);
 
+/**
+ * @brief Initialize the open file table for the kernel
+ * @details Initialize each fs_agnostic file to reflect an unopened file
+ */
+void fs_sys_init_open_file_table();
+
 #endif
