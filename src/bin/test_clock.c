@@ -6,8 +6,6 @@ int _start() {
 }
 
 #include "syscall.h"
-#include "../clock.h"
-#include "../rtc.h"
 #define CHAR_SIZE 8
 clock_t clock_diff(clock_t start, clock_t stop) {
     clock_t result;

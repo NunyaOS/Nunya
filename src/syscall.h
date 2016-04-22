@@ -10,16 +10,15 @@ See the file LICENSE for details.
 #include "kerneltypes.h"
 
 #define SYSCALL_exit     1
-#define SYSCALL_testcall 2
-#define SYSCALL_yield    3
+#define SYSCALL_yield    2
+#define SYSCALL_run      3
+
 #define SYSCALL_clock_read 4
 #define SYSCALL_sleep 5
 #define SYSCALL_rtc_read 6
 
-#define SYSCALL_open     601
-#define SYSCALL_close    602
-#define SYSCALL_read     603
-#define SYSCALL_write    604
+#define SYSCALL_capability_create 50
+#define SYSCALL_capability_delete 51
 
 #define SYSCALL_window_create 200
 #define SYSCALL_window_set_border_color 201
@@ -34,12 +33,41 @@ See the file LICENSE for details.
 #define SYSCALL_read     603
 #define SYSCALL_write    604
 
+#define SYSCALL_debug_print 9000 // for debugging
+
+/**
+ * @brief   The main syscall function. All syscalls go through this.
+ * @details Use this function to implement the calling of the other syscalls
+ *          declared in syscall.h. Do not call it when the dedicated function
+ *          call for a specific syscall is available.
+ *
+ * @param   n The number of the syscall, declared in syscall.h
+ * @param   a The first of 5 optional parameters. Pass 0 if not needed.
+ * @param   b The second of 5 optional parameters. Pass 0 if not needed.
+ * @param   c The third of 5 optional parameters. Pass 0 if not needed.
+ * @param   d The fourth of 5 optional parameters. Pass 0 if not needed.
+ * @param   e The fifth of 5 optional parameters. Pass 0 if not needed.
+ *
+ * @return  The code indicating success or failure of the syscall.
+ */
 uint32_t syscall(uint32_t n, uint32_t a, uint32_t b, uint32_t c, uint32_t d,
                  uint32_t e);
 
-// MARK Module System call includes
 
-#include "sys_fs.h"
-#include "sys_window.h"
+// TEMPORARY FOR DEBUGGING
+static inline int32_t debug_print(uint32_t input) {
+     return syscall(SYSCALL_debug_print, input, 0, 0, 0, 0);
+}
+
+// ------- Include module-level headers here -------
+// Reference them using the relative path structure
+// The Makefile will put the syscalls in user programs' compiling environment
+
+#include "../sys_process.h"
+#include "../sys_permissions.h"
+#include "../sys_fs.h"
+#include "../sys_window.h"
+#include "../sys_clock.h"
+#include "../sys_rtc.h"
 
 #endif

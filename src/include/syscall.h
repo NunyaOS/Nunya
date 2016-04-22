@@ -65,5 +65,7 @@ static inline int32_t debug_print(uint32_t input) {
 #include "../sys_permissions.h"
 #include "../sys_fs.h"
 #include "../sys_window.h"
+#include "../sys_rtc.h"
+#include "../sys_clock.h"
 
 #endif
