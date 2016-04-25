@@ -24,6 +24,8 @@ struct window {
     int bounds_x_2;
     int bounds_y_1;
     int bounds_y_2;
+    int x_offset;
+    int y_offset;
     struct list event_queue;
 };
 

@@ -34,8 +34,7 @@ static inline void plot_pixel(int x, int y, struct graphics_color c) {
 
     // if there is a window, check that drawing doesn't exceed bounds
     // TODO: return if no window. only implement when nothing else does a raw graphics draw call
-    // Check to make sure that we are not drawing out of bounds
-    if (current->window) {
+    if (current && current->window) {
         struct window *w = current->window;
         if (x < w->bounds_x_1 || x > w->bounds_x_2 || y < w->bounds_y_1 || y > w->bounds_y_2) {
             return;
