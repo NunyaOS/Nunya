@@ -24,6 +24,7 @@ struct permissions_capability {
     int max_height;
     int offset_x;
     int offset_y;
+    struct list fs_allowances;
 };
 
 /**

@@ -29,6 +29,7 @@ struct process_permissions {
     int max_height;
     int offset_x;
     int offset_y;
+    struct list fs_allowances;
 };
 
 struct process {

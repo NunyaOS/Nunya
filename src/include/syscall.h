@@ -26,6 +26,7 @@ See the file LICENSE for details.
 #define SYSCALL_window_draw_circle 204
 #define SYSCALL_window_draw_char 205
 #define SYSCALL_window_draw_string 206
+#define SYSCALL_window_get_event 207
 
 #define SYSCALL_open     601
 #define SYSCALL_close    602
