@@ -12,12 +12,18 @@ See the file LICENSE for details.
 
 struct window {
     struct window *parent;
+    // relative coordinates
     int x;
     int y;
     int width;
     int height;
     struct graphics_color border_color;
     struct graphics_color background_color;
+    // absolute coordinates
+    int bounds_x_1;
+    int bounds_x_2;
+    int bounds_y_1;
+    int bounds_y_2;
     struct list event_queue;
 };
 

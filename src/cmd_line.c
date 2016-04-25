@@ -60,8 +60,11 @@ void cmd_line_attempt(const char *line) {
     } else if (strcmp("window_test", first_word) == 0) {
         console_printf("\f");
         uint32_t identifier = permissions_capability_create();
-        run("/BIN/TEST_WIN.NUN", identifier);   
+        run("/BIN/TEST_WIN.NUN", identifier);
         permissions_capability_delete(identifier);
+    } else if (strcmp("window_hierarchy", first_word) == 0) {
+        console_printf("\f");
+        window_hierarchy_test();
     }
     /*else if () {
      *...

@@ -14,6 +14,13 @@ See the file LICENSE for details.
 static int x_offset = 0;
 static int y_offset = 0;
 
+static inline void window_set_bounds(struct window *win, int x, int y, int w, int h) {
+    win->bounds_x_1 = x < 0 ? 0 : x;
+    win->bounds_x_2 = x + w >= graphics_width() ? graphics_width() - 1 : x + w;
+    win->bounds_y_1 = y < 0 ? 0 : y;
+    win->bounds_y_2 = y + h >= graphics_height() ? graphics_height() - 1 : y + h;
+}
+
 // This function prepares to draw in a window by setting up its boundary
 // restrictions.
 // THIS FUNCTION SHOULD ALWAYS BE CALLED BEFORE MAKING A GRAPHICS DRAW
@@ -23,7 +30,7 @@ static inline void window_begin_draw(struct window *w) {
     int y = w->y;
     int width = w->width;
     int height = w->height;
-    while(w->parent) {
+    while (w->parent) {
         w = w->parent;
         x += w->x;
         y += w->y;
@@ -40,7 +47,7 @@ static inline void window_begin_draw(struct window *w) {
     x_offset = x;
     y_offset = y;
 
-    graphics_set_bounds(x, y, width, height);
+    window_set_bounds(w, x, y, width, height);
 }
 
 // This function removes the restrictions used to enforce window clipping
@@ -48,7 +55,6 @@ static inline void window_begin_draw(struct window *w) {
 // THIS FUNCTION SHOULD ALWAYS BE CALLED IF window_begin_draw WAS CALLED
 // TO FINISH THE DRAW
 static inline void window_end_draw() {
-    graphics_clear_bounds();
     x_offset = 0;
     y_offset = 0;
 }
