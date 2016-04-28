@@ -22,10 +22,10 @@ static inline void window_set_bounds(struct window *win, int x, int y, int w, in
     // check if bounds_x_1 ... y_2 are not 0.
     // if not, do calculation. otherwise, do nothing
     win->bounds_x_1 = x < 0 ? 0 : x;
-    /*console_printf("bounds_x_2 %d\n", x + w);*/
+    console_printf("bounds_x_2 %d\n", x + w);
     win->bounds_x_2 = x + w >= graphics_width() ? graphics_width() - 1 : x + w;
     win->bounds_y_1 = y < 0 ? 0 : y;
-    /*console_printf("bounds_y_2 %d\n", y + h);*/
+    console_printf("bounds_y_2 %d\n", y + h);
     win->bounds_y_2 = y + h >= graphics_height() ? graphics_height() - 1 : y + h;
 }
 
@@ -34,8 +34,10 @@ static inline void window_set_bounds(struct window *win, int x, int y, int w, in
 // THIS FUNCTION SHOULD ALWAYS BE CALLED BEFORE MAKING A GRAPHICS DRAW
 // CALL IN THE WINDOW SYSTEM
 static inline void window_begin_draw(struct window *w) {
+    // TODO: cache the x/y offset and the truncated height and width (done below)
     int x = w->x;
     int y = w->y;
+    struct window *init = w;
     int width = w->width;
     int height = w->height;
     while (w->parent) {
@@ -52,9 +54,8 @@ static inline void window_begin_draw(struct window *w) {
     height += w->y;
     width += w->x;
 
-    // TODO: remove offset since offset only needs to be x, y
-    w->x_offset = x;
-    w->y_offset = y;
+    init->x_offset = x;
+    init->y_offset = y;
 
     window_set_bounds(w, x, y, width, height);
 }
@@ -159,7 +160,6 @@ void window_draw_bitmap(struct window *w, int x, int y, int width, int height, u
 }
 
 void window_hierarchy_test() {
-    console_printf("testing hierarch\n");
     struct graphics_color text_color = {0,255,0};
     struct graphics_color text_bg = {0,0,0};
 
