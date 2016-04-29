@@ -127,8 +127,6 @@ void window_draw_char(struct window *w, int x, int y, char ch, struct graphics_c
 
 void window_draw_string(struct window *w, int x, int y, const char *str, struct graphics_color fgcolor,
                         struct graphics_color bgcolor) {
-    /*x += w->x_offset;*/
-    /*y += w->y_offset*/
     int pos_h = 0;
     int pos_w = 0;
     while (*str) {
