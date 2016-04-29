@@ -9,8 +9,8 @@ See the file LICENSE for details.
 
 #include "kerneltypes.h"
 #include "sys_window_struct.h"
-
-
+#include "window.h"
+struct window *hi;
 int graphics_width();
 int graphics_height();
 

@@ -23,7 +23,7 @@ static inline void window_clear_bounds(struct window *win) {
     win->bounds_y_1 = 0;
     win->bounds_y_2 = 0;
 }
-#include "console.h"
+
 static inline void window_set_bounds(struct window *win, int x, int y, int w, int h) {
     // check if bounds_x_1 ... y_2 are -1.
     // if so, do calculation. otherwise, do nothing
@@ -63,8 +63,6 @@ static inline void window_init_draw(struct window *w) {
 
     init->x_offset = x;
     init->y_offset = y;
-	console_printf("x_offset %d\n", x);
-	console_printf("y_offset %d\n", y);
     window_set_bounds(init, x, y, width, height);
 }
 
@@ -85,7 +83,7 @@ struct window *window_create(int x, int y, int width, int height, struct window 
     w->bounds_y_1 = BOUNDS_INIT;
     w->bounds_y_2 = BOUNDS_INIT;
 	window_init_draw(w);
-
+hi = w;
     // Draw the border
     struct graphics_color bc = {128,128,128};
     window_set_border_color(w, bc);
@@ -159,6 +157,7 @@ void window_hierarchy_test() {
 
     struct window *top = window_create(30, 30, 500, 400, 0);
     struct window *child = window_create(100, 200, 500, 300, top);
+hi = child;
     window_draw_string(child, 250, 0, "Hello world!", text_color, text_bg);
     kfree(top);
     kfree(child);
