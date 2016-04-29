@@ -55,6 +55,12 @@ int32_t sys_draw_string(int x, int y, const char *str, const struct graphics_col
     return 0;
 }
 
+int32_t sys_clear() {
+    CHECK_PROC_WINDOW();
+    window_clear(current->window);
+    return 0;
+}
+
 int32_t sys_get_event(struct event *e) {
     CHECK_PROC_WINDOW();
     struct list *list = &(current->window->event_queue);

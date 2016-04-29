@@ -26,6 +26,8 @@ int32_t sys_draw_char(int x, int y, char c, const struct graphics_color *fgcolor
 int32_t sys_draw_string(int x, int y, const char *str, const struct graphics_color *fgcolor,
     const struct graphics_color *bgcolor);
 
+int32_t sys_clear();
+
 int32_t sys_get_event(struct event *e);
 
 #endif
