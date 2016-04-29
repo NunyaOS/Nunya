@@ -65,10 +65,10 @@ struct window *window_create(int x, int y, int width, int height, struct window 
     w->event_queue = l;
 
     // Draw the border
-    struct graphics_color bc = {128,128,128};
-    struct graphics_color background = {0,0,0};
-    w->background_color = background;
-    window_set_border_color(w, bc);
+    struct graphics_color border_color = {128,128,128};
+    struct graphics_color background_color = {0,0,0};
+    w->background_color = background_color;
+    window_set_border_color(w, border_color);
 
     active_window = w;
 
