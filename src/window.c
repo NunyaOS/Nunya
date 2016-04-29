@@ -144,21 +144,3 @@ void window_draw_string(struct window *w, int x, int y, const char *str, struct 
     }
 }
 
-void window_draw_bitmap(struct window *w, int x, int y, int width, int height, uint8_t * data,
-                     struct graphics_color fgcolor,
-                     struct graphics_color bgcolor) {
-    graphics_bitmap(x + w->x, y + w->y, width, height, data, fgcolor, bgcolor);
-}
-
-
-void window_hierarchy_test() {
-    struct graphics_color text_color = {0,255,0};
-    struct graphics_color text_bg = {0,0,0};
-
-    struct window *top = window_create(30, 30, 500, 400, 0);
-    struct window *child = window_create(100, 200, 500, 300, top);
-    window_draw_string(child, 250, 0, "Hello world!", text_color, text_bg);
-    kfree(top);
-    kfree(child);
-}
-
