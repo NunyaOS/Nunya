@@ -14,6 +14,8 @@ See the file LICENSE for details.
 #include "syscall_handler_fs.h"
 #include "process.h"
 #include "syscall_handler_window.h"
+#include "syscall_handler_clock.h"
+#include "syscall_handler_rtc.h"
 
 int32_t sys_debug_print(uint32_t a) {
     console_printf(" testing: %d\n", a);
@@ -29,6 +31,12 @@ int32_t syscall_handler(uint32_t n, uint32_t a, uint32_t b, uint32_t c,
             return sys_yield();
         case SYSCALL_run:
             return sys_run((char *)a, b, current);
+        case SYSCALL_clock_read:
+            return sys_clock_read((clock_t *)a);
+        case SYSCALL_sleep:
+            return sys_sleep(a);
+        case SYSCALL_rtc_read:
+            return sys_rtc_read((struct rtc_time *)a);
         case SYSCALL_capability_create:
             return sys_capability_create();
         case SYSCALL_capability_delete:
