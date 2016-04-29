@@ -83,7 +83,7 @@ struct window *window_create(int x, int y, int width, int height, struct window 
     w->bounds_y_1 = BOUNDS_INIT;
     w->bounds_y_2 = BOUNDS_INIT;
 	window_init_draw(w);
-hi = w;
+
     // Draw the border
     struct graphics_color bc = {128,128,128};
     window_set_border_color(w, bc);
@@ -157,7 +157,6 @@ void window_hierarchy_test() {
 
     struct window *top = window_create(30, 30, 500, 400, 0);
     struct window *child = window_create(100, 200, 500, 300, top);
-hi = child;
     window_draw_string(child, 250, 0, "Hello world!", text_color, text_bg);
     kfree(top);
     kfree(child);

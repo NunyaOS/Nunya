@@ -40,11 +40,6 @@ static inline void plot_pixel(int x, int y, struct graphics_color c) {
             return;
         }
     }
-    if (hi) {
-        if (x < hi->bounds_x_1 || x > hi->bounds_x_2 || y < hi->bounds_y_1 || y > hi->bounds_y_2) {
-            return;
-        }
-    }
 
     uint8_t *v = video_buffer + video_xbytes * y + x * 3;
     v[2] = c.r;
