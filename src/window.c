@@ -11,12 +11,6 @@ See the file LICENSE for details.
 #define CHARACTER_W 8
 #define CHARACTER_H 8
 
-// a special number to see if the offset calculation has been done
-// TODO: change b/c we want to allow offsets to be negative (when moving window out of frame)
-#define OFFSET_INIT -1
-// this can be -1 as bounds will always be [0, graphics_width/height)
-#define BOUNDS_INIT -1
-
 static inline void window_clear_bounds(struct window *win) {
     win->bounds_x_1 = 0;
     win->bounds_x_2 = 0;
@@ -38,10 +32,6 @@ static inline void window_set_bounds(struct window *win, int x, int y, int w, in
 // THIS FUNCTION SHOULD ALWAYS BE CALLED WHEN MAKING A WINDOW
 // OR MOVING A WINDOW
 static inline void window_init_draw(struct window *w) {
-	// if one bounds number has been set, have already calculated all bounds and offsets
-	if (w->bounds_x_1 != BOUNDS_INIT && w->x_offset != OFFSET_INIT) {
-		return;
-	}
     int x = w->x;
     int y = w->y;
     struct window *init = w;
@@ -76,12 +66,12 @@ struct window *window_create(int x, int y, int width, int height, struct window 
     w->parent = parent;
     struct list l = {0, 0};
     w->event_queue = l;
-    w->x_offset = OFFSET_INIT;
-    w->y_offset = OFFSET_INIT;
-    w->bounds_x_1 = BOUNDS_INIT;
-    w->bounds_x_2 = BOUNDS_INIT;
-    w->bounds_y_1 = BOUNDS_INIT;
-    w->bounds_y_2 = BOUNDS_INIT;
+    w->x_offset = 0;
+    w->y_offset = 0;
+    w->bounds_x_1 = 0;
+    w->bounds_x_2 = 0;
+    w->bounds_y_1 = 0;
+    w->bounds_y_2 = 0;
 	window_init_draw(w);
 
     // Draw the border
