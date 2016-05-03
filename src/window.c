@@ -72,7 +72,7 @@ struct window *window_create(int x, int y, int width, int height, struct window 
     w->bounds_x_2 = 0;
     w->bounds_y_1 = 0;
     w->bounds_y_2 = 0;
-	window_init_draw(w);
+    window_init_draw(w);
 
     // Draw the border
     struct graphics_color bc = {128,128,128};
@@ -130,5 +130,11 @@ void window_draw_string(struct window *w, int x, int y, const char *str, struct 
         pos_w += CHARACTER_W;
         str++;
     }
+}
+
+void window_draw_bitmap(struct window *w, int x, int y, int width, int height, uint8_t * data,
+        struct graphics_color fgcolor,
+        struct graphics_color bgcolor) {
+    graphics_bitmap(x + w->x, y + w->y, width, height, data, fgcolor, bgcolor);
 }
 
