@@ -99,6 +99,7 @@ int32_t sys_run(const char *process_path, const uint32_t permissions_identifier,
     // check if we've exceeded the parent's allocation
     if (parent->number_of_pages_using > parent->permissions->max_number_of_pages) {
         console_printf("Error: process %d attempted to create a process %d without available memory: %d > %d\n", parent->pid, child_proc->pid, parent->number_of_pages_using, parent->permissions->max_number_of_pages);
+        kfree(process_data);
         process_cleanup(child_proc);
         return -1;
     }
@@ -106,6 +107,7 @@ int32_t sys_run(const char *process_path, const uint32_t permissions_identifier,
     // check if we've exceeded the child's allocation
     if (child_proc->number_of_pages_using > child_proc->permissions->max_number_of_pages) {
         console_printf("Error: child process %d exceeded its limit\n", child_proc->pid);
+        kfree(process_data);
         process_cleanup(child_proc);
         return -1;
     }

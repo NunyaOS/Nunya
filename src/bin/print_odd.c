@@ -1,11 +1,11 @@
-int main();
-int _start() {
-    return main();
+void main();
+void _start() {
+    main();
 }
 
 #include "syscall.h"
 
-int main() {
+void main() {
     int i = 0;
     for (i = 1; i < 11; i+=2) {
         debug_print(i);
@@ -14,6 +14,4 @@ int main() {
     }
 
     exit(0);
-
-    return 0;
 }
