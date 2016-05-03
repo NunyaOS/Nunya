@@ -56,11 +56,10 @@ void cmd_line_attempt(const char *line) {
         // set the memory
         int difference = get_max_memory() - get_current_memory_usage();
         capability_set_max_memory(identifier, difference);
-        run("/BIN/TEST_USE.NUN", identifier);
+        run("/BIN/PRINT_EV.NUN", identifier);
         console_printf("Attempting to run a process I don't have memory for:\n");
-        run("/BIN/TEST_USE.NUN", identifier);
+        run("/BIN/PRINT_OD.NUN", identifier);
         permissions_capability_delete(identifier);
-
     } else if (strcmp("help", first_word) == 0) {   // Leave this as the last case
         cmd_line_help(the_rest);
     } else if (strcmp("window_test", first_word) == 0) {

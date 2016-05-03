@@ -43,7 +43,6 @@ struct process {
     uint32_t entry;
     struct fd fd_table[PROCESS_MAX_OPEN_FILES];
     struct process *parent;
-    struct list children;
     int number_of_pages_using;
     struct process_permissions *permissions;
     struct process_files *files;
@@ -66,7 +65,6 @@ void process_wakeup(struct list *q);
 void process_wakeup_all(struct list *q);
 
 void add_process_to_ready_queue(struct process *p);
-
 
 extern struct process *current;
 

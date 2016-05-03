@@ -109,7 +109,9 @@ static void process_switch(int newstate) {
     interrupt_block();
 
     if (current) {
-        if (current->state != PROCESS_STATE_CRADLE) {
+        if (newstate == PROCESS_STATE_GRAVE) {
+            process_cleanup(current);
+        } else if (current->state != PROCESS_STATE_CRADLE) {
             asm("pushl %ebp");
             asm("pushl %edi");
             asm("pushl %esi");
@@ -131,11 +133,7 @@ static void process_switch(int newstate) {
     while (1) {
         current = (struct process *)list_pop_head(&ready_list);
         if (current) {
-            if (current->state == PROCESS_STATE_GRAVE) {
-                process_cleanup(current);
-            } else {
-                break;
-            }
+            break;
         }
         interrupt_unblock();
         interrupt_wait();
@@ -191,8 +189,6 @@ void process_exit(int code) {
     console_printf("Process %d exiting with status: %d...\n", current->pid, code);
     current->exitcode = code;
 
-    current = 0;
-
     process_switch(PROCESS_STATE_GRAVE);
 }
 
@@ -223,6 +219,7 @@ void add_process_to_ready_queue(struct process *p) {
 }
 
 void process_dump(struct process *p) {
+    console_printf("Dumping process %d:\n", p->pid);
     console_printf("last interrupt: %d\n", last_interrupt);
     struct x86_stack *s =
         (struct x86_stack *)(p->kstack + PAGE_SIZE - sizeof(*s));
