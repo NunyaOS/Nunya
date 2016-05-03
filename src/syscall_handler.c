@@ -17,7 +17,7 @@ See the file LICENSE for details.
 #include "syscall_handler_window.h"
 
 int32_t sys_debug_print(uint32_t a) {
-    console_printf(" testing: %d\n", a);
+    console_printf("PID %d, testing: %d\n", current->pid, a);
     return 0;
 }
 

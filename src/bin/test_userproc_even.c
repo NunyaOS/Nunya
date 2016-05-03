@@ -6,17 +6,14 @@ int _start() {
 #include "syscall.h"
 
 int main() {
-    int has_spawned = 0;
-    while (1) {
-        int i = 0;
-        for (i = 0; i < 11; i+=2) {
-            debug_print(i);
-            int j;
-            for (j = 0; j < 500000000; j++) {} // busywait
-        }
-
-        exit(0);
+    int i = 0;
+    for (i = 0; i < 11; i+=2) {
+        debug_print(i);
+        int j;
+        for (j = 0; j < 500000000; j++) {} // busywait
     }
+
+    exit(0);
 
     return 0;
 }

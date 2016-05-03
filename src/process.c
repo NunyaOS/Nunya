@@ -23,6 +23,8 @@ See the file LICENSE for details.
 struct process *current = 0;
 struct list ready_list = { 0, 0 };
 
+static uint32_t pid_count = 1;
+
 extern uint32_t last_interrupt;
 
 void process_init() {
@@ -50,7 +52,7 @@ void process_init() {
     console_printf("total pages: %d\n", memory_pages_total());
     current->permissions = initial_permissions;
 
-    console_printf("process: ready\n");
+    console_printf("process %d: ready\n", current->pid);
 }
 
 static void process_stack_init(struct process *p) {
@@ -79,6 +81,7 @@ struct process *process_create(unsigned code_size, unsigned stack_size) {
     struct process *p;
 
     p = (struct process *)memory_alloc_page(1);
+    p->pid = pid_count++;
 
     p->pagetable = pagetable_create();
     pagetable_init(p->pagetable);
@@ -128,7 +131,11 @@ static void process_switch(int newstate) {
     while (1) {
         current = (struct process *)list_pop_head(&ready_list);
         if (current) {
-            break;
+            if (current->state == PROCESS_STATE_GRAVE) {
+                process_cleanup(current);
+            } else {
+                break;
+            }
         }
         interrupt_unblock();
         interrupt_wait();
@@ -163,17 +170,28 @@ void process_yield() {
     process_switch(PROCESS_STATE_READY);
 }
 
-void process_exit(int code) {
-    console_printf("Process exiting with status: %d...\n", code);
-
+void process_cleanup(struct process *p) {
     // return memory to parent
-    current->parent->number_of_pages_using -= current->permissions->max_number_of_pages;
+    p->parent->number_of_pages_using -= p->permissions->max_number_of_pages;
 
-    current->exitcode = code;
-    kfree(current->permissions);
-    delete_capabilities_owned_by_process(current);
+    kfree(p->permissions);
+    delete_capabilities_owned_by_process(p);
 
     // todo: kill the process' children
+
+    // todo: free additional memory related to process
+
+    // free the actual process struct memory
+    memory_free_page(p->kstack);
+    pagetable_delete(p->pagetable);
+    memory_free_page(p);
+}
+
+void process_exit(int code) {
+    console_printf("Process %d exiting with status: %d...\n", current->pid, code);
+    current->exitcode = code;
+
+    current = 0;
 
     process_switch(PROCESS_STATE_GRAVE);
 }

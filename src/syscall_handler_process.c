@@ -66,6 +66,7 @@ int32_t sys_run(const char *process_path, const uint32_t permissions_identifier,
     if (child_proc <= 0) {
         // free the intermediary memory we used
         kfree(process_data);
+        process_cleanup(child_proc);
         console_printf("Error creating process\n");
         return -1;
     }
@@ -86,7 +87,8 @@ int32_t sys_run(const char *process_path, const uint32_t permissions_identifier,
         console_printf("Unable to get physical address of 0x80000000\n");
         // free the intermediary memory we used
         kfree(process_data);
-        sys_exit(-1); // todo: end more cleanly
+        process_cleanup(child_proc);
+        return -1;
     }
 
     // Copy data
@@ -105,14 +107,17 @@ int32_t sys_run(const char *process_path, const uint32_t permissions_identifier,
 
     // check if we've exceeded the parent's allocation
     if (parent->number_of_pages_using > parent->permissions->max_number_of_pages) {
-        console_printf("Error: attempt to create a process without available memory: %d > %d\n", parent->number_of_pages_using, parent->permissions->max_number_of_pages);
-        sys_exit(-1);
+        console_printf("Error: process %d attempted to create a process %d without available memory: %d > %d\n", parent->pid, child_proc->pid, parent->number_of_pages_using, parent->permissions->max_number_of_pages);
+        process_cleanup(child_proc);
+        // memcpy((void *)real_addr, 0, proc_file->data_length);
+        return -1;
     }
 
     // check if we've exceeded the child's allocation
     if (child_proc->number_of_pages_using > child_proc->permissions->max_number_of_pages) {
-        console_printf("Error: child process exceeded its limit\n");
-        sys_exit(-1);
+        console_printf("Error: child process %d exceeded its limit\n", child_proc->pid);
+        process_cleanup(child_proc);
+        return -1;
     }
 
     // Push the new process onto the ready list
