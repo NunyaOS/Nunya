@@ -13,12 +13,19 @@ int main() {
     struct graphics_color bg = {0,0,0};
     struct event e;
     int x = 0;
+    int count = 0;
     while (1) {
         int res = get_event(&e);
         if (res == 0) {
+            if (count > 10) {
+                clear();
+                count = 0;
+                x = 0;
+            }
             if (e.type == EVENT_KEYBOARD_PRESS) {
                 draw_char(x, 0, e.character, &c, &bg);
                 x += 10;
+                count++;
             }
         }
     }

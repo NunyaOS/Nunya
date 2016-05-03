@@ -143,6 +143,14 @@ void window_draw_bitmap(struct window *w, int x, int y, int width, int height, u
                      struct graphics_color bgcolor);
 
 /**
+ * @brief Clears the screen area of a window
+ * @details Sets the screen area of a window to its background color
+ *
+ * @param window The window to be clearing
+ */
+void window_clear(struct window *w);
+
+/**
  * @brief Tests drawing in nested windows
  * @details This creates nested windows and draws to them, to ensure
  * that child windows are being correctly clipped

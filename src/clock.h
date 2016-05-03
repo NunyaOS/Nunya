@@ -8,11 +8,7 @@ See the file LICENSE for details.
 #define CLOCK_H
 
 #include "kerneltypes.h"
-
-typedef struct {
-    uint32_t seconds;
-    uint32_t millis;
-} clock_t;
+#include "sys_clock_struct.h"
 
 void clock_init();
 clock_t clock_read();
