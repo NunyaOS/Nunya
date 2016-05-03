@@ -65,8 +65,10 @@ struct window *window_create(int x, int y, int width, int height, struct window 
     w->event_queue = l;
 
     // Draw the border
-    struct graphics_color bc = {128,128,128};
-    window_set_border_color(w, bc);
+    struct graphics_color border_color = {128,128,128};
+    struct graphics_color background_color = {0,0,0};
+    w->background_color = background_color;
+    window_set_border_color(w, border_color);
 
     active_window = w;
 
@@ -139,6 +141,11 @@ void window_draw_bitmap(struct window *w, int x, int y, int width, int height, u
     window_begin_draw(w);
     graphics_bitmap(x + w->x, y + w->y, width, height, data, fgcolor, bgcolor);
     window_end_draw();
+}
+
+void window_clear(struct window *w) {
+    // Don't want to erase the border
+    graphics_rect(w->x + 1, w->y + 1, w->width - 1, w->height - 1, w->background_color);
 }
 
 void window_hierarchy_test() {

@@ -125,6 +125,15 @@ static inline int32_t draw_string(int x, int y, const char *str, const struct gr
 }
 
 /**
+ * @brief Clears the window contents
+ * @details Invokes the window_clear function
+ * @return 0 on success, otherwise error
+ */
+static inline int32_t clear() {
+	return syscall(SYSCALL_window_clear, 0, 0, 0, 0, 0);
+}
+
+/**
  * @brief Get the event at the front of the event queue
  * @details This will check if there is an event in the event queue
  * for this window, and if so it will fill e with that information
