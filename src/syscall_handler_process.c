@@ -10,7 +10,7 @@ See the file LICENSE for details.
 #include "memorylayout.h" // PROCESS_ENTRY_POINT
 #include "permissions_capabilities.h"
 
-#define PROCESS_COPY_CHUNK 2048 // Half a page
+#define PROCESS_COPY_CHUNK PAGE_SIZE / 2 // Half a page
 
 int32_t sys_exit(uint32_t code) {
     process_exit((int32_t)code);
