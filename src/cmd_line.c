@@ -83,7 +83,7 @@ void cmd_line_attempt(const char *line) {
      *}
      */
     else {
-//        console_printf("%s: command not found\n", first_word);
+        console_printf("%s: command not found\n", first_word);
     }
     memset(line_copy, '\0', KEYBOARD_BUFFER_SIZE);
     return;
