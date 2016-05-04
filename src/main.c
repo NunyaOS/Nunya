@@ -30,7 +30,6 @@ Now we initialize each subsystem in the proper order:
 */
 
 int kernel_main() {
-    graphics_init();
     console_init();
 
     console_printf("video: %d x %d\n", video_xres, video_yres, video_xbytes);
