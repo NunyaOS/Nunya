@@ -38,18 +38,19 @@ void cmd_line_attempt(const char *line) {
     to_upper(the_rest, the_rest_mixed_case);
 
     //Ugly case statement alternative
-    if (strcmp("echo", first_word) == 0) {
-        cmd_line_echo(the_rest);
-    } else if (strcmp("test", first_word) == 0) {
-        run_all_tests();
-    } else if (strcmp("cd", first_word) == 0) {
-        cmd_line_cd(the_rest);
-    } else if (strcmp("pwd", first_word) == 0) {
-        cmd_line_pwd(the_rest);
-    } else if (strcmp("ls", first_word) == 0) {
-        cmd_line_ls(the_rest);
-    } else if (strcmp("cat", first_word) == 0) {
-        cmd_line_cat(the_rest);
+    if (0) {
+//    if (strcmp("echo", first_word) == 0) {
+//        cmd_line_echo(the_rest);
+//    } else if (strcmp("test", first_word) == 0) {
+//        run_all_tests();
+//    } else if (strcmp("cd", first_word) == 0) {
+//        cmd_line_cd(the_rest);
+//    } else if (strcmp("pwd", first_word) == 0) {
+//        cmd_line_pwd(the_rest);
+//    } else if (strcmp("ls", first_word) == 0) {
+//        cmd_line_ls(the_rest);
+//    } else if (strcmp("cat", first_word) == 0) {
+//        cmd_line_cat(the_rest);
     } else if (strcmp("memory_demo", first_word) == 0) { // temporary, for debugging
         uint32_t identifier = permissions_capability_create();
 
@@ -60,17 +61,21 @@ void cmd_line_attempt(const char *line) {
         console_printf("Attempting to run a process I don't have memory for.\nExpecting an error message soon...\n");
         run("/BIN/PRINT_OD.NUN", identifier);
         permissions_capability_delete(identifier);
-    } else if (strcmp("clock_test", first_word) == 0) { // temporary, for debugging
+    } else if (strcmp("fs_test", first_word) == 0) {
         uint32_t identifier = permissions_capability_create();
-        run("/BIN/TEST_CLO.NUN", identifier);
+        run("/BIN/TEST_FS_.NUN", identifier);
         permissions_capability_delete(identifier);
-    } else if (strcmp("help", first_word) == 0) {   // Leave this as the last case
-        cmd_line_help(the_rest);
-    } else if (strcmp("window_test", first_word) == 0) {
-        console_printf("\f");
-        uint32_t identifier = permissions_capability_create();
-        run("/BIN/TEST_WIN.NUN", identifier);
-        permissions_capability_delete(identifier);
+//    } else if (strcmp("clock_test", first_word) == 0) { // temporary, for debugging
+//        uint32_t identifier = permissions_capability_create();
+//        run("/BIN/TEST_CLO.NUN", identifier);
+//        permissions_capability_delete(identifier);
+//    } else if (strcmp("help", first_word) == 0) {   // Leave this as the last case
+//        cmd_line_help(the_rest);
+//    } else if (strcmp("window_test", first_word) == 0) {
+//        console_printf("\f");
+//        uint32_t identifier = permissions_capability_create();
+//        run("/BIN/TEST_WIN.NUN", identifier);
+//        permissions_capability_delete(identifier);
     }
     /*else if () {
      *...

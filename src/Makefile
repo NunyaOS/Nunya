@@ -15,7 +15,7 @@ WINDOW_OBJS = window.o graphics.o syscall_handler_window.o window_manager.o
 PROCESS_OBJS = syscall_handler_process.o syscall_handler_permissions.o process.o permissions_capabilities.o
 CLOCK_OBJS = syscall_handler_clock.o syscall_handler_rtc.o
 
-BINARIES = bin/print_even.nun bin/print_odd.nun bin/test_window.nun bin/test_clock.nun
+BINARIES = bin/print_even.nun bin/print_odd.nun bin/test_window.nun bin/test_clock.nun bin/test_fs_hierarchy_containment.nun
 
 LIB_INCLUDE_PATH = ./include
 
