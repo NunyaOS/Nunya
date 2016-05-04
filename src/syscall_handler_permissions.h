@@ -11,6 +11,7 @@ See the file LICENSE for details.
 
 int32_t sys_capability_create();
 void sys_capability_delete(uint32_t identifier);
-
+int32_t sys_capability_fs_add_allowance(uint32_t identifier, const char *path, bool do_allow_below);
+int32_t sys_capability_fs_remove_allowance(uint32_t identifier, const char *path);
 
 #endif

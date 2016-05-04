@@ -83,16 +83,16 @@ void cmd_line_attempt(const char *line) {
      *}
      */
     else {
-        console_printf("%s: command not found\n", first_word);
+//        console_printf("%s: command not found\n", first_word);
     }
     memset(line_copy, '\0', KEYBOARD_BUFFER_SIZE);
     return;
 }
 
 void cmd_line_help(const char *args) {
-    console_printf("help:\nAvailable terminal commands:\n");
-    print_all_functions();
-    console_printf("\nFor help with a specific command, type \"<command> --help\"\n");
+//    console_printf("help:\nAvailable terminal commands:\n");
+//    print_all_functions();
+//    console_printf("\nFor help with a specific command, type \"<command> --help\"\n");
 }
 
 /**

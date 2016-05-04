@@ -16,8 +16,6 @@ See the file LICENSE for details.
 #define WRITE 2
 #define APPEND 1
 
-int32_t fs_security_check(const char *path);
-
 #define MAX_OS_OPEN_FILES 1024
 
 struct fs_agnostic_file open_files_table[MAX_OS_OPEN_FILES];

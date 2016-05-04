@@ -36,4 +36,12 @@ static inline void permissions_capability_delete(uint32_t identifier) {
     syscall(SYSCALL_capability_delete, identifier, 0, 0, 0, 0);
 }
 
+static inline int32_t permissions_capability_add_allowance(uint32_t identifier, const char *path, bool do_allow_below) {
+    return syscall(SYSCALL_capability_fs_add_allowance, identifier, (uint32_t)path, (uint32_t)do_allow_below, 0, 0);
+}
+
+static inline int32_t permissions_capability_remove_allowance(uint32_t identifier, const char *path) {
+    return syscall(SYSCALL_capability_fs_remove_allowance, identifier, (uint32_t)path, 0, 0, 0);
+}
+
 #endif

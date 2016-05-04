@@ -18,6 +18,8 @@ See the file LICENSE for details.
 
 #define SYSCALL_capability_create 50
 #define SYSCALL_capability_delete 51
+#define SYSCALL_capability_fs_add_allowance 52
+#define SYSCALL_capability_fs_remove_allowance 53
 
 #define SYSCALL_window_create 200
 #define SYSCALL_window_set_border_color 201

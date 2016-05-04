@@ -110,4 +110,6 @@ void fs_sys_init_open_file_table();
 
 void fs_print_allowances();
 
+int32_t fs_security_check(const char *path);
+
 #endif
