@@ -193,7 +193,7 @@ void kfree(void *to_free) {
     }
 
     if (is_freed == 0) {
-        console_printf("kfree(%x) failed as %x was not kmalloc'd\n");
+        console_printf("kfree(%x) failed as %x was not kmalloc'd\n", to_free, to_free);
         //TODO: raise error?
     } else {
         page_info->max_free_gap = kmalloc_get_largest_gap_size(page_info);

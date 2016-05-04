@@ -108,4 +108,6 @@ void fs_free_allowances_list(struct list *to_free);
  */
 void fs_sys_init_open_file_table();
 
+void fs_print_allowances();
+
 #endif

@@ -62,6 +62,7 @@ void cmd_line_attempt(const char *line) {
         run("/BIN/PRINT_OD.NUN", identifier);
         permissions_capability_delete(identifier);
     } else if (strcmp("fs_test", first_word) == 0) {
+        console_printf("\f\n\n");
         uint32_t identifier = permissions_capability_create();
         run("/BIN/TEST_FS_.NUN", identifier);
         permissions_capability_delete(identifier);
@@ -98,12 +99,12 @@ void cmd_line_help(const char *args) {
  * @brief Print name of all functions available in terminal
  */
 void print_all_functions() {
-    console_printf("cat\n"
-            "cd\n"
-            "echo\n"
-            "help\n"
-            "ls\n"
-            "pwd\n"
-            "test\n"
-    );
+//    console_printf("cat\n"
+//            "cd\n"
+//            "echo\n"
+//            "help\n"
+//            "ls\n"
+//            "pwd\n"
+//            "test\n"
+//    );
 }

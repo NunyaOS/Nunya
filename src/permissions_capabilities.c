@@ -103,6 +103,7 @@ uint32_t create_permissions_capability() {
 
     struct list l = LIST_INIT;
     new_capability->fs_allowances = l;
+    fs_copy_allowances_list(&(new_capability->fs_allowances), &(current->fs_allowances_list));
 
     return identifier;
 }
