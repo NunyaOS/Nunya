@@ -7,6 +7,7 @@ See the file LICENSE for details.
 #include "syscall.h"
 #include "syscall_handler_process.h"
 #include "syscall_handler_permissions.h"
+#include "syscall_handler_memory.h"
 #include "kerneltypes.h"
 
 #include "console.h" // for debugging
@@ -18,7 +19,7 @@ See the file LICENSE for details.
 #include "syscall_handler_rtc.h"
 
 int32_t sys_debug_print(uint32_t a) {
-    console_printf(" testing: %d\n", a);
+    console_printf("PID %d, testing: %d\n", current->pid, a);
     return 0;
 }
 
@@ -42,6 +43,12 @@ int32_t syscall_handler(uint32_t n, uint32_t a, uint32_t b, uint32_t c,
         case SYSCALL_capability_delete:
             sys_capability_delete(a);
             return 0;
+        case SYSCALL_memory_current_usage:
+            return sys_current_memory_usage();
+        case SYSCALL_capability_set_max_memory:
+            return sys_capability_set_max_memory(a, b);
+        case SYSCALL_memory_max:
+            return sys_max_memory();
         case SYSCALL_open:
             return sys_fs_open((const char *)a, (const char *)b);
         case SYSCALL_close:

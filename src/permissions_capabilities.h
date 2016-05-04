@@ -13,9 +13,6 @@ struct permissions_capability {
     // The owner of the capability
     struct process *owner;
 
-    // File permissions
-    // struct list *directories;
-
     // Memory permissions
     int max_number_of_pages;
 

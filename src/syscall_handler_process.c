@@ -31,26 +31,29 @@ int32_t sys_run(const char *process_path, const uint32_t permissions_identifier,
     // Load process data
     struct iso_dir *root_dir = iso_dopen("/", 3);
     if (root_dir == 0) {
-        console_printf("Error accessing binary\n");
+        console_printf("Error accessing binary directory\n");
         return -1;
     }
+
     struct iso_file *proc_file = iso_fopen(process_path, root_dir->ata_unit);
     if (proc_file == 0) {
-        console_printf("Error accessing binary\n");
+        console_printf("Error accessing binary file\n");
         return -1;
     }
+
     uint8_t *process_data = kmalloc(proc_file->data_length);
     if (process_data == 0) {
         // free the intermediary memory we used
         kfree(process_data);
-        console_printf("Error accessing binary\n");
+        console_printf("Error loading binary data\n");
         return -1;
     }
+
     int num_read = iso_fread(process_data, proc_file->data_length, 1, proc_file);
     if (num_read == 0) {
         // free the intermediary memory we used
         kfree(process_data);
-        console_printf("Error accessing binary\n");
+        console_printf("Error reading binary data\n");
         return -1;
     }
 
@@ -63,6 +66,7 @@ int32_t sys_run(const char *process_path, const uint32_t permissions_identifier,
     if (child_proc <= 0) {
         // free the intermediary memory we used
         kfree(process_data);
+        process_cleanup(child_proc);
         console_printf("Error creating process\n");
         return -1;
     }
@@ -70,12 +74,7 @@ int32_t sys_run(const char *process_path, const uint32_t permissions_identifier,
     // incorporate the permissions
     struct process_permissions *child_permissions = permissions_from_identifier(permissions_identifier);
     child_proc->permissions = child_permissions;
-
-
     child_proc->parent = parent; // store the child's parent
-    list_push_tail(&parent->children, &child_proc->node); // add child to parent's list
-
-
 
     // Load the code into the proper page
     uint32_t real_addr;
@@ -83,11 +82,10 @@ int32_t sys_run(const char *process_path, const uint32_t permissions_identifier,
         console_printf("Unable to get physical address of 0x80000000\n");
         // free the intermediary memory we used
         kfree(process_data);
-        sys_exit(-1); // todo: end more cleanly
+        process_cleanup(child_proc);
+        return -1;
     }
 
-    // Copy data
-    memcpy((void *)real_addr, (void *)process_data, proc_file->data_length);
 
     // transfer pages used count to child
     int child_pages_used = parent->number_of_pages_using - page_count_before_child;
@@ -97,23 +95,30 @@ int32_t sys_run(const char *process_path, const uint32_t permissions_identifier,
     // add the max number of pages child could use to parent's usage
     parent->number_of_pages_using += child_proc->permissions->max_number_of_pages;
 
-    // free the intermediary memory we used
-    kfree(process_data);
 
     // check if we've exceeded the parent's allocation
     if (parent->number_of_pages_using > parent->permissions->max_number_of_pages) {
-        console_printf("Error: current process exceeded limit: %d > %d\n", parent->number_of_pages_using, parent->permissions->max_number_of_pages);
-        sys_exit(-1);
+        console_printf("Error: process %d attempted to create a process %d without available memory: %d > %d\n", parent->pid, child_proc->pid, parent->number_of_pages_using, parent->permissions->max_number_of_pages);
+        kfree(process_data);
+        process_cleanup(child_proc);
+        return -1;
     }
 
     // check if we've exceeded the child's allocation
     if (child_proc->number_of_pages_using > child_proc->permissions->max_number_of_pages) {
-        console_printf("Error: child process exceeded limit\n");
-        sys_exit(-1);
+        console_printf("Error: child process %d exceeded its limit\n", child_proc->pid);
+        kfree(process_data);
+        process_cleanup(child_proc);
+        return -1;
     }
 
     // Push the new process onto the ready list
     add_process_to_ready_queue(child_proc);
+
+    // Copy data
+    memcpy((void *)real_addr, (void *)process_data, proc_file->data_length);
+    // free the intermediary memory we used
+    kfree(process_data);
 
     // yield the current process to the new one
     process_yield();

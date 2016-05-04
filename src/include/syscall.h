@@ -29,6 +29,10 @@ See the file LICENSE for details.
 #define SYSCALL_window_clear 207
 #define SYSCALL_window_get_event 208
 
+#define SYSCALL_memory_current_usage 400
+#define SYSCALL_memory_max 401
+#define SYSCALL_capability_set_max_memory 402
+
 #define SYSCALL_open     601
 #define SYSCALL_close    602
 #define SYSCALL_read     603
@@ -67,6 +71,7 @@ static inline int32_t debug_print(uint32_t input) {
 #include "../sys_permissions.h"
 #include "../sys_fs.h"
 #include "../sys_window.h"
+#include "../sys_memory.h"
 #include "../sys_rtc.h"
 #include "../sys_clock.h"
 

@@ -50,10 +50,15 @@ void cmd_line_attempt(const char *line) {
         cmd_line_ls(the_rest);
     } else if (strcmp("cat", first_word) == 0) {
         cmd_line_cat(the_rest);
-    } else if (strcmp("process", first_word) == 0) { // temporary, for debugging
+    } else if (strcmp("memory_demo", first_word) == 0) { // temporary, for debugging
         uint32_t identifier = permissions_capability_create();
-        run("/BIN/TEST_USE.NUN", identifier);
-        run("/BIN/TEST_USE.NUN", identifier);
+
+        // set the memory
+        int difference = get_max_memory() - get_current_memory_usage();
+        capability_set_max_memory(identifier, difference);
+        run("/BIN/PRINT_EV.NUN", identifier);
+        console_printf("Attempting to run a process I don't have memory for.\nExpecting an error message soon...\n");
+        run("/BIN/PRINT_OD.NUN", identifier);
         permissions_capability_delete(identifier);
     } else if (strcmp("clock_test", first_word) == 0) { // temporary, for debugging
         uint32_t identifier = permissions_capability_create();
