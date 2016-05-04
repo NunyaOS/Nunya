@@ -10,7 +10,7 @@ See the file LICENSE for details.
 #include "memorylayout.h" // PROCESS_ENTRY_POINT
 #include "permissions_capabilities.h"
 
-#define PROCESS_COPY_CHUNK 3500
+#define PROCESS_COPY_CHUNK 2048 // Half a page
 
 int32_t sys_exit(uint32_t code) {
     process_exit((int32_t)code);
@@ -47,7 +47,7 @@ int32_t sys_run(const char *process_path, const uint32_t permissions_identifier,
     int page_count_before_child = parent->number_of_pages_using;
 
     // Create a new process(page, page)
-    struct process *child_proc = process_create(PAGE_SIZE, PAGE_SIZE);
+    struct process *child_proc = process_create(proc_file->data_length, PAGE_SIZE);
 
     if (child_proc <= 0) {
         // free the intermediary memory we used
@@ -60,16 +60,6 @@ int32_t sys_run(const char *process_path, const uint32_t permissions_identifier,
     struct process_permissions *child_permissions = permissions_from_identifier(permissions_identifier);
     child_proc->permissions = child_permissions;
     child_proc->parent = parent; // store the child's parent
-
-    // Load the code into the proper page
-    uint32_t real_addr;
-    if (!pagetable_getmap(child_proc->pagetable, PROCESS_ENTRY_POINT, &real_addr)) {
-        console_printf("Unable to get physical address of 0x80000000\n");
-        // free the intermediary memory we used
-        process_cleanup(child_proc);
-        return -1;
-    }
-
 
     // transfer pages used count to child
     int child_pages_used = parent->number_of_pages_using - page_count_before_child;
@@ -94,7 +84,9 @@ int32_t sys_run(const char *process_path, const uint32_t permissions_identifier,
         return -1;
     }
 
-    // get and copy the data, chunks at a time
+
+    // get some intermediary space to copy the code into
+    // Data goes filesystem -> kmalloc'ed space -> process entry point
     uint8_t *process_data = kmalloc(PROCESS_COPY_CHUNK); // intermediary space
     if (process_data == 0) {
         // free the intermediary memory we used
@@ -103,24 +95,37 @@ int32_t sys_run(const char *process_path, const uint32_t permissions_identifier,
         return -1;
     }
 
-    int amount_copied = 0; // amount copied so far
-    uint32_t copy_location = real_addr; // travels with amount copies
+    // Create a real address to be gotten from the pagetable
+    uint32_t real_addr;
+
+    int amount_copied = 0; // amount copied so far, in bytes
+    uint32_t copy_location = PROCESS_ENTRY_POINT; // virtual address, travels with amount copied
 
     // while there is data to copy
     while (amount_copied < proc_file->data_length) {
         int amount_left = proc_file->data_length - amount_copied; // compute amount left
         int to_be_copied = amount_left < PROCESS_COPY_CHUNK ? amount_left : PROCESS_COPY_CHUNK; // get either chunk or the rest
 
-        int num_read = iso_fread(process_data, to_be_copied, 1, proc_file); // read the chunk
+        int num_read = iso_fread(process_data, to_be_copied, 1, proc_file); // read the chunk into the intermediary space
         if (num_read == 0) {
             // free the intermediary memory we used
             kfree(process_data);
+            process_cleanup(child_proc);
             console_printf("Error reading binary data\n");
             return -1;
         }
-        memcpy((void *)copy_location, (void *)process_data, to_be_copied); // copy it to process entry point
-        amount_copied += to_be_copied;
-        copy_location += to_be_copied;
+
+        // Get a new real address based on the current virtual address
+        if (!pagetable_getmap(child_proc->pagetable, copy_location, &real_addr)) {
+            console_printf("Unable to get physical mapping of vmem location %x\n", copy_location);
+            // free the intermediary memory we used
+            kfree(process_data);
+            process_cleanup(child_proc);
+            return -1;
+        }
+        memcpy((void *)real_addr, (void *)process_data, to_be_copied); // copy the data to the current real address
+        amount_copied += to_be_copied; // log the amount copied
+        copy_location += to_be_copied; // move the virtual address up by the amount copied
     }
 
     // free the intermediary memory we used
