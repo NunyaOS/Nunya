@@ -15,13 +15,6 @@ int graphics_width();
 int graphics_height();
 
 /**
- * @brief Initializes the graphics system
- * @details Sets up the initial drawing bounds of the system
- * and prepares to begin drawing
- */
-void graphics_init();
-
-/**
  * @brief Sets bounds for restricted drawing
  * @details This will restrict all drawing to the given area of the screen.
  * Drawing outside this area will have no effect

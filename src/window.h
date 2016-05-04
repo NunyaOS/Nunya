@@ -12,12 +12,20 @@ See the file LICENSE for details.
 
 struct window {
     struct window *parent;
+    // relative coordinates
     int x;
     int y;
     int width;
     int height;
     struct graphics_color border_color;
     struct graphics_color background_color;
+    // absolute coordinates
+    int bounds_x_1;
+    int bounds_x_2;
+    int bounds_y_1;
+    int bounds_y_2;
+    int x_offset;
+    int y_offset;
     struct list event_queue;
 };
 
@@ -137,7 +145,7 @@ void window_draw_bitmap(struct window *w, int x, int y, int width, int height, u
 /**
  * @brief Clears the screen area of a window
  * @details Sets the screen area of a window to its background color
- * 
+ *
  * @param window The window to be clearing
  */
 void window_clear(struct window *w);
