@@ -14,6 +14,7 @@ See the file LICENSE for details.
 #include "memorylayout.h"
 #include "kernelcore.h"
 #include "graphics.h"
+#include "window.h"
 
 #include "fs.h" //struct process->files
 #include "memory_raw.h" // memory_alloc_page, memory_free_page
@@ -38,6 +39,7 @@ void process_init() {
     pagetable_enable();
 
     current->state = PROCESS_STATE_READY;
+    current->window = window_create(0, 0, graphics_width(), graphics_height(), 0);
 
     // establish initial permissions
     struct process_permissions *initial_permissions = kmalloc(sizeof(struct process_permissions));
@@ -179,9 +181,12 @@ void process_cleanup(struct process *p) {
 
     // todo: free additional memory related to process
 
+    window_delete(p->window);
+
     // free the actual process struct memory
     memory_free_page(p->kstack);
     pagetable_delete(p->pagetable);
+
     memory_free_page(p);
 }
 

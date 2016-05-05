@@ -43,6 +43,14 @@ struct window {
 struct window *window_create(int x, int y, int width, int height, struct window *parent);
 
 /**
+ * @brief Deletes a window
+ * @details Draws in the area underneath the window and frees the window memory
+ *
+ * @param window The window to be deleted
+ */
+void window_delete(struct window *w);
+
+/**
  * @brief Sets the border color of the window
  * @details Sets the border color of the window and re-draws with the new color
  * @param window The window whose border color to change
@@ -151,9 +159,18 @@ void window_draw_bitmap(struct window *w, int x, int y, int width, int height, u
 void window_clear(struct window *w);
 
 /**
- * @brief Tests drawing in nested windows
- * @details This creates nested windows and draws to them, to ensure
- * that child windows are being correctly clipped
+ * @brief Draws a rect of a single color to window
+ * @details Draws the rect starting at x, y and of size width * height to the screen within the given window
+ * Drawing outside the bounds of the window will result in clipping. All locations
+ * relative to the window
+ *
+ * @param w The window to draw in
+ * @param x The x position of the top left corner
+ * @param y The y position of the top left corner
+ * @param width The width of the rect to draw
+ * @param height The height of the rect to draw
+ * @param c The color of negative space
  */
-void window_hierarchy_test();
+void window_draw_rect(struct window *w, int x, int y, int width, int height, struct graphics_color c);
+
 #endif
