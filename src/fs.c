@@ -275,8 +275,8 @@ bool path_permitted_by_allowance(const char *path, struct fs_allowance *allowed)
         char truncated_path[allowed_path_len + 1];
         memcpy(truncated_path, path, allowed_path_len);
         truncated_path[allowed_path_len] = '\0';
-        if (strcmp(allowed->path, truncated_path) == 0 && 1
-           //(path[allowed_path_len] == '/' || path[allowed_path_len] == 0)
+        if (strcmp(allowed->path, truncated_path) == 0 && 
+           (path[allowed_path_len] == '/' || path[allowed_path_len-1] == '/' || path[allowed_path_len] == 0)
            ) {
             // The allowance is above the requested path
             return 1;
