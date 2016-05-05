@@ -108,4 +108,13 @@ void fs_free_allowances_list(struct list *to_free);
  */
 void fs_sys_init_open_file_table();
 
+/**
+ * @brief See if the argument is a path the current process is allowed to access
+ * @details Run through the current process's file system allowances and compare them to the argument, stopping on success
+ *
+ * @param path The path that is being checked for permission to access
+ * @return Returns 1 if access is permitted, 0 if not
+ */
+int32_t fs_security_check(const char *path);
+
 #endif

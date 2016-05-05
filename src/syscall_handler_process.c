@@ -9,6 +9,7 @@ See the file LICENSE for details.
 #include "iso.h"
 #include "memorylayout.h" // PROCESS_ENTRY_POINT
 #include "permissions_capabilities.h"
+#include "fs.h"
 
 #define PROCESS_COPY_CHUNK PAGE_SIZE / 2 // Half a page
 
@@ -60,6 +61,8 @@ int32_t sys_run(const char *process_path, const uint32_t permissions_identifier,
     struct process_permissions *child_permissions = permissions_from_identifier(permissions_identifier);
     child_proc->permissions = child_permissions;
     child_proc->parent = parent; // store the child's parent
+
+    fs_copy_allowances_list(&(child_proc->fs_allowances_list), &(child_proc->permissions->fs_allowances));
 
     // transfer pages used count to child
     int child_pages_used = parent->number_of_pages_using - page_count_before_child;

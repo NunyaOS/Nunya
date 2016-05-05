@@ -60,6 +60,11 @@ void cmd_line_attempt(const char *line) {
         console_printf("Attempting to run a process I don't have memory for.\nExpecting an error message soon...\n");
         run("/BIN/PRINT_OD.NUN", identifier);
         permissions_capability_delete(identifier);
+    } else if (strcmp("fs_test", first_word) == 0) {
+        console_printf("\f\n\n");
+        uint32_t identifier = permissions_capability_create();
+        run("/BIN/TEST_FS_.NUN", identifier);
+        permissions_capability_delete(identifier);
     } else if (strcmp("clock_test", first_word) == 0) { // temporary, for debugging
         uint32_t identifier = permissions_capability_create();
         run("/BIN/TEST_CLO.NUN", identifier);

@@ -16,8 +16,6 @@ See the file LICENSE for details.
 #define WRITE 2
 #define APPEND 1
 
-int32_t fs_security_check(const char *path);
-
 #define MAX_OS_OPEN_FILES 1024
 
 struct fs_agnostic_file open_files_table[MAX_OS_OPEN_FILES];
@@ -190,6 +188,7 @@ int32_t fs_open(const char *path, const char *mode) {
             current->fd_table[next_fd].ptr = create_fs_agnostic_file(ata_type, ata_unit, media_path, imode);
             if (current->fd_table[next_fd].ptr) {
                 current->fd_table[next_fd].is_open = 1;
+                return next_fd;
             } else {
                 return ERR_KERNEL_OPEN_FAIL;
             }
@@ -209,8 +208,8 @@ int32_t fs_close(uint32_t fd) {
     struct fs_agnostic_file *fp = current->fd_table[fd].ptr;
     if (fp) {
         switch (fp->ata_type) {
-            case 1:  //ISO
-                iso_fclose((struct iso_file *)fp);
+            case ISO:
+                iso_fclose((struct iso_file *)fp->filep);
                 break;
             default:
                 return ERR_BAD_ATA_KIND;
@@ -277,7 +276,7 @@ bool path_permitted_by_allowance(const char *path, struct fs_allowance *allowed)
         memcpy(truncated_path, path, allowed_path_len);
         truncated_path[allowed_path_len] = '\0';
         if (strcmp(allowed->path, truncated_path) == 0 &&
-           (path[allowed_path_len] == '/' || path[allowed_path_len] == 0)
+           (path[allowed_path_len] == '/' || path[allowed_path_len-1] == '/' || path[allowed_path_len] == 0)
            ) {
             // The allowance is above the requested path
             return 1;
