@@ -30,4 +30,14 @@ int32_t sys_clear();
 
 int32_t sys_get_event(struct event *e);
 
+int32_t sys_current_max_width();
+
+int32_t sys_current_max_height();
+
+int32_t sys_current_offset_x();
+
+int32_t sys_current_offset_y();
+
+int32_t sys_window_set_capability(uint32_t identifier, int offset_x, int offset_y, int max_width, int max_height);
+
 #endif

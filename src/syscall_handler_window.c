@@ -6,6 +6,7 @@ See the file LICENSE for details.
 #include "syscall_handler_window.h"
 #include "process.h"
 #include "string.h"
+#include "permissions_capabilities.h"
 
 #define CHECK_PROC_WINDOW() if(current->window == 0) return -1
 
@@ -13,8 +14,15 @@ int32_t sys_window_create(int x, int y, int width, int height) {
     if (current->window != 0) {
         return -1;
     }
+
+    // all windows need a parent; fail if none
+    if (!current->parent->window) {
+        return -1;
+    }
     struct window *win = window_create(x, y, width, height, 0);
     current->window = win;
+    current->window->parent = current->parent->window;
+
     return win != 0;
 }
 
@@ -73,3 +81,44 @@ int32_t sys_get_event(struct event *e) {
 
     return 0;
 }
+
+int32_t sys_current_max_width() {
+    return current->permissions->max_width;
+}
+
+int32_t sys_current_max_height() {
+    return current->permissions->max_height;
+}
+
+int32_t sys_current_offset_x() {
+    return current->permissions->offset_x;
+}
+
+int32_t sys_current_offset_y() {
+    return current->permissions->offset_y;
+}
+
+int32_t sys_window_set_capability(uint32_t identifier, int offset_x, int offset_y, int max_width, int max_height) {
+    // check if identifier is owned by the process
+    if (!capability_owned_by_process(identifier, current)) {
+        return -1;
+    }
+
+    // check if offsets + w, h exceeds the current permissions
+    if (offset_x < current->permissions->offset_x || offset_y < current->permissions->offset_y || offset_x + max_width > current->permissions->offset_x + current->permissions->max_width || offset_y + max_height > current->permissions->offset_y + current->permissions->max_height) {
+        return -1;
+    }
+
+    struct permissions_capability *c = capability_for_identifier(identifier);
+    if (c == 0) {
+        return -1;
+    }
+
+    c->offset_x = offset_x;
+    c->offset_y = offset_y;
+    c->max_width = max_width;
+    c->max_height = max_height;
+
+    return 0;
+}
+

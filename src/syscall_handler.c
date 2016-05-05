@@ -75,6 +75,16 @@ int32_t syscall_handler(uint32_t n, uint32_t a, uint32_t b, uint32_t c,
             return sys_clear();
         case SYSCALL_window_get_event:
             return sys_get_event((struct event *)a);
+        case SYSCALL_window_offset_x:
+            return sys_current_offset_x();
+        case SYSCALL_window_offset_y:
+            return sys_current_offset_y();
+        case SYSCALL_window_max_width:
+            return sys_current_max_width();
+        case SYSCALL_window_max_height:
+            return sys_current_max_height();
+        case SYSCALL_window_set_capability:
+            return sys_window_set_capability(a, b, c, d, e);
         case SYSCALL_debug_print:
             return sys_debug_print(a); // for debugging
         default:
