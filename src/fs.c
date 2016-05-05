@@ -208,7 +208,7 @@ int32_t fs_close(uint32_t fd) {
     struct fs_agnostic_file *fp = current->fd_table[fd].ptr;
     if (fp) {
         switch (fp->ata_type) {
-            case ISO:  //ISO
+            case ISO:
                 iso_fclose((struct iso_file *)fp->filep);
                 break;
             default:
@@ -275,7 +275,7 @@ bool path_permitted_by_allowance(const char *path, struct fs_allowance *allowed)
         char truncated_path[allowed_path_len + 1];
         memcpy(truncated_path, path, allowed_path_len);
         truncated_path[allowed_path_len] = '\0';
-        if (strcmp(allowed->path, truncated_path) == 0 && 
+        if (strcmp(allowed->path, truncated_path) == 0 &&
            (path[allowed_path_len] == '/' || path[allowed_path_len-1] == '/' || path[allowed_path_len] == 0)
            ) {
             // The allowance is above the requested path

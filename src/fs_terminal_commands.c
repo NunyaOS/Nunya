@@ -28,7 +28,7 @@ void cat_file(const char *fname) {
     get_abs_path(fname, abs_path);
     struct iso_file *file = iso_fopen(abs_path, 3);
     if (!file) {
-//        console_printf("cat: %s does not exist\n", fname);
+        console_printf("cat: %s does not exist\n", fname);
         iso_fclose(file);
         return;
     }
@@ -100,7 +100,7 @@ void ls_dir(const char *dname) {
         console_set_fgcolor(255,255,255);
         iso_dclose(dir);
     } else {
-//        console_printf("ls: no directory %s\n", dname);
+        console_printf("ls: no directory %s\n", dname);
     }
     iso_dclose(dir);
 }
@@ -176,7 +176,7 @@ void process_path_part(const char *dname, char *abs_path) {
 
 void cmd_line_cat(const char *arg_line) {
     if(strcmp(arg_line, "--HELP") == 0) {
-//        console_printf("Print contents of a file to screen\nusage: cat <file1, file2, ...>\n");
+        console_printf("Print contents of a file to screen\nusage: cat <file1, file2, ...>\n");
         return;
     }
     char arg_line_copy[256];
@@ -195,7 +195,7 @@ void cmd_line_cat(const char *arg_line) {
 
 void cmd_line_cd(const char *arg_line) {
     if(strcmp(arg_line, "--HELP") == 0) {
-//        console_printf("Change the current working directory\nusage: cd <directory path>\n");
+        console_printf("Change the current working directory\nusage: cd <directory path>\n");
         return;
     }
     char line_copy[strlen(arg_line) + 1];
@@ -211,12 +211,12 @@ void cmd_line_cd(const char *arg_line) {
     char abs_path[WORKING_DIRECTORY_PATH_BUFFER_SIZE];
     get_abs_path(first_word, abs_path);
     if (!abs_path[0]) {
-//        console_printf("cd: root has no parent\n");
+        console_printf("cd: root has no parent\n");
         return;
     }
     struct iso_dir *dir = iso_dopen(abs_path, 3);
     if (!dir) {
-//        console_printf("cd: no such path %s\n", abs_path);
+        console_printf("cd: no such path %s\n", abs_path);
     } else {
         set_cur_path(abs_path);
     }
@@ -226,7 +226,7 @@ void cmd_line_cd(const char *arg_line) {
 
 void cmd_line_echo(const char *arg_line) {
     if(strcmp(arg_line, "--HELP") == 0) {
-//        console_printf("Print contents of argument to screen\nusage: echo <buffer to print>\n");
+        console_printf("Print contents of argument to screen\nusage: echo <buffer to print>\n");
         return;
     }
     console_printf("%s\n", arg_line);
@@ -235,8 +235,8 @@ void cmd_line_echo(const char *arg_line) {
 
 void cmd_line_ls(const char *arg_line) {
     if(strcmp(arg_line, "--HELP") == 0) {
-//        console_printf("List the contents of a directory (default is current working directory\n");
-//        console_printf("usage: ls <directory path>\n");
+        console_printf("List the contents of a directory (default is current working directory\n");
+        console_printf("usage: ls <directory path>\n");
         return;
     }
     if (strlen(arg_line) > 0) {
@@ -261,7 +261,7 @@ void cmd_line_ls(const char *arg_line) {
 
 void cmd_line_pwd(const char *arg_line) {
     if(strcmp(arg_line, "--HELP") == 0) {
-//        console_printf("Print the current working directory\nusage: pwd\n");
+        console_printf("Print the current working directory\nusage: pwd\n");
         return;
     }
     console_printf("%s\n", cur_path);
@@ -275,6 +275,6 @@ void set_cur_path(const char *dpath) {
     if (strlen(dpath) < WORKING_DIRECTORY_PATH_BUFFER_SIZE) {
         strcpy(cur_path, dpath);
     } else {
-//        console_printf("provided path exceeds bounds [size %d]\n", WORKING_DIRECTORY_PATH_BUFFER_SIZE);
+        console_printf("provided path exceeds bounds [size %d]\n", WORKING_DIRECTORY_PATH_BUFFER_SIZE);
     }
 }

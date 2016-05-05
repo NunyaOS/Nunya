@@ -103,13 +103,13 @@ static int ata_wait(int id, int mask, int state) {
             return 1;
         }
         if (t & ATA_STATUS_ERR) {
-//            console_printf("ata: error\n");
+            console_printf("ata: error\n");
             ata_reset(id);
             return 0;
         }
         elapsed = clock_diff(start, clock_read());
         if (elapsed.seconds > ATA_TIMEOUT) {
-//            console_printf("ata: timeout\n");
+            console_printf("ata: timeout\n");
             ata_reset(id);
             return 0;
         }
@@ -388,7 +388,7 @@ int ata_probe(int id, int *nblocks, int *blocksize, char *name) {
         *blocksize = 2048;
 
     } else {
-//        console_printf("ata unit %d: identify command failed\n",id);
+        console_printf("ata unit %d: identify command failed\n",id);
         return 0;
     }
 
@@ -405,11 +405,11 @@ int ata_probe(int id, int *nblocks, int *blocksize, char *name) {
     strcpy(name, &cbuffer[54]);
     name[40] = 0;
 
-//    console_printf("ata unit %d: %s %d MB %s\n",
-//        id,
-//        (*blocksize) == 512 ? "ata disk" : "atapi cdrom",
-//        (*nblocks) * (*blocksize) / 1024 / 1024,
-//        name);
+    console_printf("ata unit %d: %s %d MB %s\n",
+        id,
+        (*blocksize) == 512 ? "ata disk" : "atapi cdrom",
+        (*nblocks) * (*blocksize) / 1024 / 1024,
+        name);
 
     return 1;
 }
@@ -420,7 +420,7 @@ void ata_init() {
     int blocksize = 0;
     char longname[256];
 
-//    console_printf("ata: setting up interrupts\n");
+    console_printf("ata: setting up interrupts\n");
 
     interrupt_register(ATA_IRQ0, ata_interrupt);
     interrupt_enable(ATA_IRQ0);
@@ -428,7 +428,7 @@ void ata_init() {
     interrupt_register(ATA_IRQ1, ata_interrupt);
     interrupt_enable(ATA_IRQ1);
 
-//    console_printf("ata: probing devices\n");
+    console_printf("ata: probing devices\n");
 
     for (i = 0; i < 4; i++) {
         ata_probe(i, &nblocks, &blocksize, longname);

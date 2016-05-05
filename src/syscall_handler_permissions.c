@@ -24,7 +24,6 @@ void sys_capability_delete(uint32_t identifier) {
 int32_t sys_capability_fs_add_allowance(uint32_t identifier, const char *path, bool do_allow_below) {
     struct permissions_capability *pc = capability_for_identifier(identifier);
     if (!pc) {
-//        console_printf("Bad identifier.\n");
         return 0;
     }
 
@@ -54,7 +53,6 @@ int32_t sys_capability_fs_add_allowance(uint32_t identifier, const char *path, b
 int32_t sys_capability_fs_remove_allowance(uint32_t identifier, const char *path) {
     struct permissions_capability *pc = capability_for_identifier(identifier);
     if (!pc) {
-//        console_printf("Bad identifier.\n");
         return 0;
     }
 
