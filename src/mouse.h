@@ -24,7 +24,8 @@ int mouse_inited;
 // TODO: to support hotplugging, then every so often, need to query if mouse is alive (send 0xEB and recv and ack)
 extern struct graphics_color mouse_fg_color;
 // mouse is a 30 px by 30 px drawing by default. -1 is for OBOE
-struct graphics_color mouse_draw_buffer[(MOUSE_SIDE - 1) * (MOUSE_SIDE - 1)];
+// struct graphics_color mouse_draw_buffer[(MOUSE_SIDE - 1) * (MOUSE_SIDE - 1)];
+struct graphics_color *mouse_draw_buffer;
 
 /**
  * @brief See if mouse interrupt handling is enabled
