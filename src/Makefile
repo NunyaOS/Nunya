@@ -22,42 +22,45 @@ LIB_INCLUDE_PATH = ./include
 KERNEL_CCFLAGS = -Wall -c -ffreestanding -m32 -march=i386
 KERNEL_LDFLAGS = -m elf_i386
 
+LD?=ld
+CC?=gcc
+ISOGEN?=genisoimage
+
 all: nunya.iso files.iso
 
 debug: KERNEL_CCFLAGS += -DNUNYA_KDEBUG
 debug: nunya.iso
 
 nunya.iso: nunya.img
-	genisoimage -J -R -o nunya.iso -b nunya.img nunya.img
+	${ISOGEN} -J -R -o nunya.iso -b nunya.img nunya.img
 	rm nunya.img
 
 nunya.img: bootblock kernel
-	cat bootblock kernel > nunya.img
-	truncate nunya.img --size 1474560
+	cat bootblock kernel /dev/zero | head -c 1474560 > nunya.img
 
 bootblock: bootblock.o
-	ld ${KERNEL_LDFLAGS} -Ttext 0 -s --oformat binary $< -o $@
+	${LD} ${KERNEL_LDFLAGS} -Ttext 0 -s --oformat binary $< -o $@
 
 kernel: ${OBJECTS}
-	ld ${KERNEL_LDFLAGS} -Ttext 0x10000 -s --oformat binary ${OBJECTS} -o $@
+	${LD} ${KERNEL_LDFLAGS} -Ttext 0x10000 -s --oformat binary ${OBJECTS} -o $@
 
 %.o: %.c
-	gcc ${KERNEL_CCFLAGS} -I ${LIB_INCLUDE_PATH} $< -o $@
+	${CC} ${KERNEL_CCFLAGS} -I ${LIB_INCLUDE_PATH} $< -o $@
 
 %.o: %.S
-	gcc ${KERNEL_CCFLAGS} $< -o $@
+	${CC} ${KERNEL_CCFLAGS} $< -o $@
 
 %.s: %.c
-	gcc -Wall -S -ffreestanding -m32 -march=i386 -I ${LIB_INCLUDE_PATH} $< -o $@
+	${CC} -Wall -S -ffreestanding -m32 -march=i386 -I ${LIB_INCLUDE_PATH} $< -o $@
 
 files.iso: ${BINARIES}
-	mv -f $^ ../files/bin/ && genisoimage -o ../files.iso ../files/
+	mv -f $^ ../files/bin/ && ${ISOGEN} -o ../files.iso ../files/
 
 bin/%.nun: bin/%.o
-	ld ${KERNEL_LDFLAGS} -Ttext 0x80000000 -s --oformat binary $< syscall.o -o $@
+	${LD} ${KERNEL_LDFLAGS} -Ttext 0x80000000 -s --oformat binary $< syscall.o -o $@
 
 bin/%.o: bin/%.c
-	gcc ${KERNEL_CCFLAGS} -I ${LIB_INCLUDE_PATH} $< -o $@
+	${CC} ${KERNEL_CCFLAGS} -I ${LIB_INCLUDE_PATH} $< -o $@
 
 clean:
 	rm -rf nunya.iso nunya.img bootblock kernel *.o ../files.iso *.nun

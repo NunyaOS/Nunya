@@ -12,6 +12,7 @@
 #include "graphics.h"
 #include "console.h"
 #include "window_manager.h"
+#include "memory_raw.h"
 
 static uint8_t mouse_cycle = 0;
 static uint8_t mouse_byte[3];
@@ -136,6 +137,10 @@ void mouse_interrupt() {
 }
 
 void mouse_init() {
+    // We need to claim two pages, but we can only claim one at a time from emmory.
+    // Since this is in startup, we can call two in a row and know that it will be contiguous
+    mouse_draw_buffer = memory_alloc_page(1);
+    memory_alloc_page(1);
     // enable port 2 and interrupts for port 2 (enable IRQ12)
     outb(0xA8, PS2_COMMAND_REGISTER);
     uint8_t cont_config_byte = ps2_read_controller_config_byte();
