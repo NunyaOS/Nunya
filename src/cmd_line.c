@@ -33,7 +33,11 @@ void cmd_line_attempt(const char *line) {
     strip_backspace(line_copy); // Get rid of backspace characters
 
     char *first_word = strtok(line_copy, " ");
-    const char *the_rest_mixed_case = line_copy + (strlen(first_word) + 1);
+    const char *the_rest_mixed_case = 0;
+    if (strlen(first_word) != strlen(line)) {
+        // We need to grab the rest
+        the_rest_mixed_case = line + (strlen(first_word) + 1)*sizeof(char);
+    }
     char the_rest[strlen(the_rest_mixed_case) + 1];
     to_upper(the_rest, the_rest_mixed_case);
 
