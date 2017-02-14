@@ -74,14 +74,26 @@ struct window *window_create(int x, int y, int width, int height, struct window 
     w->bounds_y_2 = 0;
     window_init_draw(w);
 
+
     // Draw the border
     struct graphics_color border_color = {128,128,128};
     struct graphics_color background_color = {0,0,0};
     w->background_color = background_color;
+
     window_set_border_color(w, border_color);
+
+    // clear area underneath window
+    window_clear(w);
 
     active_window = w;
     return w;
+}
+
+void window_delete(struct window *w) {
+    // delete all of the drawn window
+    // TODO: redraw deleted area of window(s) underneath
+    window_draw_rect(w, w->x, w->y, w->width, w->height, w->background_color);
+    kfree(w);
 }
 
 void window_set_border_color(struct window *w, struct graphics_color border_color) {
@@ -140,8 +152,13 @@ void window_draw_bitmap(struct window *w, int x, int y, int width, int height, u
     graphics_bitmap(x + w->x, y + w->y, width, height, data, fgcolor, bgcolor);
 }
 
+void window_draw_rect(struct window *w, int x, int y, int width, int height, struct graphics_color c) {
+    graphics_rect(x, y, width, height, c);
+}
+
+
 void window_clear(struct window *w) {
     // Don't want to erase the border
-    graphics_rect(w->x + 1, w->y + 1, w->width - 1, w->height - 1, w->background_color);
+    window_draw_rect(w, w->x + 1, w->y + 1, w->width - 1, w->height - 1, w->background_color);
 }
 

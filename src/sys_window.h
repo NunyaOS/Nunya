@@ -137,12 +137,32 @@ static inline int32_t clear() {
  * @brief Get the event at the front of the event queue
  * @details This will check if there is an event in the event queue
  * for this window, and if so it will fill e with that information
- * 
+ *
  * @param e An event struct to be filled with information of the event
  * @return 0 if an event was found and filled, 2 if there is no waiting event
  */
 static inline int32_t get_event(struct event *e) {
 	return syscall(SYSCALL_window_get_event, (uint32_t)e, 0, 0, 0, 0);
+}
+
+static inline int32_t get_current_offset_x() {
+    return syscall(SYSCALL_window_offset_x, 0, 0, 0, 0, 0);
+}
+
+static inline int32_t get_current_offset_y() {
+    return syscall(SYSCALL_window_offset_y, 0, 0, 0, 0, 0);
+}
+
+static inline int32_t get_current_max_width() {
+    return syscall(SYSCALL_window_max_width, 0, 0, 0, 0, 0);
+}
+
+static inline int32_t get_current_max_height() {
+    return syscall(SYSCALL_window_max_height, 0, 0, 0, 0, 0);
+}
+
+static inline int32_t capability_set_window(uint32_t identifier, int offset_x, int offset_y, int max_width, int max_height) {
+    return syscall(SYSCALL_window_set_capability, identifier, offset_x, offset_y, max_width, max_height);
 }
 
 #endif

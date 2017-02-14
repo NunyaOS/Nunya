@@ -28,6 +28,11 @@ See the file LICENSE for details.
 #define SYSCALL_window_draw_string 206
 #define SYSCALL_window_clear 207
 #define SYSCALL_window_get_event 208
+#define SYSCALL_window_offset_x 209
+#define SYSCALL_window_offset_y 210
+#define SYSCALL_window_max_width 211
+#define SYSCALL_window_max_height 212
+#define SYSCALL_window_set_capability 213
 
 #define SYSCALL_memory_current_usage 400
 #define SYSCALL_memory_max 401

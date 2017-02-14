@@ -75,6 +75,11 @@ void cmd_line_attempt(const char *line) {
         uint32_t identifier = permissions_capability_create();
         run("/BIN/TEST_WIN.NUN", identifier);
         permissions_capability_delete(identifier);
+    } else if (strcmp("window_perm", first_word) == 0) {
+        console_printf("\f");
+        uint32_t identifier = permissions_capability_create();
+        run("/BIN/WIN_PERM.NUN", identifier);
+        permissions_capability_delete(identifier);
     }
     /*else if () {
      *...
